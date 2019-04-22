@@ -1,0 +1,27 @@
+<snippet>
+	<content><![CDATA[
+#include "${1:${TM_FILENAME/\..+$/\u/g}}.hpp"
+
+${1/(\w+).*/$1/}::${1/(\w+).*/$1/}()
+{
+}
+
+${1/(\w+).*/$1/}::${1/(\w+).*/$1/}(const ${1/(\w+).*/$1/} & cp)
+{
+	(void)cp;
+}
+
+${1/(\w+).*/$1/}::~${1/(\w+).*/$1/}()
+{
+}
+
+${1/(\w+).*/$1/} &	${1/(\w+).*/$1/}::operator=(const ${1/(\w+).*/$1/} & cp)
+{
+	(void)cp;
+	return (*this);
+}
+
+]]></content>
+	<tabTrigger>cpp</tabTrigger>
+	<scope>source.c++, source.objc++</scope>
+</snippet>
