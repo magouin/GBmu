@@ -1,4 +1,5 @@
-SRC_NAME =	main.cpp
+SRC_NAME =	main.cpp \
+				Header.cpp
 
 INC_PATH = ./includes/
 OBJ_PATH = ./obj/

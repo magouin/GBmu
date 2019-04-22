@@ -1,7 +1,7 @@
 #include <gbmu.hpp>
 
 
-int main(int ac, char **av)
+int main(int ac, const char **av)
 {
 	if (ac != 2)
 	{
@@ -9,7 +9,22 @@ int main(int ac, char **av)
 		return (1);
 	}
 
-	string rom_name = av[1];
 	cout << "Coucou" << endl;
+
+	ifstream rom_file(av[1], ios_base::in | ios::binary);
+	if (rom_file.fail())
+	{
+		perror("Open error");
+		return (2);
+	}
+
+	stringstream rom_stream;
+	rom_stream << rom_file.rdbuf();
+
+	string rom = rom_stream.str();
+
+	Header h(rom);
+
+
 	return (0);
 }
