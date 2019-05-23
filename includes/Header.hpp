@@ -8,6 +8,8 @@
 using namespace std;
 
 class Header {
+	static const string cartridge_types[0xFF + 1];
+
 	private:
 		struct s_header
 		{
@@ -36,3 +38,4 @@ class Header {
 };
 
 #endif
+
