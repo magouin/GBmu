@@ -9,8 +9,6 @@ int main(int ac, const char **av)
 		return (1);
 	}
 
-	cout << "Coucou" << endl;
-
 	ifstream rom_file(av[1], ios_base::in | ios::binary);
 	if (rom_file.fail())
 	{

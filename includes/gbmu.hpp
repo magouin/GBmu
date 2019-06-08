@@ -12,5 +12,27 @@
 
 using namespace std;
 
+enum e_flags_modif {
+	_,
+	SET_1,
+	SET_0,
+	SET
+};
+
+struct s_flags {
+	enum e_flags_modif	cy;
+	enum e_flags_modif	h;
+	enum e_flags_modif	n;
+	enum e_flags_modif	z;
+
+};
+
+struct s_instruction_params {
+	const std::string	mnemonic;
+	uint8_t				nb_params;
+	struct s_flags		flags;
+	uint8_t				cycle;
+};
+
 
 #endif

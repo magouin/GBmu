@@ -5,6 +5,9 @@
 # include <iostream>
 # include <iomanip>
 # include <cstdint>
+
+# include <inline_utils.hpp>
+
 using namespace std;
 
 class Header {
@@ -28,12 +31,13 @@ class Header {
 			uint16_t	global_checksum;
 		};
 		const string & _file;
-		const struct s_header *_header;
+		struct s_header _header;
 
 	public:
 		Header(const string & file);
 		Header(const Header & cp);
 		~Header();
+		void read_instr(size_t offset);
 		Header & operator=(const Header & cp);
 };
 
