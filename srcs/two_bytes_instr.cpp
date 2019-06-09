@@ -1,3 +1,6 @@
+#include <gbmu.hpp>
+
+struct s_instruction_params g_op203[256] = {
 {0b00000000, "RLC B", 0, {SET, SET_0, SET_0, SET}, 2},
 {0b00000001, "RLC C", 0, {SET, SET_0, SET_0, SET}, 2},
 {0b00000010, "RLC D", 0, {SET, SET_0, SET_0, SET}, 2},
@@ -253,4 +256,4 @@
 {0b11111100, "SET 7, H", 0, {_, SET_1, SET_0, _}, 2},
 {0b11111101, "SET 7, L", 0, {_, SET_1, SET_0, _}, 2},
 {0b11111110, "SET 7, (HL)", 0, {_, SET_1, SET_0, _}, 3},
-{0b11111111, "SET 7, A", 0, {_, SET_1, SET_0, _}, 2},
+{0b11111111, "SET 7, A", 0, {_, SET_1, SET_0, _}, 2}};

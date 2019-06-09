@@ -1,3 +1,6 @@
+#include <gbmu.hpp>
+
+struct s_instruction_params g_opcode[256] = {
 {0b00000000, "NOP", 0, {_, _, _, _}, 0},
 {0b00000001, "NOT AN INSTRUCTION", 0, {_, _, _, _}, 0},
 {0b00000010, "LD (BC), A", 0, {_, _, _, _}, 2},
@@ -253,4 +256,4 @@
 {0b11111100, "NOT AN INSTRUCTION", 0, {_, _, _, _}, 0},
 {0b11111101, "NOT AN INSTRUCTION", 0, {_, _, _, _}, 0},
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, 2},
-{0b11111111, "RST 7", 0, {_, _, _, _}, 4},
+{0b11111111, "RST 7", 0, {_, _, _, _}, 4}};

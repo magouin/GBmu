@@ -1,6 +1,8 @@
 #ifndef DISASSEMBLER_HPP
 # define DISASSEMBLER_HPP
 
+# include <gbmu.hpp>
+
 class Disassembler {
 	private:
 		const string & _file;
@@ -9,7 +11,7 @@ class Disassembler {
 
 	public:
 
-		Disassembler(const string & _file)
+		Disassembler(const string & _file);
 		Disassembler(const Disassembler & cp);
 		~Disassembler();
 

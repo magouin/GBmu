@@ -28,11 +28,15 @@ struct s_flags {
 };
 
 struct s_instruction_params {
+	uint8_t				opcode;
 	const std::string	mnemonic;
 	uint8_t				nb_params;
 	struct s_flags		flags;
 	uint8_t				cycle;
 };
+
+extern struct s_instruction_params g_op203[256];
+extern struct s_instruction_params g_opcode[256];
 
 
 #endif
