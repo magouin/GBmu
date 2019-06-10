@@ -1,5 +1,10 @@
 #include <gbmu.hpp>
+#include <functional>
+#include <instructions.hpp>
 
+using namespace std::placeholders;
+
+s_emu emu;
 
 int main(int ac, const char **av)
 {
@@ -9,6 +14,28 @@ int main(int ac, const char **av)
 		return (1);
 	}
 
+
+	struct s_instruction_params instrs[3] = {
+	{0b00000000, "NOP", 0, {_, _, _, _}, 0, std::bind(nop, _1, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0})},
+	{0b00000001, "NOT AN INSTRUCTION (0b00000001)", 0, {_, _, _, _}, 0},
+	{0b00000010, "LD (BC), A", 0, {_, _, _, _}, 2, std::bind(ld, 2, (struct s_inc){0, 0}, &emu.regs.bc.BC, &emu.regs.af.af.A, _1, (struct s_params){ADDR_x64, ADDR_x64, true, false, 0})},
+				};
+
+	for (auto i = 0; i < 3; i++)
+	{
+		const struct s_instruction_params& cur = instrs[i];
+
+		std::cout << "Calling inst(" << i << ")\n";
+
+		// struct s_params p = {false, 0};
+
+		if (cur.f != NULL)
+			cur.f(emu);
+	}
+
+
+
+	return (0);
 	ifstream rom_file(av[1], ios_base::in | ios::binary);
 	if (rom_file.fail())
 	{
@@ -21,7 +48,8 @@ int main(int ac, const char **av)
 
 	string rom = rom_stream.str();
 
-	Header h(rom);
+	Disassembler disas(rom);
+	disas.disassemble(0x100);
 
 
 	return (0);

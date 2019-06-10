@@ -1,4 +1,4 @@
-#include "Header.hpp"
+#include <Header.hpp>
 
 const string Header::cartridge_types[] = {"ROM ONLY","MBC1","MBC1+RAM","MBC1+RAM+BATTERY","","MBC2","MBC2+BATTERY","","ROM+RAM","ROM+RAM+BATTERY","",
 										  "MMM01","MMM01+RAM","MMM01+RAM+BATTERY","","MBC3+TIMER+BATTERY","MBC3+TIMER+RAM+BATTERY","MBC3","MBC3+RAM",
@@ -24,10 +24,9 @@ Header::Header(const string & file) : _file(file)
 
 	cout << this->_header.title << endl;
 	cout << cartridge_types[(int)this->_header.cartridge] << endl;
-	std::cout << hex << this->_header.entrypoint;
 
 	this->_header.entrypoint = endian_conv_32(this->_header.entrypoint);
-	this->read_instr(_header.entrypoint);
+	this->read_instr(0x150);
 }
 
 Header::Header(const Header & cp) : _file(cp._file)
@@ -41,7 +40,7 @@ Header::~Header()
 
 void		Header::read_instr(size_t offset)
 {
-	printf("%x %x %x %x %x %x\n", _file[offset + 0], _file[offset + 1], _file[offset + 2], _file[offset + 3], _file[offset + 4], _file[offset + 5]);
+	(void)offset;
 }
 
 Header &	Header::operator=(const Header & cp)

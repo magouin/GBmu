@@ -1,7 +1,9 @@
 SRC_NAME =	main.cpp \
 			Header.cpp \
 			notes.cpp \
-			two_bytes_instr.cpp
+			two_bytes_instr.cpp \
+			Disassembler.cpp \
+			instructions.cpp
 
 INC_PATH = ./includes/
 OBJ_PATH = ./obj/
@@ -11,7 +13,7 @@ NAME = ./GBmu
 CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
-CFLAGS = -Wall -Wextra -g
+CFLAGS =  -std=c++11 -Wall -Wextra -g -Wno-missing-field-initializers -Wno-unused-parameter
 
 SRC_PATH = ./srcs/
 
