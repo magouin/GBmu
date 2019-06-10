@@ -3,7 +3,8 @@ SRC_NAME =	main.cpp \
 			notes.cpp \
 			two_bytes_instr.cpp \
 			Disassembler.cpp \
-			instructions.cpp
+			instructions.cpp \
+			Emulateur.cpp
 
 INC_PATH = ./includes/
 OBJ_PATH = ./obj/
@@ -13,7 +14,7 @@ NAME = ./GBmu
 CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
-CFLAGS =  -std=c++11 -Wall -Wextra -g -Wno-missing-field-initializers -Wno-unused-parameter
+CFLAGS =  -std=c++11 -Wall -Wextra -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address
 
 SRC_PATH = ./srcs/
 
@@ -36,9 +37,12 @@ clean:
 	/bin/rm -f $(OBJ)
 	/bin/rm -rf $(OBJ_PATH)
 
-fclean: clean
+fclean:
+	make clean
 	rm -f $(NAME)
 
-re: fclean all
+re:
+	make fclean
+	make all
 
 .PHONY : all clean fclean re

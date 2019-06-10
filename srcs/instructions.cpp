@@ -1,204 +1,263 @@
 #include <instructions.hpp>
 #include <iostream>
+#include <Emulateur.hpp>
 
-void	nop(s_emu& s, struct s_params& p)
+void	Emulateur::nop(struct s_params& p)
 {
-	(void)s;
-	std::cout << "Called nop" << std::endl;
+	printf("<<< %s >>>\n", __FUNCTION__);
 }
 
-void	ld(uint8_t size, struct s_inc inc, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::ld(uint8_t size, struct s_inc inc, void *param_1, void *param_2, struct s_params& p)
 {
-	// std::cout << "Called ld(" << size <<  << std::endl;
+	printf("In %s\n", __FUNCTION__);
 	printf("Called ld(%d, %p, %p, s)\n", size, param_1, param_2);
 }
 
-void inc(uint8_t size, void *param, s_emu& s, struct s_params& p)
+void	Emulateur::inc(uint8_t size, void *param, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void decr(uint8_t size, void *param, s_emu& s, struct s_params& p)
+void	Emulateur::decr(uint8_t size, void *param, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void rlca(s_emu& s, struct s_params& p)
+void	Emulateur::rlca(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void rrca(s_emu& s, struct s_params& p)
+void	Emulateur::rrca(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void rla(s_emu& s, struct s_params& p)
+void	Emulateur::rla(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void rra(s_emu& s, struct s_params& p)
+void	Emulateur::rra(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void daa(s_emu& s, struct s_params& p)
+void	Emulateur::daa(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void cpl(s_emu& s, struct s_params& p)
+void	Emulateur::cpl(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void stop(s_emu& s, struct s_params& p)
+void	Emulateur::stop(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void halt(s_emu& s, struct s_params& p)
+void	Emulateur::halt(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	_and(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::_and(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	_or(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::_or(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	_xor(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::_xor(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	cp(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::cp(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	add(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::add(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	adc(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::adc(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	sub(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::sub(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	sbc(uint8_t size, void *param_1, void *param_2, s_emu& s, struct s_params& p)
+void	Emulateur::sbc(uint8_t size, void *param_1, void *param_2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
 
-void	jr(enum e_cond cond, s_emu& s, struct s_params& p)
+void	Emulateur::jr(enum e_cond cond, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	ret(enum e_cond cond, s_emu& s, struct s_params& p)
+void	Emulateur::ret(enum e_cond cond, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	reti(s_emu& s, struct s_params& p)
+void	Emulateur::reti(struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
-void	pop(void *param, s_emu& s, struct s_params& p)
+void	Emulateur::pop(void *param, struct s_params& p)
 {
-
-}
-
-void	jp(enum e_cond cond, void* param1, s_emu& s, struct s_params& p)
-{
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	call(enum e_cond cond, s_emu& s, struct s_params& p)
+uint16_t	get_value_from_size(uint16_t *ptr, uint8_t size)
 {
-
+	if (size == 1)
+		return (*(uint8_t *)ptr);
+	else if (size == 2)
+		return (*(uint16_t *)ptr);
+	else
+	{
+		printf("Invalid parameter 1's size\n");
+		exit(0);
+	}
 }
 
-void	push(void *param, s_emu& s, struct s_params& p)
+void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
 {
-
+	if (p->type == NO_PARAM)
+		return ;
+	if (p->param)
+	{
+		p->rez = (uint16_t *)p->param;
+		if (p->type == MEM_gb)
+			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + *(uint8_t *)p->rez);
+		else if (p->type != ADDR_x64)
+		{
+			printf("Invalid parameter 1's TYPE\n");
+			exit(0);
+		}
+	}
+	else
+	{
+		p->rez = (uint16_t *)(this->_RAM + this->regs.PC - size);
+		if (p->type == DIRECT)
+		{
+			p->rez = NULL;
+			p->e = *(int8_t *)p->rez;
+		}
+		else if (p->type != UDIRECT)
+		{
+			printf("Invalid parameter 1's TYPE\n");
+			exit(0);
+		}
+	}
+	if (p->deref)
+		p->rez = (uint16_t *)(this->_RAM + *(p->rez));
 }
 
-void	rst(uint8_t nb, s_emu& s, struct s_params& p)
+void	Emulateur::jp(enum e_cond cond, void* param1, struct s_params& p)
 {
+	struct s_param_info	param;
 
+	if ((cond == NZ && ((this->regs.af.af.F & FLAG_Z) != 0)) ||
+		(cond == Z && ((this->regs.af.af.F & FLAG_Z) == 0)) ||
+		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
+		(cond == Z && ((this->regs.af.af.F & FLAG_CY) == 0)))
+		return ;
+	param.param = param1;
+	param.type = p.param1;
+	param.deref = p.deref_param1;
+	param.size = p.size;
+	this->get_params(&param, 2);
+	printf("JP 0x%x\n", *param.rez);
+	this->regs.PC = *(param.rez);
 }
 
-void	ldhl(uint8_t size, void *param1, void *param2, s_emu& s, struct s_params& p)
+void	Emulateur::call(enum e_cond cond, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	rlc(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::push(void *param, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	rrc(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::rst(uint8_t nb, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	rl(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::ldhl(uint8_t size, void *param1, void *param2, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	rr(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::rlc(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	sla(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::rrc(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	sra(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::rl(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	srl(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::rr(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	_swap(void *param1, s_emu& s, struct s_params& p)
+void	Emulateur::sla(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	bit(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+void	Emulateur::sra(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	res(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+void	Emulateur::srl(void *param1, struct s_params& p)
 {
-
+	printf("In %s\n", __FUNCTION__);
 }
 
-void	set(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+void	Emulateur::_swap(void *param1, struct s_params& p)
 {
+	printf("In %s\n", __FUNCTION__);
+}
 
+void	Emulateur::bit(uint8_t bit, void *param1, struct s_params &p)
+{
+	printf("In %s\n", __FUNCTION__);
+}
+
+void	Emulateur::res(uint8_t bit, void *param1, struct s_params &p)
+{
+	printf("In %s\n", __FUNCTION__);
+}
+
+void	Emulateur::set(uint8_t bit, void *param1, struct s_params &p)
+{
+	printf("In %s\n", __FUNCTION__);
 }
