@@ -147,3 +147,58 @@ void	ldhl(uint8_t size, void *param1, void *param2, s_emu& s, struct s_params& p
 {
 
 }
+
+void	rlc(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	rrc(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	rl(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	rr(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	sla(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	sra(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	srl(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	_swap(void *param1, s_emu& s, struct s_params& p)
+{
+
+}
+
+void	bit(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+{
+
+}
+
+void	res(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+{
+
+}
+
+void	set(uint8_t bit, void *param1, s_emu& s, struct s_params &p)
+{
+
+}
