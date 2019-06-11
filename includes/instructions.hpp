@@ -35,12 +35,6 @@ struct s_params {
 	// Second paris de cafe lance par maxime, quant a l'inexistence de trucs avec deux n qui ne soient pas des nn. (Ca veut dire quelque chose, promis.)
 };
 
-struct s_inc
-{
-	int8_t inc_param1;
-	int8_t inc_param2;
-};
-
 enum e_flags_modif {
 	_,
 	SET_1,

@@ -15,32 +15,32 @@
 struct s_regs {
 	union u_AF {
 		struct s_AF {
-			uint8_t A;
 			uint8_t F;
+			uint8_t A;
 		} af;
 		uint16_t AF;
 	} af;
 
 	union u_BC {
 		struct s_BC {
-			uint8_t B;
 			uint8_t C;
+			uint8_t B;
 		} bc;
 		uint16_t BC;
 	} bc;
 
 	union u_DE {
 		struct s_DE {
-			uint8_t D;
 			uint8_t E;
+			uint8_t D;
 		} de;
 		uint16_t DE;
 	} de;
 
 	union u_HL {
 		struct s_HL {
-			uint8_t H;
 			uint8_t L;
+			uint8_t H;
 		} hl;
 		uint16_t HL;
 	} hl;
@@ -76,13 +76,14 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		Emulateur(std::string rom);
 		~Emulateur(/* args */);
 
-		void emu_start(uint32_t begin, uint32_t end);
-		void set_rom(std::string rom);
+		void	emu_start(uint32_t begin, uint32_t end);
+		void	set_rom(std::string rom);
+		void 	print_regs(void);
 
 		struct s_regs regs;
 
 		void	nop(struct s_params& p);
-		void	ld(struct s_inc inc, void *param_1, void *param_2, struct s_params& p);
+		void	ld(int8_t inc, void *param_1, void *param_2, struct s_params& p);
 		void	inc(void *param, struct s_params& p);
 		void	decr(void *param, struct s_params& p);
 		void	rlca(struct s_params& p);

@@ -8,7 +8,7 @@ void	Emulateur::nop(struct s_params& p)
 	std::cout << "...";
 }
 
-void	Emulateur::ld(struct s_inc inc, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::ld(int8_t inc, void *param_1, void *param_2, struct s_params& p)
 {
 	struct s_param_info	param1;
 	struct s_param_info	param2;
@@ -21,23 +21,21 @@ void	Emulateur::ld(struct s_inc inc, void *param_1, void *param_2, struct s_para
 	param2.type = p.param2;
 	param2.deref = p.deref_param2;
 	this->get_params(&param2, p.size);
+	this->regs.hl.HL += inc;
 	if (p.size == 1)
 	{
 		*((uint8_t *)param1.rez) = *((uint8_t *)param2.rez);
-		*((uint8_t *)param1.rez) += inc.inc_param1;
-		*((uint8_t *)param2.rez) += inc.inc_param2;
 		std::cout << "*(" << param1.rez << ") = 0x" << (int)*((uint8_t *)param2.rez);
 	}
 	else if (p.size == 2)
 	{
 		*(param1.rez) = *(param2.rez);
-		*(param1.rez) += inc.inc_param1;
-		*(param2.rez) += inc.inc_param2;
 		std::cout << "*(" << param1.rez << ") = 0x" << *(param2.rez);
 	}
 	else
 	{
 		printf("Il y un problem\n");
+		exit(0);
 	}
 }
 
@@ -52,34 +50,25 @@ void	Emulateur::inc(void *param, struct s_params& p)
 	if (p.size == 1)
 	{
 		printf("param = 0x%x", *((uint8_t *)para.rez) + 1);
-		this->regs.af.af.F &= !FLAG_N;
+		this->regs.af.af.F &= ~FLAG_N;
+		this->regs.af.af.F &= ~FLAG_Z;
+		this->regs.af.af.F &= ~FLAG_H;
 		if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == ((1 << 4) - 1))
 		{
-			this->regs.af.af.F &= FLAG_H;
+			this->regs.af.af.F |= FLAG_H;
 			printf(" | FLAG_H");
 		}
 		if (*(uint8_t *)para.rez == 0xff)
 		{
-			this->regs.af.af.F &= FLAG_Z;
+			this->regs.af.af.F |= FLAG_Z;
 			printf(" | FLAG_Z");
 		}
 		(*(uint8_t *)para.rez)++;
 	}
 	if (p.size == 2)
 	{
-		printf("param = 0x%x", *((uint16_t *)para.rez) + 1);
-		this->regs.af.af.F &= !FLAG_N;
-		if (((*(uint16_t *)para.rez) & ((1 << 4) - 1)) == ((1 << 4) - 1))
-		{
-			this->regs.af.af.F &= FLAG_H;
-			printf(" | FLAG_H");
-		}
-		if (*(uint16_t *)para.rez == 0xff)
-		{
-			this->regs.af.af.F &= FLAG_Z;
-			printf(" | FLAG_Z");
-		}
 		(*(uint16_t *)para.rez)++;
+		printf("param = 0x%x", *(uint16_t *)para.rez);
 	}
 }
 
@@ -91,19 +80,29 @@ void	Emulateur::decr(void *param, struct s_params& p)
 	para.type = p.param1;
 	para.deref = p.deref_param1;
 	this->get_params(&para, p.size);
-	printf("param = 0x%x", *((uint8_t *)para.rez) - 1);
-	this->regs.af.af.F &= FLAG_N;
-	if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == 0)
+	if (p.size == 1)
 	{
-		this->regs.af.af.F &= FLAG_H;
-		printf(" | FLAG_H");
+		printf("param = 0x%x", *((uint8_t *)para.rez) - 1);
+		this->regs.af.af.F |= FLAG_N;
+		this->regs.af.af.F &= ~FLAG_Z;
+		this->regs.af.af.F &= ~FLAG_H;
+		if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == 0)
+		{
+			this->regs.af.af.F |= FLAG_H;
+			printf(" | FLAG_H");
+		}
+		if (*(uint8_t *)para.rez == 0x01)
+		{
+			this->regs.af.af.F |= FLAG_Z;
+			printf(" | FLAG_Z");
+		}
+		(*(uint8_t *)para.rez)--;
 	}
-	if (*(uint8_t *)para.rez == 0x01)
+	if (p.size == 2)
 	{
-		this->regs.af.af.F &= FLAG_Z;
-		printf(" | FLAG_Z");
+		(*(uint16_t *)para.rez)--;
+		printf("param = 0x%x", *(uint16_t *)para.rez);
 	}
-	(*(uint8_t *)para.rez)--;
 }
 
 void	Emulateur::rlca(struct s_params& p)
@@ -207,7 +206,24 @@ void	Emulateur::sbc(void *param_1, void *param_2, struct s_params& p)
 
 void	Emulateur::jr(enum e_cond cond, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
+	struct s_param_info	param;
+
+	if ((cond == NZ && ((this->regs.af.af.F & FLAG_Z) != 0)) ||
+		(cond == Z && ((this->regs.af.af.F & FLAG_Z) == 0)) ||
+		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
+		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
+		return ;
+	param.param = (void*)NULL;
+	param.type = p.param1;
+	param.deref = p.deref_param1;
+	this->get_params(&param, p.size);
+	if (param.rez)
+	{
+		printf("problem ...\n");
+		exit(0);
+	}
+	this->regs.PC += param.e;
+	std::cout << "jr 0x" << std::hex << this->regs.PC;
 }
 
 void	Emulateur::ret(enum e_cond cond, struct s_params& p)
@@ -244,8 +260,8 @@ void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
 		p->rez = (uint16_t *)(this->_RAM + this->regs.PC - size);
 		if (p->type == DIRECT)
 		{
-			p->rez = NULL;
 			p->e = *(int8_t *)p->rez;
+			p->rez = NULL;
 		}
 		else if (p->type == MEM_gb)
 			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + *(uint8_t *)p->rez);
