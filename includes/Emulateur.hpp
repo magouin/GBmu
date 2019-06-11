@@ -2,6 +2,7 @@
 # define EMULATEUR_HPP
 
 # include <string>
+# include <iostream>
 # include <instructions.hpp>
 
 # define FLAG_Z  (1 << 7)
@@ -53,7 +54,6 @@ struct s_param_info
 	void				*param;
 	enum e_param_type	type;
 	bool				deref;
-	uint8_t				size;
 	uint16_t			*rez;
 	int8_t				e;
 };
@@ -82,9 +82,9 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		struct s_regs regs;
 
 		void	nop(struct s_params& p);
-		void	ld(uint8_t size, struct s_inc inc, void *param_1, void *param_2, struct s_params& p);
-		void	inc(uint8_t size, void *param, struct s_params& p);
-		void	decr(uint8_t size, void *param, struct s_params& p);
+		void	ld(struct s_inc inc, void *param_1, void *param_2, struct s_params& p);
+		void	inc(void *param, struct s_params& p);
+		void	decr(void *param, struct s_params& p);
 		void	rlca(struct s_params& p);
 		void	rla(struct s_params& p);
 		void	rrca(struct s_params& p);
@@ -93,14 +93,14 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		void	cpl(struct s_params& p);
 		void	stop(struct s_params& p);
 		void	halt(struct s_params& p);
-		void	_and(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	_or(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	_xor(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	cp(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	add(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	adc(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	sub(uint8_t size, void *param_1, void *param_2, struct s_params& p);
-		void	sbc(uint8_t size, void *param_1, void *param_2, struct s_params& p);
+		void	_and(void *param_1, void *param_2, struct s_params& p);
+		void	_or(void *param_1, void *param_2, struct s_params& p);
+		void	_xor(void *param_1, void *param_2, struct s_params& p);
+		void	cp(void *param_1, void *param_2, struct s_params& p);
+		void	add(void *param_1, void *param_2, struct s_params& p);
+		void	adc(void *param_1, void *param_2, struct s_params& p);
+		void	sub(void *param_1, void *param_2, struct s_params& p);
+		void	sbc(void *param_1, void *param_2, struct s_params& p);
 		void	jr(enum e_cond cond, struct s_params& p);
 
 		void	jp(enum e_cond cond, void *param_1, struct s_params& p);
@@ -112,7 +112,7 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		void	call(enum e_cond cond, struct s_params& p);
 		void	rst(uint8_t nb, struct s_params& p);
 
-		void	ldhl(uint8_t size, void *param1, void *param2, struct s_params& p);
+		void	ldhl(void *param1, void *param2, struct s_params& p);
 
 		void	rlc(void *param1, struct s_params& p);
 		void	rrc(void *param1, struct s_params& p);

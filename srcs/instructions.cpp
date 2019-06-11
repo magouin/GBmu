@@ -4,21 +4,49 @@
 
 void	Emulateur::nop(struct s_params& p)
 {
-	printf("<<< %s >>>\n", __FUNCTION__);
+	(void)p;
+	std::cout << "...";
 }
 
-void	Emulateur::ld(uint8_t size, struct s_inc inc, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::ld(struct s_inc inc, void *param_1, void *param_2, struct s_params& p)
+{
+	struct s_param_info	param1;
+	struct s_param_info	param2;
+
+	param1.param = param_1;
+	param1.type = p.param1;
+	param1.deref = p.deref_param1;
+	this->get_params(&param1, p.size);
+	param2.param = param_2;
+	param2.type = p.param2;
+	param2.deref = p.deref_param2;
+	this->get_params(&param2, p.size);
+	if (p.size == 1)
+	{
+		*((uint8_t *)param1.rez) = *((uint8_t *)param2.rez);
+		*((uint8_t *)param1.rez) += inc.inc_param1;
+		*((uint8_t *)param2.rez) += inc.inc_param2;
+		std::cout << "*(" << param1.rez << ") = 0x" << (int)*((uint8_t *)param2.rez);
+	}
+	else if (p.size == 2)
+	{
+		*(param1.rez) = *(param2.rez);
+		*(param1.rez) += inc.inc_param1;
+		*(param2.rez) += inc.inc_param2;
+		std::cout << "*(" << param1.rez << ") = 0x" << *(param2.rez);
+	}
+	else
+	{
+		printf("Il y un problem\n");
+	}
+}
+
+void	Emulateur::inc(void *param, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
-	printf("Called ld(%d, %p, %p, s)\n", size, param_1, param_2);
 }
 
-void	Emulateur::inc(uint8_t size, void *param, struct s_params& p)
-{
-	printf("In %s\n", __FUNCTION__);
-}
-
-void	Emulateur::decr(uint8_t size, void *param, struct s_params& p)
+void	Emulateur::decr(void *param, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
@@ -63,42 +91,60 @@ void	Emulateur::halt(struct s_params& p)
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::_and(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::_and(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::_or(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::_or(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::_xor(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::_xor(void *param_1, void *param_2, struct s_params& p)
+{
+	struct s_param_info	param1;
+	struct s_param_info	param2;
+
+	param1.param = param_1;
+	param1.type = p.param1;
+	param1.deref = p.deref_param1;
+	this->get_params(&param1, p.size);
+	param2.param = param_2;
+	param2.type = p.param2;
+	param2.deref = p.deref_param2;
+	this->get_params(&param2, p.size);
+	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
+	{
+		printf("C'est pas normale ...\n");
+		exit(0);
+	}
+	this->regs.af.af.A = *(param1.rez) ^ *((uint8_t *)param2.rez);
+	this->regs.af.af.F = this->regs.af.af.A ? 0 : FLAG_Z;
+	std::cout << "A ^= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
+}
+
+void	Emulateur::cp(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::cp(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::add(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::add(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::adc(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::sub(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::sub(uint8_t size, void *param_1, void *param_2, struct s_params& p)
-{
-	printf("In %s\n", __FUNCTION__);
-}
-
-void	Emulateur::sbc(uint8_t size, void *param_1, void *param_2, struct s_params& p)
+void	Emulateur::sbc(void *param_1, void *param_2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }
@@ -121,19 +167,6 @@ void	Emulateur::reti(struct s_params& p)
 void	Emulateur::pop(void *param, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
-}
-
-uint16_t	get_value_from_size(uint16_t *ptr, uint8_t size)
-{
-	if (size == 1)
-		return (*(uint8_t *)ptr);
-	else if (size == 2)
-		return (*(uint16_t *)ptr);
-	else
-	{
-		printf("Invalid parameter 1's size\n");
-		exit(0);
-	}
 }
 
 void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
@@ -159,9 +192,11 @@ void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
 			p->rez = NULL;
 			p->e = *(int8_t *)p->rez;
 		}
+		else if (p->type == MEM_gb)
+			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + *(uint8_t *)p->rez);
 		else if (p->type != UDIRECT)
 		{
-			printf("Invalid parameter 1's TYPE\n");
+			printf("Invalid parameter 1's TYPE -- PARAM == NULL\n");
 			exit(0);
 		}
 	}
@@ -176,25 +211,46 @@ void	Emulateur::jp(enum e_cond cond, void* param1, struct s_params& p)
 	if ((cond == NZ && ((this->regs.af.af.F & FLAG_Z) != 0)) ||
 		(cond == Z && ((this->regs.af.af.F & FLAG_Z) == 0)) ||
 		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
-		(cond == Z && ((this->regs.af.af.F & FLAG_CY) == 0)))
+		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
 		return ;
 	param.param = param1;
 	param.type = p.param1;
 	param.deref = p.deref_param1;
-	param.size = p.size;
-	this->get_params(&param, 2);
-	printf("JP 0x%x\n", *param.rez);
+	this->get_params(&param, p.size);
 	this->regs.PC = *(param.rez);
+	std::cout << "jp 0x" << std::hex << *(param.rez);
 }
 
 void	Emulateur::call(enum e_cond cond, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
+	struct s_param_info	param;
+
+	if ((cond == NZ && ((this->regs.af.af.F & FLAG_Z) != 0)) ||
+		(cond == Z && ((this->regs.af.af.F & FLAG_Z) == 0)) ||
+		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
+		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
+		return ;
+	param.param = NULL;
+	param.type = p.param1;
+	param.deref = p.deref_param1;
+	this->get_params(&param, p.size);
+	*(this->_RAM + this->regs.SP - 2) = this->regs.PC;
+	this->regs.PC = *(param.rez);
+	this->regs.SP -= 2;
+	std::cout << "SP = 0x" << this->regs.SP << " et PC" << this->regs.SP;
 }
 
 void	Emulateur::push(void *param, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
+	struct s_param_info	para;
+
+	para.param = param;
+	para.type = p.param1;
+	para.deref = p.deref_param1;
+	this->get_params(&para, p.size);
+	*(this->_RAM + this->regs.SP - 2) = *(para.rez);
+	this->regs.SP -= 2;
+	std::cout << "SP = 0x" << this->regs.SP << " et push de " << *(para.rez);
 }
 
 void	Emulateur::rst(uint8_t nb, struct s_params& p)
@@ -202,7 +258,7 @@ void	Emulateur::rst(uint8_t nb, struct s_params& p)
 	printf("In %s\n", __FUNCTION__);
 }
 
-void	Emulateur::ldhl(uint8_t size, void *param1, void *param2, struct s_params& p)
+void	Emulateur::ldhl(void *param1, void *param2, struct s_params& p)
 {
 	printf("In %s\n", __FUNCTION__);
 }

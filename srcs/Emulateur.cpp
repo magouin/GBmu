@@ -1,4 +1,4 @@
-#include "Emulateur.hpp"
+#include <Emulateur.hpp>
 
 Emulateur::Emulateur()
 {
@@ -34,16 +34,18 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	this->regs.PC = begin;
 	while (true)
 	{
-		printf("PC : 0x%X\n", this->regs.PC);
-		if (this->regs.PC > end)
-		{
-			printf("Emulation ended. Stopping...\n");
-			return ;
-		}
+		printf("0x%X : ", this->regs.PC);
+		// if (this->regs.PC > end)
+		// {
+		// 	printf("Emulation ended. Stopping...\n");
+		// 	return ;
+		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
+		std::cout << instr->mnemonic << " -> ";
 
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
+		std::cout << std::endl;
 	}
 }
 
