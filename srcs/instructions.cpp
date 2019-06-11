@@ -43,12 +43,67 @@ void	Emulateur::ld(struct s_inc inc, void *param_1, void *param_2, struct s_para
 
 void	Emulateur::inc(void *param, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
+	struct s_param_info	para;
+
+	para.param = param;
+	para.type = p.param1;
+	para.deref = p.deref_param1;
+	this->get_params(&para, p.size);
+	if (p.size == 1)
+	{
+		printf("param = 0x%x", *((uint8_t *)para.rez) + 1);
+		this->regs.af.af.F &= !FLAG_N;
+		if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == ((1 << 4) - 1))
+		{
+			this->regs.af.af.F &= FLAG_H;
+			printf(" | FLAG_H");
+		}
+		if (*(uint8_t *)para.rez == 0xff)
+		{
+			this->regs.af.af.F &= FLAG_Z;
+			printf(" | FLAG_Z");
+		}
+		(*(uint8_t *)para.rez)++;
+	}
+	if (p.size == 2)
+	{
+		printf("param = 0x%x", *((uint16_t *)para.rez) + 1);
+		this->regs.af.af.F &= !FLAG_N;
+		if (((*(uint16_t *)para.rez) & ((1 << 4) - 1)) == ((1 << 4) - 1))
+		{
+			this->regs.af.af.F &= FLAG_H;
+			printf(" | FLAG_H");
+		}
+		if (*(uint16_t *)para.rez == 0xff)
+		{
+			this->regs.af.af.F &= FLAG_Z;
+			printf(" | FLAG_Z");
+		}
+		(*(uint16_t *)para.rez)++;
+	}
 }
 
 void	Emulateur::decr(void *param, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
+	struct s_param_info	para;
+
+	para.param = param;
+	para.type = p.param1;
+	para.deref = p.deref_param1;
+	this->get_params(&para, p.size);
+	printf("param = 0x%x", *((uint8_t *)para.rez) - 1);
+	this->regs.af.af.F &= FLAG_N;
+	if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == 0)
+	{
+		this->regs.af.af.F &= FLAG_H;
+		printf(" | FLAG_H");
+	}
+	if (*(uint8_t *)para.rez == 0x01)
+	{
+		this->regs.af.af.F &= FLAG_Z;
+		printf(" | FLAG_Z");
+	}
+	(*(uint8_t *)para.rez)--;
 }
 
 void	Emulateur::rlca(struct s_params& p)
@@ -237,7 +292,7 @@ void	Emulateur::call(enum e_cond cond, struct s_params& p)
 	*(this->_RAM + this->regs.SP - 2) = this->regs.PC;
 	this->regs.PC = *(param.rez);
 	this->regs.SP -= 2;
-	std::cout << "SP = 0x" << this->regs.SP << " et PC" << this->regs.SP;
+	std::cout << "SP = 0x" << this->regs.SP << " et PC = 0x" << this->regs.PC;
 }
 
 void	Emulateur::push(void *param, struct s_params& p)
