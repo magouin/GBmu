@@ -27,10 +27,10 @@ Emulateur::Emulateur(std::string rom): _ROM(rom)
 void	Emulateur::print_regs(void)
 {
 	printf("\n--- REGISTERS ---\n");
-	printf("B: 0x%02hhx\t\tC: 0x%02hhx\n", this->regs.bc.bc.B, this->regs.bc.bc.C);
-	printf("D: 0x%02hhx\t\tE: 0x%02hhx\n", this->regs.de.de.D, this->regs.de.de.E);
-	printf("H: 0x%02hhx\t\tL: 0x%02hhx\n", this->regs.hl.hl.H, this->regs.hl.hl.L);
-	printf("A: 0x%02hhx\n", this->regs.af.af.A);
+	printf("B: 0x%02hhx\t\tC: 0x%02hhx\t(0x%04hx)\n", this->regs.bc.bc.B, this->regs.bc.bc.C, this->regs.bc.BC);
+	printf("D: 0x%02hhx\t\tE: 0x%02hhx\t(0x%04hx)\n", this->regs.de.de.D, this->regs.de.de.E, this->regs.de.DE);
+	printf("H: 0x%02hhx\t\tL: 0x%02hhx\t(0x%04hx)\n", this->regs.hl.hl.H, this->regs.hl.hl.L, this->regs.hl.HL);
+	printf("A: 0x%02hhx\t(0x%04hx)\n", this->regs.af.af.A, this->regs.af.AF);
 	printf("SP: 0x%04hx\tPC: 0x%04hx\n", this->regs.SP, this->regs.PC);
 	printf("F =");
 	if (this->regs.af.af.F & FLAG_Z)
@@ -47,10 +47,18 @@ void	Emulateur::print_regs(void)
 void Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
+	int	x;
 
 	printf("Starting emulation from 0x%X to 0x%X\n", begin, end);
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
+	x = 0;
+	this->regs.af.AF = 0x01B0;
+	this->regs.bc.BC = 0x0013;
+	this->regs.de.DE = 0x00d8;
+	this->regs.hl.HL = 0x014d;
+	this->regs.SP = 0xfffe;
+
 	while (true)
 	{
 		printf("0x%X : ", this->regs.PC);
@@ -60,11 +68,15 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// 	return ;
 		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
-		std::cout << instr->mnemonic << " -> ";
 
+
+		if (x == 251)
+			print_regs();
+		std::cout << instr->mnemonic << " -> ";
+		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-		print_regs();
+
 		std::cout << std::endl;
 	}
 }

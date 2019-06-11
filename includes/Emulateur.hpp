@@ -78,7 +78,7 @@ void	get_params(struct s_param_info *p, uint8_t size);
 
 		void	emu_start(uint32_t begin, uint32_t end);
 		void	set_rom(std::string rom);
-		void 	print_regs(void);
+		void	print_regs(void);
 
 		struct s_regs regs;
 

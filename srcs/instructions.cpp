@@ -267,8 +267,8 @@ void	Emulateur::pop(void *param, struct s_params& p)
 	para.deref = p.deref_param1;
 	this->get_params(&para, p.size);
 	*(para.rez) = *(uint16_t *)(this->_RAM + this->regs.SP);
+	std::cout << "Pop de 0x" << *((uint16_t *)para.rez) << " a SP = 0x" << this->regs.SP;
 	this->regs.SP += 2;
-	std::cout << "SP = 0x" << this->regs.SP << " et pop de " << *(para.rez);
 }
 
 void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
@@ -350,9 +350,9 @@ void	Emulateur::push(void *param, struct s_params& p)
 	para.type = p.param1;
 	para.deref = p.deref_param1;
 	this->get_params(&para, p.size);
-	*(this->_RAM + this->regs.SP - 2) = *(para.rez);
 	this->regs.SP -= 2;
-	std::cout << "SP = 0x" << this->regs.SP << " et push de " << *(para.rez);
+	*(uint16_t *)(this->_RAM + this->regs.SP) = *(uint16_t *)(para.rez);
+	std::cout << "Push de 0x" << *(para.rez) << " a SP = 0x" << this->regs.SP;
 }
 
 void	Emulateur::rst(uint8_t nb, struct s_params& p)
