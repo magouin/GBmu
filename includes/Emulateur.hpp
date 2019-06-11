@@ -4,6 +4,7 @@
 # include <string>
 # include <iostream>
 # include <instructions.hpp>
+# include <Header.hpp>
 
 # define FLAG_Z  (1 << 7)
 # define FLAG_N  (1 << 6)
@@ -64,6 +65,7 @@ class Emulateur {
 		uint8_t		_RAM[0x10000];
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
+		void	init_registers(void);
 
 void	get_params(struct s_param_info *p, uint8_t size);
 
@@ -126,6 +128,8 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		void	bit(uint8_t bit, void *param1, struct s_params &p);
 		void	res(uint8_t bit, void *param1, struct s_params &p);
 		void	set(uint8_t bit, void *param1, struct s_params &p);
+
+		void	di(struct s_params& p);
 		
 		void	op203(struct s_params& p);
 };
