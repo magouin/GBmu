@@ -210,7 +210,7 @@ const struct s_instruction_params Emulateur::g_opcode[256] = {
 {0b11001000, "RET Z", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, &emu, NZ, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0})},
 {0b11001001, "RET", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, &emu, EMPTY, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0})},
 {0b11001010, "JP Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, &emu, Z, (void*)NULL, (struct s_params){UDIRECT, NO_PARAM, false, false, 2})},
-{0b11001011, "TWO BITS INSTRUCTIONS", 1, {SET, SET, SET, SET}, 0},
+{0b11001011, "TWO BITS INSTRUCTIONS", 0, {SET, SET, SET, SET}, 0, std::bind(&Emulateur::op203, &emu, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0})},
 {0b11001100, "CALL Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, &emu, Z, (struct s_params){UDIRECT, NO_PARAM, false, false, 2})},
 {0b11001101, "CALL nn", 2, {_, _, _, _}, 6, std::bind(&Emulateur::call, &emu, EMPTY, (struct s_params){UDIRECT, NO_PARAM, false, false, 2})},
 {0b11001110, "ADC A, n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, &emu, &emu.regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1})},

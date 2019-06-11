@@ -55,7 +55,7 @@ struct s_param_info
 	enum e_param_type	type;
 	bool				deref;
 	uint16_t			*rez;
-	int8_t				e;
+	uint16_t			e;
 };
 
 class Emulateur {
@@ -126,6 +126,8 @@ void	get_params(struct s_param_info *p, uint8_t size);
 		void	bit(uint8_t bit, void *param1, struct s_params &p);
 		void	res(uint8_t bit, void *param1, struct s_params &p);
 		void	set(uint8_t bit, void *param1, struct s_params &p);
+		
+		void	op203(struct s_params& p);
 };
 
 #endif

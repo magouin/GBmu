@@ -46,11 +46,10 @@ void	Emulateur::print_regs(void)
 
 void Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
-	printf("Starting emulation from 0x%X to 0x%X\n", begin, end);
-
-	memcpy(_RAM, _ROM.c_str(), 0x8000);
-
 	const struct s_instruction_params	*instr;
+
+	printf("Starting emulation from 0x%X to 0x%X\n", begin, end);
+	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
 	while (true)
 	{
