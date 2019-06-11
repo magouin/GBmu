@@ -48,8 +48,8 @@ int main(int ac, const char **av)
 
 	emu.set_rom(rom);
 
-	Disassembler disas(rom);
-	disas.disassemble(0x100, 0x10);
+	// Disassembler disas(rom);
+	// disas.disassemble(0x100, 0x10);
 
 	emu.emu_start(0x100, 0x110);
 

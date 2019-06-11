@@ -239,7 +239,7 @@ void	Emulateur::jr(enum e_cond cond, struct s_params& p)
 	}
 	printf("add %hd at PC = 0x%hx", param.e, this->regs.PC);
 	this->regs.PC += param.e;
-	printf(" -> 0x%hx\n", this->regs.PC);
+	printf(" -> 0x%hx", this->regs.PC);
 }
 
 void	Emulateur::ret(enum e_cond cond, struct s_params& p)
@@ -415,10 +415,19 @@ void	Emulateur::_swap(void *param1, struct s_params& p)
 	exit(1);
 }
 
-void	Emulateur::bit(uint8_t bit, void *param1, struct s_params &p)
+void	Emulateur::bit(uint8_t bit, void *param, struct s_params &p)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	para;
+
+	para.param = param;
+	para.type = p.param1;
+	para.deref = p.deref_param1;
+	this->get_params(&para, p.size);
+	this->regs.af.af.F |= FLAG_H;
+	this->regs.af.af.F &= ~FLAG_N;
+	this->regs.af.af.F |= FLAG_Z;
+	if (*para.rez & (1 << bit))
+		this->regs.af.af.F &= ~FLAG_Z;
 }
 
 void	Emulateur::res(uint8_t bit, void *param1, struct s_params &p)
@@ -438,6 +447,13 @@ void	Emulateur::op203(struct s_params& p)
 	const struct s_instruction_params	*instr;
 
 	instr = &g_op203[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
+	std::cout << instr->mnemonic;
 	this->regs.PC += 1 + instr->nb_params * 1;
 	instr->f();
+}
+
+void	Emulateur::di(struct s_params& p)
+{
+	(void)p;
+	std::cout << "...";
 }
