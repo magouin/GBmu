@@ -72,7 +72,7 @@ void	Emulateur::init_registers(void)
 	this->_RAM[0xff24] = 0x77; // NR50
 	this->_RAM[0xff25] = 0xf3; // NR51
 	this->_RAM[0xff26] = 0xf1; // NR52
-	this->_RAM[0xff40] = 0x91; // LCDC
+	this->_RAM[0xff40] = 0xff; // LCDC
 	this->_RAM[0xff42] = 0x00; // SCY
 	this->_RAM[0xff43] = 0x00; // SCX
 	this->_RAM[0xff45] = 0x00; // LYC
@@ -88,13 +88,14 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
 	int	x;
+	char c;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
 	x = 0;
 
 
-
+	init_registers();
 	while (true)
 	{
 		printf("0x%X : ", this->regs.PC);
@@ -105,9 +106,9 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
 
-
-		if (x == 259)
-			print_regs();
+		printf("Inst %d\n", x);
+		print_regs();
+		read(0, &c, 1);
 		std::cout << instr->mnemonic << " -> ";
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;

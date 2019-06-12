@@ -6,6 +6,10 @@
 # include <instructions.hpp>
 # include <Header.hpp>
 
+# include <sys/types.h>
+# include <sys/uio.h>
+# include <unistd.h>
+
 # define FLAG_Z  (1 << 7)
 # define FLAG_N  (1 << 6)
 # define FLAG_H  (1 << 5)
