@@ -13,13 +13,9 @@ void	Emulateur::ld(int8_t inc, void *param_1, void *param_2, struct s_params& p)
 	struct s_param_info	param1;
 	struct s_param_info	param2;
 
-	param1.param = param_1;
-	param1.type = p.param1;
-	param1.deref = p.deref_param1;
+	param1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param1, p.size);
-	param2.param = param_2;
-	param2.type = p.param2;
-	param2.deref = p.deref_param2;
+	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
 	this->regs.hl.HL += inc;
 	if (p.size == 1)
@@ -43,9 +39,7 @@ void	Emulateur::inc(void *param, struct s_params& p)
 {
 	struct s_param_info	para;
 
-	para.param = param;
-	para.type = p.param1;
-	para.deref = p.deref_param1;
+	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
 	if (p.size == 1)
 	{
@@ -76,9 +70,7 @@ void	Emulateur::decr(void *param, struct s_params& p)
 {
 	struct s_param_info	para;
 
-	para.param = param;
-	para.type = p.param1;
-	para.deref = p.deref_param1;
+	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
 	if (p.size == 1)
 	{
@@ -155,14 +147,40 @@ void	Emulateur::halt(struct s_params& p)
 
 void	Emulateur::_and(void *param_1, void *param_2, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	param1;
+	struct s_param_info	param2;
+
+	param1 = {param_1, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&param1, p.size);
+	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
+	this->get_params(&param2, p.size);
+	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
+	{
+		printf("C'est pas normal ...\n");
+		exit(0);
+	}
+	this->regs.af.af.A = *(param1.rez) & *((uint8_t *)param2.rez);
+	this->regs.af.af.F = this->regs.af.af.A ? FLAG_H : (FLAG_H | FLAG_Z);
+	std::cout << "A &= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
 }
 
 void	Emulateur::_or(void *param_1, void *param_2, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	param1;
+	struct s_param_info	param2;
+
+	param1 = {param_1, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&param1, p.size);
+	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
+	this->get_params(&param2, p.size);
+	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
+	{
+		printf("C'est pas normal ...\n");
+		exit(0);
+	}
+	this->regs.af.af.A = *(param1.rez) | *((uint8_t *)param2.rez);
+	this->regs.af.af.F = this->regs.af.af.A ? 0 : FLAG_Z;
+	std::cout << "A |= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
 }
 
 void	Emulateur::_xor(void *param_1, void *param_2, struct s_params& p)
@@ -170,17 +188,13 @@ void	Emulateur::_xor(void *param_1, void *param_2, struct s_params& p)
 	struct s_param_info	param1;
 	struct s_param_info	param2;
 
-	param1.param = param_1;
-	param1.type = p.param1;
-	param1.deref = p.deref_param1;
+	param1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param1, p.size);
-	param2.param = param_2;
-	param2.type = p.param2;
-	param2.deref = p.deref_param2;
+	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
 	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
 	{
-		printf("C'est pas normale ...\n");
+		printf("C'est pas normal ...\n");
 		exit(0);
 	}
 	this->regs.af.af.A = *(param1.rez) ^ *((uint8_t *)param2.rez);
@@ -196,8 +210,31 @@ void	Emulateur::cp(void *param_1, void *param_2, struct s_params& p)
 
 void	Emulateur::add(void *param_1, void *param_2, struct s_params& p)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	p1;
+	struct s_param_info	p2;
+
+	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&p1, p.size);
+	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
+	this->get_params(&p2, p.size);
+	if (!p2.rez)
+	{
+		this->regs.af.af.F &= ~FLAG_N;
+		if ((uint32_t)*(uint16_t *)p1.rez + (uint32_t)*(uint16_t *)p2.rez > 0xffff)
+			this->regs.af.af.F |= FLAG_CY;
+		if (((*(uint16_t *)p1.rez) & 0x0fff) + ((*(uint16_t *)p2.rez) & 0x0fff) > 0x0fff)
+			this->regs.af.af.F |= FLAG_H;
+		*(uint16_t *)p1.rez = *(uint16_t *)p2.rez;
+	}
+	else
+	{
+		this->regs.af.af.F = 0;
+		if ((uint32_t)*(uint16_t *)p1.rez + (uint32_t)p2.e > 0xffff)
+			this->regs.af.af.F |= FLAG_CY;
+		if (((*(uint16_t *)p1.rez) & 0x0fff) + (p2.e & 0x0fff) > 0x0fff)
+			this->regs.af.af.F |= FLAG_H;
+		*(uint16_t *)p1.rez = (int16_t)p2.e;
+	}
 }
 
 void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p)
@@ -228,9 +265,7 @@ void	Emulateur::jr(enum e_cond cond, struct s_params& p)
 		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
 		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
 		return ;
-	param.param = (void*)NULL;
-	param.type = p.param1;
-	param.deref = p.deref_param1;
+	param = {NULL, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param, p.size);
 	if (param.rez)
 	{
@@ -262,9 +297,7 @@ void	Emulateur::pop(void *param, struct s_params& p)
 {
 	struct s_param_info	para;
 
-	para.param = param;
-	para.type = p.param1;
-	para.deref = p.deref_param1;
+	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
 	*(para.rez) = *(uint16_t *)(this->_RAM + this->regs.SP);
 	std::cout << "Pop de 0x" << *((uint16_t *)para.rez) << " a SP = 0x" << this->regs.SP;
@@ -315,9 +348,7 @@ void	Emulateur::jp(enum e_cond cond, void* param1, struct s_params& p)
 		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
 		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
 		return ;
-	param.param = param1;
-	param.type = p.param1;
-	param.deref = p.deref_param1;
+	param = {param1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param, p.size);
 	this->regs.PC = *(param.rez);
 	std::cout << "jp 0x" << std::hex << *(param.rez);
@@ -332,9 +363,7 @@ void	Emulateur::call(enum e_cond cond, struct s_params& p)
 		(cond == NC && ((this->regs.af.af.F & FLAG_CY) != 0)) ||
 		(cond == C && ((this->regs.af.af.F & FLAG_CY) == 0)))
 		return ;
-	param.param = NULL;
-	param.type = p.param1;
-	param.deref = p.deref_param1;
+	param = {NULL, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param, p.size);
 	*(uint16_t *)(this->_RAM + this->regs.SP - 2) = this->regs.PC;
 	this->regs.PC = *(param.rez);
@@ -346,9 +375,7 @@ void	Emulateur::push(void *param, struct s_params& p)
 {
 	struct s_param_info	para;
 
-	para.param = param;
-	para.type = p.param1;
-	para.deref = p.deref_param1;
+	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
 	this->regs.SP -= 2;
 	*(uint16_t *)(this->_RAM + this->regs.SP) = *(uint16_t *)(para.rez);
@@ -419,9 +446,7 @@ void	Emulateur::bit(uint8_t bit, void *param, struct s_params &p)
 {
 	struct s_param_info	para;
 
-	para.param = param;
-	para.type = p.param1;
-	para.deref = p.deref_param1;
+	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
 	this->regs.af.af.F |= FLAG_H;
 	this->regs.af.af.F &= ~FLAG_N;
