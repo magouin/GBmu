@@ -1,3 +1,8 @@
-*.o
+*
 
-GBmu
+!.gitignore
+!Makefile
+!srcs/*
+!includes/*
+!docs/*
+!mgba
