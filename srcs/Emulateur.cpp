@@ -26,22 +26,23 @@ Emulateur::Emulateur(std::string rom): _ROM(rom)
 
 void	Emulateur::print_regs(void)
 {
-	printf("\n--- REGISTERS ---\n");
-	printf("B: 0x%02hhx\t\tC: 0x%02hhx\t(0x%04hx)\n", this->regs.bc.bc.B, this->regs.bc.bc.C, this->regs.bc.BC);
-	printf("D: 0x%02hhx\t\tE: 0x%02hhx\t(0x%04hx)\n", this->regs.de.de.D, this->regs.de.de.E, this->regs.de.DE);
-	printf("H: 0x%02hhx\t\tL: 0x%02hhx\t(0x%04hx)\n", this->regs.hl.hl.H, this->regs.hl.hl.L, this->regs.hl.HL);
-	printf("A: 0x%02hhx\t(0x%04hx)\n", this->regs.af.af.A, this->regs.af.AF);
-	printf("SP: 0x%04hx\tPC: 0x%04hx\n", this->regs.SP, this->regs.PC);
-	printf("F =");
-	if (this->regs.af.af.F & FLAG_Z)
-		printf(" FLAG_Z");
-	if (this->regs.af.af.F & FLAG_H)
-		printf(" FLAG_H");
-	if (this->regs.af.af.F & FLAG_N)
-		printf(" FLAG_N");
-	if (this->regs.af.af.F & FLAG_CY)
-		printf(" FLAG_CY");
-	printf("\n");
+	int i;
+
+	i = 0;
+	printf("A: %02hhX  F: %02hhX  (AF: %04hX)\n", this->regs.af.af.A, this->regs.af.af.F, this->regs.af.AF);
+	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.bc.bc.B, this->regs.bc.bc.C, this->regs.bc.BC);
+	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.de.de.D, this->regs.de.de.E, this->regs.de.DE);
+	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.hl.hl.H, this->regs.hl.hl.L, this->regs.hl.HL);
+	printf("PC: %04hX  SP: %04X\n", this->regs.PC, this->regs.SP);
+	printf("ROM: 01  RAM: 00  WRAM: 01  VRAM: 00\n");
+	printf("F: [");
+	this->regs.af.af.F & FLAG_Z ? printf("Z") : printf("-");
+	this->regs.af.af.F & FLAG_N ? printf("N") : printf("-");
+	this->regs.af.af.F & FLAG_H ? printf("H") : printf("-");
+	this->regs.af.af.F & FLAG_CY ? printf("C") : printf("-");
+	printf("]\n");
+
+
 }
 
 void	Emulateur::init_registers(void)
@@ -51,6 +52,7 @@ void	Emulateur::init_registers(void)
 	this->regs.de.DE = 0x00d8;
 	this->regs.hl.HL = 0x014d;
 	this->regs.SP = 0xfffe;
+	this->_RAM[0xff00] = 0x00; // P1
 	this->_RAM[0xff05] = 0x00; // TIMA
 	this->_RAM[0xff06] = 0x00; // TMA 
 	this->_RAM[0xff07] = 0x00; // TAC
@@ -72,9 +74,10 @@ void	Emulateur::init_registers(void)
 	this->_RAM[0xff24] = 0x77; // NR50
 	this->_RAM[0xff25] = 0xf3; // NR51
 	this->_RAM[0xff26] = 0xf1; // NR52
-	this->_RAM[0xff40] = 0xff; // LCDC
+	this->_RAM[0xff40] = 0x91; // LCDC
 	this->_RAM[0xff42] = 0x00; // SCY
 	this->_RAM[0xff43] = 0x00; // SCX
+	this->_RAM[0xff44] = 0x05; // LY
 	this->_RAM[0xff45] = 0x00; // LYC
 	this->_RAM[0xff47] = 0xfc; // BGP
 	this->_RAM[0xff48] = 0xff; // OBPO
@@ -98,7 +101,7 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	init_registers();
 	while (true)
 	{
-		printf("0x%X : ", this->regs.PC);
+		// printf("0x%X : ", this->regs.PC);
 		// if (this->regs.PC > end)
 		// {
 		// 	printf("Emulation ended. Stopping...\n");
@@ -106,15 +109,14 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
 
-		printf("Inst %d\n", x);
 		print_regs();
-		read(0, &c, 1);
-		std::cout << instr->mnemonic << " -> ";
+		// read(0, &c, 1);
+		// std::cout << instr->mnemonic << " -> ";
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
 
-		std::cout << std::endl;
+		// std::cout << std::endl;
 	}
 }
 

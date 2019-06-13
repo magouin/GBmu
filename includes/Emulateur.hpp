@@ -70,8 +70,9 @@ class Emulateur {
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
 		void	init_registers(void);
+		bool	check_rules(enum e_cond cond);
 
-void	get_params(struct s_param_info *p, uint8_t size);
+		void	get_params(struct s_param_info *p, uint8_t size);
 
 
 	public:
