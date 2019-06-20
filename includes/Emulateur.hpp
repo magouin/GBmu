@@ -1,11 +1,15 @@
 #ifndef EMULATEUR_HPP
 # define EMULATEUR_HPP
 
+# include <strings.h>
+# include <string.h>
 # include <string>
 # include <iostream>
 # include <instructions.hpp>
 # include <Header.hpp>
 
+# include <time.h>
+# include <sys/time.h> 
 # include <sys/types.h>
 # include <sys/uio.h>
 # include <unistd.h>
@@ -66,6 +70,7 @@ struct s_param_info
 class Emulateur {
 	private:
 		std::string	_ROM;
+		long long	_cycle;
 		uint8_t		_RAM[0x10000];
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
@@ -89,54 +94,54 @@ class Emulateur {
 
 		struct s_regs regs;
 
-		void	nop(struct s_params& p);
-		void	ld(int8_t inc, void *param_1, void *param_2, struct s_params& p);
-		void	inc(void *param, struct s_params& p);
-		void	decr(void *param, struct s_params& p);
-		void	rlca(struct s_params& p);
-		void	rla(struct s_params& p);
-		void	rrca(struct s_params& p);
-		void	rra(struct s_params& p);
-		void	daa(struct s_params& p);
-		void	cpl(struct s_params& p);
-		void	stop(struct s_params& p);
-		void	halt(struct s_params& p);
-		void	_and(void *param_1, void *param_2, struct s_params& p);
-		void	_or(void *param_1, void *param_2, struct s_params& p);
-		void	_xor(void *param_1, void *param_2, struct s_params& p);
-		void	cp(void *param_1, void *param_2, struct s_params& p);
-		void	add(void *param_1, void *param_2, struct s_params& p);
-		void	adc(void *param_1, void *param_2, struct s_params& p);
-		void	sub(void *param_1, void *param_2, struct s_params& p);
-		void	sbc(void *param_1, void *param_2, struct s_params& p);
-		void	jr(enum e_cond cond, struct s_params& p);
+		void	nop(struct s_params& p, int cycle);
+		void	ld(int8_t inc, void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	inc(void *param, struct s_params& p, int cycle);
+		void	decr(void *param, struct s_params& p, int cycle);
+		void	rlca(struct s_params& p, int cycle);
+		void	rla(struct s_params& p, int cycle);
+		void	rrca(struct s_params& p, int cycle);
+		void	rra(struct s_params& p, int cycle);
+		void	daa(struct s_params& p, int cycle);
+		void	cpl(struct s_params& p, int cycle);
+		void	stop(struct s_params& p, int cycle);
+		void	halt(struct s_params& p, int cycle);
+		void	_and(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	_or(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	_xor(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	cp(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	add(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	adc(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	sub(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	sbc(void *param_1, void *param_2, struct s_params& p, int cycle);
+		void	jr(enum e_cond cond, struct s_params& p, int cycle);
 
-		void	jp(enum e_cond cond, void *param_1, struct s_params& p);
+		void	jp(enum e_cond cond, void *param_1, struct s_params& p, int cycle);
 
-		void	ret(enum e_cond cond, struct s_params& p);
-		void	reti(struct s_params& p);
-		void	pop(void *param, struct s_params& p);
-		void	push(void *param, struct s_params& p);
-		void	call(enum e_cond cond, struct s_params& p);
-		void	rst(uint8_t nb, struct s_params& p);
+		void	ret(enum e_cond cond, struct s_params& p, int cycle);
+		void	reti(struct s_params& p, int cycle);
+		void	pop(void *param, struct s_params& p, int cycle);
+		void	push(void *param, struct s_params& p, int cycle);
+		void	call(enum e_cond cond, struct s_params& p, int cycle);
+		void	rst(uint8_t nb, struct s_params& p, int cycle);
 
-		void	ldhl(void *param1, void *param2, struct s_params& p);
+		void	ldhl(void *param1, void *param2, struct s_params& p, int cycle);
 
-		void	rlc(void *param1, struct s_params& p);
-		void	rrc(void *param1, struct s_params& p);
-		void	rl(void *param1, struct s_params& p);
-		void	rr(void *param1, struct s_params& p);
-		void	sla(void *param1, struct s_params& p);
-		void	sra(void *param1, struct s_params& p);
-		void	srl(void *param1, struct s_params& p);
-		void	_swap(void *param1, struct s_params& p);
-		void	bit(uint8_t bit, void *param1, struct s_params &p);
-		void	res(uint8_t bit, void *param1, struct s_params &p);
-		void	set(uint8_t bit, void *param1, struct s_params &p);
+		void	rlc(void *param1, struct s_params& p, int cycle);
+		void	rrc(void *param1, struct s_params& p, int cycle);
+		void	rl(void *param1, struct s_params& p, int cycle);
+		void	rr(void *param1, struct s_params& p, int cycle);
+		void	sla(void *param1, struct s_params& p, int cycle);
+		void	sra(void *param1, struct s_params& p, int cycle);
+		void	srl(void *param1, struct s_params& p, int cycle);
+		void	_swap(void *param1, struct s_params& p, int cycle);
+		void	bit(uint8_t bit, void *param1, struct s_params& p, int cycle);
+		void	res(uint8_t bit, void *param1, struct s_params& p, int cycle);
+		void	set(uint8_t bit, void *param1, struct s_params& p, int cycle);
 
-		void	di(struct s_params& p);
+		void	di(struct s_params& p, int cycle);
 		
-		void	op203(struct s_params& p);
+		void	op203(struct s_params& p, int cycle);
 };
 
 #endif

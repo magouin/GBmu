@@ -92,13 +92,16 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	const struct s_instruction_params	*instr;
 	int	x;
 	char c;
+	struct timeval t1, t2;
+    double elapsedTime;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
 	x = 0;
 
-
 	init_registers();
+	this->_cycle = 0;
+	gettimeofday(&t1, NULL);
 	while (true)
 	{
 		// printf("0x%X : ", this->regs.PC);
@@ -109,13 +112,24 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
 
-		print_regs();
+		/*print_regs();*/
 		// read(0, &c, 1);
 		// std::cout << instr->mnemonic << " -> ";
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
+		gettimeofday(&t2, NULL);
+		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+		t1 = t2;
+		usleep(elapsedTime);
+	
 
+		if (_cycle > 3000000)
+		{
+			printf("cycle %lld\n", _cycle);
+			exit(0);
+		}
 		// std::cout << std::endl;
 	}
 }

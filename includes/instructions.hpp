@@ -57,7 +57,6 @@ struct s_instruction_params {
 	const std::string	mnemonic;
 	uint8_t				nb_params;
 	struct s_flags		flags;
-	uint8_t				cycle;
 
 	t_instr f;
 };
