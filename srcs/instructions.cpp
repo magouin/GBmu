@@ -541,5 +541,14 @@ void	Emulateur::op203(struct s_params& p, int cycle)
 void	Emulateur::di(struct s_params& p, int cycle)
 {
 	(void)p;
-	// std::cout << "...";
+	_IME = false;
+	this->_cycle += cycle;
+}
+
+void	Emulateur::ei(struct s_params& p, int cycle)
+{
+	(void)p;
+	_IME = true;
+	_RAM[0xffff] = 0x1f;
+	this->_cycle += cycle;
 }

@@ -72,6 +72,7 @@ class Emulateur {
 		std::string	_ROM;
 		long long	_cycle;
 		uint8_t		_RAM[0x10000];
+		bool		_IME;
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
 		void	init_registers(void);
@@ -140,6 +141,7 @@ class Emulateur {
 		void	set(uint8_t bit, void *param1, struct s_params& p, int cycle);
 
 		void	di(struct s_params& p, int cycle);
+		void	ei(struct s_params& p, int cycle);
 		
 		void	op203(struct s_params& p, int cycle);
 };
