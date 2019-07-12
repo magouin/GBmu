@@ -22,6 +22,7 @@ Emulateur &	Emulateur::operator=(const Emulateur & cp)
 Emulateur::Emulateur(std::string rom): _ROM(rom)
 {
 	bzero(_RAM, sizeof(_RAM));
+	_IME = true;
 }
 
 void	Emulateur::print_regs(void)
@@ -93,7 +94,7 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	int	x;
 	char c;
 	struct timeval t1, t2;
-    double elapsedTime;
+	long elapsedTime;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
@@ -102,6 +103,9 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	init_registers();
 	this->_cycle = 0;
 	gettimeofday(&t1, NULL);
+
+	int f = 0;
+	// printf("time begin = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
 	while (true)
 	{
 		// printf("0x%X : ", this->regs.PC);
@@ -111,25 +115,38 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// 	return ;
 		// }
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
-
-		/*print_regs();*/
-		// read(0, &c, 1);
-		// std::cout << instr->mnemonic << " -> ";
+		# ifdef DEBUG
+			print_regs();
+			if (!read(0, &c, 1))
+				exit(0);
+			// std::cout << instr->mnemonic << " -> ";
+		# endif
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-		gettimeofday(&t2, NULL);
-		elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-		elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-		t1 = t2;
-		usleep(elapsedTime);
-	
 
-		if (_cycle > 3000000)
-		{
-			printf("cycle %lld\n", _cycle);
-			exit(0);
-		}
+		# ifndef DEBUG
+			if (_cycle > 17470)
+			{
+				_cycle -= 17470;
+				gettimeofday(&t2, NULL);
+				elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
+				elapsedTime += (t2.tv_usec - t1.tv_usec);
+				while (elapsedTime / 1000.0 / 1000.0 < 1.0 / 60)
+				{
+					gettimeofday(&t2, NULL);
+					elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
+					elapsedTime += (t2.tv_usec - t1.tv_usec);
+				}
+				t1 = t2;
+				f++;
+				// if (f == 1800 * 3)
+				// {
+				// 	printf("time end = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
+				// 	exit(0);
+				// }
+			}
+		# endif
 		// std::cout << std::endl;
 	}
 }

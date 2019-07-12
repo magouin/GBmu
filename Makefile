@@ -14,7 +14,8 @@ NAME = ./GBmu
 CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
-CFLAGS =  -std=c++11 -Wall -Wextra -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address
+CFLAGS =  -std=c++11 -Wall -Wextra
+DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address -DDEBUG
 
 SRC_PATH = ./srcs/
 
@@ -28,10 +29,10 @@ all : $(NAME)
 
 $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
 	@mkdir $(OBJ_PATH) 2> /dev/null || echo "" > /dev/null
-	$(CC) $(CFLAGS) $(INC) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DFLAGS) $(INC) -o $@ -c $<
 
 $(NAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(INC) $^ -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) $(INC) $^ -o $@
 
 clean:
 	/bin/rm -f $(OBJ)

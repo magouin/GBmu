@@ -258,7 +258,7 @@ const struct s_instruction_params Emulateur::g_opcode[256] = {
 {0b11111000, "LDHL SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::ldhl, &emu, &emu.regs.SP, (void*)NULL, (struct s_params){ADDR_x64, DIRECT, false, false, 1}, 3)},
 {0b11111001, "LD SP, HL", 0, {_, _, _, _}, std::bind(&Emulateur::ld, &emu, 0, &emu.regs.SP, &emu.regs.hl.HL, (struct s_params){ADDR_x64, ADDR_x64, false, false, 2}, 2)},
 {0b11111010, "LD (nn), A", 2, {_, _, _, _}, std::bind(&Emulateur::ld, &emu, 0, (void*)NULL, &emu.regs.af.af.A, (struct s_params){UDIRECT, ADDR_x64, true, false, 1}, 4)},
-{0b11111011, "NOT AN INSTRUCTION (0b11111011)", 0, {_, _, _, _}},
+{0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::di, &emu, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)},
 {0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}},
 {0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}},
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, std::bind(&Emulateur::cp, &emu, &emu.regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)},
