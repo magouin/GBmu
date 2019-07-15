@@ -7,6 +7,7 @@
 # include <iostream>
 # include <instructions.hpp>
 # include <Header.hpp>
+# include <thread>
 
 # include <time.h>
 # include <sys/time.h> 
@@ -67,18 +68,30 @@ struct s_param_info
 	uint16_t			e;
 };
 
+struct s_interrupt
+{
+	uint16_t	old_pc;
+	bool		routine;
+};
+
 class Emulateur {
 	private:
 		std::string	_ROM;
 		long long	_cycle;
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
+		s_interrupt	_idata;
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
 		void	init_registers(void);
 		bool	check_rules(enum e_cond cond);
 
 		void	get_params(struct s_param_info *p, uint8_t size);
+		void	timer_thread();
+		void	interrupt(void);
+		void	interrupt_func(short addr, uint8_t iflag);
+
+		// static void	timer_thread(uint8_t *_RAM);
 
 
 	public:

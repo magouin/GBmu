@@ -88,13 +88,93 @@ void	Emulateur::init_registers(void)
 	this->_RAM[0xffff] = 0x00; // IE
 }
 
-void Emulateur::emu_start(uint32_t begin, uint32_t end)
+// void	Emulateur::timer_thread(uint8_t *_RAM)
+void	Emulateur::timer_thread()
+{
+	bool			timer_status = false;
+	uint			timer_freq;
+	int				clock_freq[4] = {4096, 262144, 65536, 16384};
+	struct timeval	t1, t2;
+	long			elapsedTime;
+	int				elapsedTick;
+
+	gettimeofday(&t1, NULL);
+	printf("Timer Begin\n");
+	while (42)
+	{
+		if (timer_status != (_RAM[0xFF07] & 4))
+		{
+			if (!timer_status)
+				printf("Starting Timer\n");
+			gettimeofday(&t1, NULL);
+			timer_status = _RAM[0xFF07] & 4;
+		}
+		if (timer_status)
+		{
+			timer_freq = clock_freq[_RAM[0xFF07] & 3];
+			printf("timer_freq = %d\n", timer_freq);
+			printf("I'm here\n");
+			gettimeofday(&t2, NULL);
+			elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
+			elapsedTime += (t2.tv_usec - t1.tv_usec);
+			elapsedTick = elapsedTime / 1000 / timer_freq;
+			if (_RAM[0xFF05] + elapsedTick > 255)
+			{
+				_RAM[0xFF0F] |= 4;
+				elapsedTick -= 255 - _RAM[0xFF05];
+				_RAM[0xFF05] = _RAM[0xFF06] + elapsedTick;
+			}
+			else
+				_RAM[0xFF05] += elapsedTick;
+		}
+	}
+}
+
+void	Emulateur::interrupt_func(short addr, uint8_t iflag)
+{
+	_IME = false;
+	_RAM[0xFF0F] &= ~iflag;
+	// this->regs.SP -= 2;
+	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.af.AF;
+	// this->regs.SP -= 2;
+	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.bc.BC;
+	// this->regs.SP -= 2;
+	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.de.DE;
+	// this->regs.SP -= 2;
+	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.hl.HL;
+	this->regs.SP -= 2;
+	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
+	_idata.old_pc = this->regs.PC; 
+	regs.PC = addr;
+	_idata.routine = true; 
+}
+
+void	Emulateur::interrupt(void)
+{
+	if (!_IME)
+		return ;
+	if(_RAM[0xFF0F] & 16 && _RAM[0xFFFF] & 16)
+		interrupt_func(0x0060, 16);
+	else if(_RAM[0xFF0F] & 8 && _RAM[0xFFFF] & 8)
+		interrupt_func(0x0058, 8);
+	else if(_RAM[0xFF0F] & 4 && _RAM[0xFFFF] & 4)
+		interrupt_func(0x0050, 4);
+	else if(_RAM[0xFF0F] & 2 && _RAM[0xFFFF] & 2)
+		interrupt_func(0x0048, 2);
+	else if(_RAM[0xFF0F] & 1 && _RAM[0xFFFF] & 1)
+		interrupt_func(0x0040, 1);
+}
+
+void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
 	int	x;
 	char c;
-	struct timeval t1, t2;
-	long elapsedTime;
+	# ifndef DEBUG
+		struct timeval t2;
+		long			elapsedTime;
+	# endif
+	struct timeval t1;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	this->regs.PC = begin;
@@ -104,8 +184,9 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 	this->_cycle = 0;
 	gettimeofday(&t1, NULL);
 
-	int f = 0;
 	// printf("time begin = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
+	std::thread timer(&Emulateur::timer_thread, this);
+	// std::thread timer(timer_thread, _RAM);
 	while (true)
 	{
 		// printf("0x%X : ", this->regs.PC);
@@ -114,6 +195,7 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// 	printf("Emulation ended. Stopping...\n");
 		// 	return ;
 		// }
+		interrupt();
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
 		# ifdef DEBUG
 			print_regs();
@@ -139,12 +221,7 @@ void Emulateur::emu_start(uint32_t begin, uint32_t end)
 					elapsedTime += (t2.tv_usec - t1.tv_usec);
 				}
 				t1 = t2;
-				f++;
-				// if (f == 1800 * 3)
-				// {
-				// 	printf("time end = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
-				// 	exit(0);
-				// }
+
 			}
 		# endif
 		// std::cout << std::endl;
