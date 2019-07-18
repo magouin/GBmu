@@ -81,15 +81,21 @@ class Emulateur {
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
 		s_interrupt	_idata;
+		uint16_t	_cpu_tick_counter;
+		uint32_t	_frequency; // in Hetz
+		uint8_t		_timer;
+
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
-		void	init_registers(void);
-		bool	check_rules(enum e_cond cond);
+		void		init_registers(void);
+		bool		check_rules(enum e_cond cond);
 
-		void	get_params(struct s_param_info *p, uint8_t size);
-		void	timer_thread();
-		void	interrupt(void);
-		void	interrupt_func(short addr, uint8_t iflag);
+		void		get_params(struct s_param_info *p, uint8_t size);
+		void		timer_thread();
+		void		interrupt(void);
+		void		interrupt_func(short addr, uint8_t iflag);
+		uint32_t	get_time_from_frequency(uint8_t freq);
+		void		tima_thread();
 
 		// static void	timer_thread(uint8_t *_RAM);
 

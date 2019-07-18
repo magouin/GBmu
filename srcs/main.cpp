@@ -7,8 +7,10 @@ using namespace std::placeholders;
 
 Emulateur emu;
 
+
 int main(int ac, const char **av)
 {
+
 	if (ac != 2)
 	{
 		cerr << "Usage : " << av[0] << " rom.gb" << endl;

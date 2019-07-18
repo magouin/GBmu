@@ -371,7 +371,6 @@ void	Emulateur::ret(enum e_cond cond, struct s_params& p, int cycle)
 
 void	Emulateur::reti(struct s_params& p, int cycle)
 {
-	this->_cycle += cycle;
 	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
 	this->regs.SP += 2;
 	if (_idata.routine && this->regs.PC == _idata.old_pc)
@@ -385,7 +384,9 @@ void	Emulateur::reti(struct s_params& p, int cycle)
 	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.af.AF;
 	// this->regs.SP += 2;
 	_IME = true;
+	this->_cycle += cycle;
 }
+
 void	Emulateur::pop(void *param, struct s_params& p, int cycle)
 {
 	struct s_param_info	para;
@@ -610,6 +611,6 @@ void	Emulateur::ei(struct s_params& p, int cycle)
 
 	_IME = true;
 	_RAM[0xffff] = 0x1f;
-	this->_cycle += cycle;
 	_idata.routine = false;
+	this->_cycle += cycle;
 }
