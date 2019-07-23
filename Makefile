@@ -15,7 +15,8 @@ CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
 CFLAGS =  -std=c++11 -Wall -Wextra
-DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address -DDEBUG
+DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address # -DDEBUG
+LIBFLAGS = -L libs/SDL2 -l SDL2-2.0.0
 
 SRC_PATH = ./srcs/
 
@@ -32,7 +33,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
 	$(CC) $(CFLAGS) $(DFLAGS) $(INC) -o $@ -c $<
 
 $(NAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(DFLAGS) $(INC) $^ -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) $(INC) $(LIBFLAGS) $^ -o $@
 
 clean:
 	/bin/rm -f $(OBJ)
