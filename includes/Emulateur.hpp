@@ -8,6 +8,8 @@
 # include <instructions.hpp>
 # include <Header.hpp>
 # include <thread>
+# include <vector>
+# include <SDL2/SDL.h>
 
 # include <time.h>
 # include <sys/time.h> 
@@ -74,6 +76,13 @@ struct s_interrupt
 	bool		routine;
 };
 
+enum e_right {
+	PROHIB = 0,
+	RD = 1,
+	WR = 2,
+	RDWR = 3
+};
+
 class Emulateur {
 	private:
 		std::string	_ROM;
@@ -81,13 +90,18 @@ class Emulateur {
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
 		s_interrupt	_idata;
+		SDL_Window*	_window;
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
 		void	init_registers(void);
 		bool	check_rules(enum e_cond cond);
 
 		void	get_params(struct s_param_info *p, uint8_t size);
+		uint16_t	mem_read(uint16_t addr);
+		void		mem_write(uint16_t addr, uint16_t value);
 		void	timer_thread();
+		void	sdl_thread();
+		void	sdl_init();
 		void	interrupt(void);
 		void	interrupt_func(short addr, uint8_t iflag);
 
@@ -97,6 +111,7 @@ class Emulateur {
 	public:
 		static const struct s_instruction_params g_op203[256];
 		static const struct s_instruction_params g_opcode[256];
+		static const vector<enum e_right> g_ram_reg;
 
 		Emulateur();
 		Emulateur(std::string rom);

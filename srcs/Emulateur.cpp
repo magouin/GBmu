@@ -53,6 +53,8 @@ void	Emulateur::init_registers(void)
 	this->regs.de.DE = 0x00d8;
 	this->regs.hl.HL = 0x014d;
 	this->regs.SP = 0xfffe;
+
+
 	this->_RAM[0xff00] = 0x00; // P1
 	this->_RAM[0xff05] = 0x00; // TIMA
 	this->_RAM[0xff06] = 0x00; // TMA 
@@ -130,6 +132,34 @@ void	Emulateur::timer_thread()
 	}
 }
 
+void	Emulateur::sdl_init()
+{
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+	{
+		fprintf(stderr, "Impossible to initialize SDL: %s\n", SDL_GetError());
+		exit(1);
+	}
+	_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160, 144, SDL_WINDOW_SHOWN);
+	if (_window)
+	{
+		SDL_DestroyWindow(_window);
+	}
+	else
+	{
+		fprintf(stderr, "Erreur de création de la fenêtre: %s\n", SDL_GetError());
+	}
+}
+
+void	Emulateur::sdl_thread()
+{
+	sdl_init();
+	while (42)
+	{
+		break ;
+	}
+	SDL_Quit();
+}
+
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	_IME = false;
@@ -165,6 +195,17 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
+uint16_t	Emulateur::mem_read(uint16_t addr)
+{
+	// if (addr >= 0xff00 && addr <= 0xff7f)
+	return (1);
+}
+
+void		Emulateur::mem_write(uint16_t addr, uint16_t value)
+{
+	// if (addr >= 0xff00 && addr <= 0xff7f)
+}
+
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
@@ -186,6 +227,7 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 
 	// printf("time begin = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
 	std::thread timer(&Emulateur::timer_thread, this);
+	std::thread sdl(&Emulateur::sdl_thread, this);
 	// std::thread timer(timer_thread, _RAM);
 	while (true)
 	{
@@ -221,7 +263,6 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 					elapsedTime += (t2.tv_usec - t1.tv_usec);
 				}
 				t1 = t2;
-
 			}
 		# endif
 		// std::cout << std::endl;
