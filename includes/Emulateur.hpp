@@ -77,13 +77,15 @@ struct s_interrupt
 class Emulateur {
 	private:
 		std::string	_ROM;
-		long long	_cycle;
+		uint64_t	_cycle;
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
 		s_interrupt	_idata;
 		uint16_t	_cpu_tick_counter;
 		uint32_t	_frequency; // in Hetz
 		uint8_t		_timer;
+		uint64_t	_timer_counter;
+
 
 		Emulateur & operator=(const Emulateur & cp);
 		Emulateur(const Emulateur & cp);
