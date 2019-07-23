@@ -132,14 +132,16 @@ void	Emulateur::timer_thread()
 	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
 	start = std::chrono::high_resolution_clock::now();
 	_timer = 0; 
+	_timer_counter = -1; 
 	while (true)
 	{
 		if (_timer == 0)
 		{
 			if (x == 1000)
 				std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
-			start = time;
 			x++;
+			start = time;
+			_timer_counter++;
 			_RAM[0xFF04]++;
 		}
 		time = std::chrono::high_resolution_clock::now();
@@ -188,7 +190,6 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
 	int	x;
-	char c;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
@@ -213,10 +214,15 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-		printf("_cycle = %llu et _timer = %hhu\n", this->_cycle % 256, _timer);
-		if ((this->_cycle % 256) < _timer && (this->_cycle % 256) - 256 < _timer)
-			std::cout << "J'ai du retard ??\n";
-		while (this->_cycle % 256 != _timer) ;
+		if (x == 0)
+		{
+			_timer = 0;
+			_timer_counter = 0;
+		}
+		if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
+			printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
+			// std::cout << "J'ai du retard ??\n";
+		while (this->_cycle > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
 }
