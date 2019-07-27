@@ -90,45 +90,66 @@ void	Emulateur::init_registers(void)
 	this->_RAM[0xffff] = 0x00; // IE
 }
 
-// void	Emulateur::timer_thread(uint8_t *_RAM)
+uint32_t	Emulateur::get_time_from_frequency(uint8_t	freq)
+{
+	const uint8_t				num_to_byte[4] = {10, 4, 6, 8};
+
+	if (num_to_byte[freq] < 8)
+		return ((_timer + (_RAM[0xFF04] << 8)) >> num_to_byte[freq]);
+	return (_RAM[0xFF04] >> ((num_to_byte[freq]) - 8));
+}
+
+void	Emulateur::tima_thread()
+{
+	static bool			start = false;
+	static uint32_t		last_time;
+	uint32_t			tmp_time;
+	const uint8_t		num_to_byte[4] = {10, 4, 6, 8};
+
+	if (start != _RAM[0xFF07])
+	{
+		start = !start;
+		last_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
+	}
+	else if (start)
+	{
+		tmp_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
+		if (tmp_time < last_time)
+			tmp_time += -1u >> num_to_byte[_RAM[0xFF07] & 0x3];
+		if (_RAM[0xFF05] + (uint8_t)(tmp_time - last_time) > 255)
+		{
+			_RAM[0xFF05] = _RAM[0xFF06];
+			_RAM[0xFF0F] |= 2;
+		}
+		_RAM[0xFF05] += (uint8_t)(tmp_time - last_time);
+	}
+}
+
 void	Emulateur::timer_thread()
 {
-	bool			timer_status = false;
-	uint			timer_freq;
-	int				clock_freq[4] = {4096, 262144, 65536, 16384};
-	struct timeval	t1, t2;
-	long			elapsedTime;
-	int				elapsedTick;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start, end, time;
+	uint32_t nsecond_per_tick;
+	int x = 0;
 
-	gettimeofday(&t1, NULL);
-	printf("Timer Begin\n");
-	while (42)
+	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
+	start = std::chrono::high_resolution_clock::now();
+	_timer = 0; 
+	_timer_counter = -1; 
+	while (true)
 	{
-		if (timer_status != (_RAM[0xFF07] & 4))
+		if (_timer == 0)
 		{
-			if (!timer_status)
-				printf("Starting Timer\n");
-			gettimeofday(&t1, NULL);
-			timer_status = _RAM[0xFF07] & 4;
+			if (x == 1000)
+				std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
+			x++;
+			start = time;
+			_timer_counter++;
+			_RAM[0xFF04]++;
 		}
-		if (timer_status)
-		{
-			timer_freq = clock_freq[_RAM[0xFF07] & 3];
-			printf("timer_freq = %d\n", timer_freq);
-			printf("I'm here\n");
-			gettimeofday(&t2, NULL);
-			elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
-			elapsedTime += (t2.tv_usec - t1.tv_usec);
-			elapsedTick = elapsedTime / 1000 / timer_freq;
-			if (_RAM[0xFF05] + elapsedTick > 255)
-			{
-				_RAM[0xFF0F] |= 4;
-				elapsedTick -= 255 - _RAM[0xFF05];
-				_RAM[0xFF05] = _RAM[0xFF06] + elapsedTick;
-			}
-			else
-				_RAM[0xFF05] += elapsedTick;
-		}
+		time = std::chrono::high_resolution_clock::now();
+		while ((time - start).count() < ((uint32_t)_timer + 1) * nsecond_per_tick)
+			time = std::chrono::high_resolution_clock::now();
+		_timer++;
 	}
 }
 
@@ -155,7 +176,7 @@ void	Emulateur::sdl_thread()
 	sdl_init();
 	while (42)
 	{
-		break ;
+		// break ;
 	}
 	SDL_Quit();
 }
@@ -210,61 +231,40 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
 	const struct s_instruction_params	*instr;
 	int	x;
-	char c;
-	# ifndef DEBUG
-		struct timeval t2;
-		long			elapsedTime;
-	# endif
-	struct timeval t1;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
+	_frequency = 4194300; // Need to change if it is a CGB
 	this->regs.PC = begin;
 	x = 0;
 
 	init_registers();
 	this->_cycle = 0;
-	gettimeofday(&t1, NULL);
 
-	// printf("time begin = %ld\n", t1.tv_sec * 1000 * 1000 + t1.tv_usec);
 	std::thread timer(&Emulateur::timer_thread, this);
-	std::thread sdl(&Emulateur::sdl_thread, this);
-	// std::thread timer(timer_thread, _RAM);
+	// std::thread sdl(&Emulateur::sdl_thread, this);
+	std::thread tima(&Emulateur::tima_thread, this);
 	while (true)
 	{
-		// printf("0x%X : ", this->regs.PC);
-		// if (this->regs.PC > end)
-		// {
-		// 	printf("Emulation ended. Stopping...\n");
-		// 	return ;
-		// }
 		interrupt();
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
-		# ifdef DEBUG
-			print_regs();
-			if (!read(0, &c, 1))
-				exit(0);
-			// std::cout << instr->mnemonic << " -> ";
-		# endif
+		// # ifdef DEBUG
+		// 	print_regs();
+		// 	if (!read(0, &c, 1)) // to change
+		// 		exit(0);
+		// 	// std::cout << instr->mnemonic << " -> ";
+		// # endif
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-
-		# ifndef DEBUG
-			if (_cycle > 17470)
-			{
-				_cycle -= 17470;
-				gettimeofday(&t2, NULL);
-				elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
-				elapsedTime += (t2.tv_usec - t1.tv_usec);
-				while (elapsedTime / 1000.0 / 1000.0 < 1.0 / 60)
-				{
-					gettimeofday(&t2, NULL);
-					elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000 * 1000;      // sec to us
-					elapsedTime += (t2.tv_usec - t1.tv_usec);
-				}
-				t1 = t2;
-			}
-		# endif
+		if (x == 0)
+		{
+			_timer = 0;
+			_timer_counter = 0;
+		}
+		if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
+			printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
+			// std::cout << "J'ai du retard ??\n";
+		while (this->_cycle > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
 }
