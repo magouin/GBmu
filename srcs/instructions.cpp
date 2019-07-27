@@ -23,14 +23,14 @@ void	Emulateur::ld(int8_t inc, void *param_1, void *param_2, struct s_params& p,
 	this->regs.hl.HL += inc;
 	if (p.size == 1)
 	{
-		*((uint8_t *)param1.rez) = *((uint8_t *)param2.rez);
+		mem_write(param1.rez, mem_read(param2.rez, 1), 1);
 		#ifdef DEBUG
 			// std::cout << "*(" << param1.rez << ") = 0x" << (int)*((uint8_t *)param2.rez);
 		#endif
 	}
 	else if (p.size == 2)
 	{
-		*(param1.rez) = *(param2.rez);
+		mem_write(param1.rez, mem_read(param2.rez, 2), 2);
 		#ifdef DEBUG
 			// std::cout << "*(" << param1.rez << ") = 0x" << *(param2.rez);
 		#endif
@@ -46,6 +46,7 @@ void	Emulateur::ld(int8_t inc, void *param_1, void *param_2, struct s_params& p,
 void	Emulateur::inc(void *param, struct s_params& p, int cycle)
 {
 	struct s_param_info	para;
+	uint8_t				val;
 
 	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
@@ -57,25 +58,26 @@ void	Emulateur::inc(void *param, struct s_params& p, int cycle)
 		this->regs.af.af.F &= ~FLAG_N;
 		this->regs.af.af.F &= ~FLAG_Z;
 		this->regs.af.af.F &= ~FLAG_H;
-		if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == ((1 << 4) - 1))
+		val = mem_read(para.rez, 1);
+		if ((val & ((1 << 4) - 1)) == ((1 << 4) - 1))
 		{
 			this->regs.af.af.F |= FLAG_H;
 			#ifdef DEBUG
 				// printf(" | FLAG_H");
 			#endif
 		}
-		if (*(uint8_t *)para.rez == 0xff)
+		if (val == 0xff)
 		{
 			this->regs.af.af.F |= FLAG_Z;
 			#ifdef DEBUG
 				// printf(" | FLAG_Z");
 			#endif
 		}
-		(*(uint8_t *)para.rez)++;
+		mem_write(para.rez, ++val, 1);
 	}
 	if (p.size == 2)
 	{
-		(*(uint16_t *)para.rez)++;
+		mem_write(para.rez, mem_read(para.rez, 2) + 1, 2);
 		#ifdef DEBUG
 			// printf("param = 0x%x", *(uint16_t *)para.rez);
 		#endif
@@ -86,6 +88,7 @@ void	Emulateur::inc(void *param, struct s_params& p, int cycle)
 void	Emulateur::decr(void *param, struct s_params& p, int cycle)
 {
 	struct s_param_info	para;
+	uint8_t				val;
 
 	para = {param, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&para, p.size);
@@ -97,25 +100,26 @@ void	Emulateur::decr(void *param, struct s_params& p, int cycle)
 		this->regs.af.af.F |= FLAG_N;
 		this->regs.af.af.F &= ~FLAG_Z;
 		this->regs.af.af.F &= ~FLAG_H;
-		if (((*(uint8_t *)para.rez) & ((1 << 4) - 1)) == 0)
+		val = mem_read(para.rez, 1);
+		if (((val) & ((1 << 4) - 1)) == 0)
 		{
 			this->regs.af.af.F |= FLAG_H;
 			#ifdef DEBUG
 				// printf(" | FLAG_H");
 			#endif
 		}
-		if (*(uint8_t *)para.rez == 0x01)
+		if (val == 0x01)
 		{
 			this->regs.af.af.F |= FLAG_Z;
 			#ifdef DEBUG
 				// printf(" | FLAG_Z");
 			#endif
 		}
-		(*(uint8_t *)para.rez)--;
+		mem_write(para.rez, --val, 1);
 	}
 	if (p.size == 2)
 	{
-		(*(uint16_t *)para.rez)--;
+		mem_write(para.rez, mem_read(para.rez, 2) - 1, 2);
 		#ifdef DEBUG
 			// printf("param = 0x%x", *(uint16_t *)para.rez);
 		#endif
@@ -188,12 +192,7 @@ void	Emulateur::_and(void *param_1, void *param_2, struct s_params& p, int cycle
 	this->get_params(&param1, p.size);
 	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
-	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
-	{
-		// printf("C'est pas normal ...\n");
-		exit(0);
-	}
-	this->regs.af.af.A = *(param1.rez) & *((uint8_t *)param2.rez);
+	this->regs.af.af.A = mem_read(param1.rez, 1) & mem_read(param2.rez, 1);
 	this->regs.af.af.F = this->regs.af.af.A ? FLAG_H : (FLAG_H | FLAG_Z);
 	#ifdef DEBUG
 		// std::cout << "A &= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
@@ -210,12 +209,7 @@ void	Emulateur::_or(void *param_1, void *param_2, struct s_params& p, int cycle)
 	this->get_params(&param1, p.size);
 	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
-	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
-	{
-		// printf("C'est pas normal ...\n");
-		exit(0);
-	}
-	this->regs.af.af.A = *(param1.rez) | *((uint8_t *)param2.rez);
+	this->regs.af.af.A = mem_read(param1.rez, 1) | mem_read(param2.rez, 1);
 	this->regs.af.af.F = this->regs.af.af.A ? 0 : FLAG_Z;
 	#ifdef DEBUG
 		// std::cout << "A |= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
@@ -232,12 +226,7 @@ void	Emulateur::_xor(void *param_1, void *param_2, struct s_params& p, int cycle
 	this->get_params(&param1, p.size);
 	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
-	if ((void*)&this->regs.af.af.A != (void*)param1.rez)
-	{
-		// printf("C'est pas normal ...\n");
-		exit(0);
-	}
-	this->regs.af.af.A = *(param1.rez) ^ *((uint8_t *)param2.rez);
+	this->regs.af.af.A = mem_read(param1.rez, 1) ^ mem_read(param2.rez, 1);
 	this->regs.af.af.F = this->regs.af.af.A ? 0 : FLAG_Z;
 	#ifdef DEBUG
 		// std::cout << "A ^= 0x" << (int)*((uint8_t *)param2.rez) << " - F = 0x" << (int)this->regs.af.af.F;
@@ -249,22 +238,21 @@ void	Emulateur::cp(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
 	struct s_param_info	p1;
 	struct s_param_info	p2;
+	uint8_t v1;
+	uint8_t v2;
 
 	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&p1, p.size);
 	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&p2, p.size);
 	this->regs.af.af.F = FLAG_N;
-	if (p1.rez != (uint16_t *)&(this->regs.af.af.A))
-	{
-		// printf("Il y a un probleme\n");
-		exit(0);
-	}
-	if (*(uint8_t *)p1.rez == *(uint8_t *)p2.rez)
+	v1 = mem_read(p1.rez, 1);
+	v2 = mem_read(p2.rez, 1);
+	if (v1 == v2)
 		this->regs.af.af.F |= FLAG_Z;
-	if (*(uint8_t *)p1.rez < *(uint8_t *)p2.rez)
+	if (v1 < v2)
 		this->regs.af.af.F |= FLAG_CY;
-	if ((*(uint8_t *)p1.rez & 0x0f) < (*(uint8_t *)p2.rez & 0x0f))
+	if ((v1 & 0x0f) < (v2 & 0x0f))
 		this->regs.af.af.F |= FLAG_H;
 	this->_cycle += cycle;
 }
@@ -273,28 +261,32 @@ void	Emulateur::add(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
 	struct s_param_info	p1;
 	struct s_param_info	p2;
+	uint16_t v1;
+	uint16_t v2;
 
 	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&p1, p.size);
 	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&p2, p.size);
-	if (!p2.rez)
+	v1 = mem_read(p1.rez, 2);
+	if (p2.rez)
 	{
+		v2 = mem_read(p2.rez, 2);
 		this->regs.af.af.F &= ~FLAG_N;
-		if ((uint32_t)*(uint16_t *)p1.rez + (uint32_t)*(uint16_t *)p2.rez > 0xffff)
+		if ((uint32_t)v1 + (uint32_t)v2 > 0xffff)
 			this->regs.af.af.F |= FLAG_CY;
-		if (((*(uint16_t *)p1.rez) & 0x0fff) + ((*(uint16_t *)p2.rez) & 0x0fff) > 0x0fff)
+		if ((v1 & 0x0fff) + (v2 & 0x0fff) > 0x0fff)
 			this->regs.af.af.F |= FLAG_H;
-		*(uint16_t *)p1.rez = *(uint16_t *)p2.rez;
+		mem_write(p1.rez, v2, 2);
 	}
 	else
 	{
 		this->regs.af.af.F = 0;
-		if ((uint32_t)*(uint16_t *)p1.rez + (uint32_t)p2.e > 0xffff)
+		if ((uint32_t)v1 + (int32_t)p2.e > 0xffff)
 			this->regs.af.af.F |= FLAG_CY;
-		if (((*(uint16_t *)p1.rez) & 0x0fff) + (p2.e & 0x0fff) > 0x0fff)
+		if (((v1) & 0x0fff) + (p2.e & 0x0fff) > 0x0fff)
 			this->regs.af.af.F |= FLAG_H;
-		*(uint16_t *)p1.rez = (int16_t)p2.e;
+		s_mem_write(v1, p2.e);
 	}
 	this->_cycle += cycle;
 }
