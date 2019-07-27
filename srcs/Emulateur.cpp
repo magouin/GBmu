@@ -216,15 +216,31 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
-uint16_t	Emulateur::mem_read(uint16_t addr)
+uint16_t	Emulateur::mem_read_regs(uint16_t addr)
 {
-	// if (addr >= 0xff00 && addr <= 0xff7f)
+	if (g_ram_reg[addr] & RD)
+		return (_RAM[addr + 0xff00]);
+	throw InvalidRead();
+}
+
+uint16_t	Emulateur::mem_read(uint16_t addr, int8_t size)
+{
+	if (addr >= 0xff00 && addr <= 0xff7f)
+		return (mem_read_regs(addr - 0xff00));
 	return (1);
 }
 
-void		Emulateur::mem_write(uint16_t addr, uint16_t value)
+void		Emulateur::mem_write_regs(uint16_t addr, uint8_t value)
 {
-	// if (addr >= 0xff00 && addr <= 0xff7f)
+	if (!(g_ram_reg[addr] & WR))
+		throw InvalidWrite();
+	_RAM[addr + 0xff00] = value;
+}
+
+void		Emulateur::mem_write(uint16_t addr, uint16_t value, int8_t size)
+{
+	if (addr >= 0xff00 && addr <= 0xff7f)
+		return (mem_write_regs(addr - 0xff00, (uint8_t)value));
 }
 
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
