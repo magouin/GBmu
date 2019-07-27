@@ -1,9 +1,8 @@
-*
 
-!.gitignore
-!Makefile
-!srcs/*
-!includes/*
-!docs
-!./libs/
-!mgba
+/debug
+/*test*
+/obj
+/libs
+/GBmu
+/hexdump
+/includes/SDL2
