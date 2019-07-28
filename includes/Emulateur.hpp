@@ -105,11 +105,10 @@ class Emulateur {
 
 		void		get_params(struct s_param_info *p, uint8_t size);
 
-		uint16_t	mem_read(uint16_t addr, int8_t size);
-		void		mem_write(uint16_t addr, uint16_t value, int8_t size);
-		uint16_t	mem_read_regs(uint16_t addr);
-		void		mem_write_regs(uint16_t addr, uint8_t value);
-
+		uint16_t	mem_read(void *addr, int8_t size);
+		void		mem_write(void *addr, uint16_t value, int8_t size);
+		void		mem_write_signed(void *addr, int16_t value, int8_t size);
+		bool		is_cpu_regs(void *addr);
 		
 		void		timer_thread();
 		void		sdl_thread();
@@ -129,14 +128,15 @@ class Emulateur {
 		static const struct s_instruction_params g_opcode[256];
 		static const vector<enum e_right> g_ram_reg;
 
-		struct InvalidRead : public std::exception
+		class InvalidRead : public std::exception
 		{
+			public:
 			const char *what() const throw ()
 			{
 				return "Invalid Read" ;
 			}
 		};
-		struct InvalidWrite : public std::exception
+		class InvalidWrite : public std::exception
 		{
 			const char *what() const throw ()
 			{

@@ -139,8 +139,8 @@ void	Emulateur::timer_thread()
 	{
 		if (_timer == 0)
 		{
-			if (x == 1000)
-				std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
+			// if (x == 1000)
+				// std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
 			x++;
 			start = time;
 			_timer_counter++;
@@ -216,31 +216,79 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
-uint16_t	Emulateur::mem_read_regs(uint16_t addr)
+bool		Emulateur::is_cpu_regs(void *addr)
 {
-	if (g_ram_reg[addr] & RD)
-		return (_RAM[addr + 0xff00]);
-	throw InvalidRead();
+	if (addr >= &regs && addr < &regs + sizeof(regs))
+		return (true);
+	return (false);
 }
 
-uint16_t	Emulateur::mem_read(uint16_t addr, int8_t size)
+uint16_t	Emulateur::mem_read(void *addr, int8_t size)
 {
-	if (addr >= 0xff00 && addr <= 0xff7f)
-		return (mem_read_regs(addr - 0xff00));
-	return (1);
+	uint16_t ram_addr;
+
+	if (is_cpu_regs(addr))
+		;
+	else if (addr >= _RAM && addr <= _RAM + 0xffff)
+	{
+		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
+		if ((ram_addr >= 0xe000 && ram_addr < 0xfe00)
+			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
+			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & RD)))
+			throw InvalidRead();
+	}
+	else
+		throw InvalidRead();
+	if (size == 2)
+		return (*(uint16_t *)addr);
+	else
+		return (*(uint8_t *)addr);
 }
 
-void		Emulateur::mem_write_regs(uint16_t addr, uint8_t value)
+void		Emulateur::mem_write_signed(void *addr, int16_t value, int8_t size)
 {
-	if (!(g_ram_reg[addr] & WR))
+	uint16_t ram_addr;
+
+	if (is_cpu_regs(addr))
+		;
+	else if (addr >= _RAM && addr <= _RAM + 0xffff)
+	{
+		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
+		if ((ram_addr >= 0x0100 && ram_addr < 0x8000)
+			|| (ram_addr >= 0xe000 && ram_addr < 0xfe00)
+			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
+			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & WR)))
+			throw InvalidWrite();
+	}
+	else
 		throw InvalidWrite();
-	_RAM[addr + 0xff00] = value;
+	if (size == 2)
+		*(uint16_t *)addr = value;
+	else
+		*(uint8_t *)addr = (int8_t)value;
 }
 
-void		Emulateur::mem_write(uint16_t addr, uint16_t value, int8_t size)
+void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
-	if (addr >= 0xff00 && addr <= 0xff7f)
-		return (mem_write_regs(addr - 0xff00, (uint8_t)value));
+	uint16_t ram_addr;
+
+	if (is_cpu_regs(addr))
+		;
+	else if (addr >= _RAM && addr <= _RAM + 0xffff)
+	{
+		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
+		if ((ram_addr >= 0x0100 && ram_addr < 0x8000)
+			|| (ram_addr >= 0xe000 && ram_addr < 0xfe00)
+			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
+			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & WR)))
+			throw InvalidWrite();
+	}
+	else
+		throw InvalidWrite();
+	if (size == 2)
+		*(uint16_t *)addr = value;
+	else
+		*(uint8_t *)addr = (uint8_t)value;
 }
 
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
@@ -263,12 +311,14 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	{
 		interrupt();
 		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
-		// # ifdef DEBUG
-		// 	print_regs();
-		// 	if (!read(0, &c, 1)) // to change
-		// 		exit(0);
-		// 	// std::cout << instr->mnemonic << " -> ";
-		// # endif
+		# ifdef DEBUG
+			char c[2];
+
+			print_regs();
+			if (!read(0, &c, 2)) // to change
+				exit(0);
+			// std::cout << instr->mnemonic << " -> ";
+		# endif
 		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
@@ -277,8 +327,8 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 			_timer = 0;
 			_timer_counter = 0;
 		}
-		if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
-			printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
+		// if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
+		// 	printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
 			// std::cout << "J'ai du retard ??\n";
 		while (this->_cycle > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
