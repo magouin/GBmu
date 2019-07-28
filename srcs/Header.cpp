@@ -22,11 +22,11 @@ Header::Header(const string & file) : _file(file)
 
 	this->_header = *reinterpret_cast<const struct s_header*>(head);
 
-	cout << this->_header.title << endl;
-	cout << cartridge_types[(int)this->_header.cartridge] << endl;
+	cout << "Title: " << this->_header.title << endl;
+	cout << "Cartdrige type: " << cartridge_types[(int)this->_header.cartridge] << endl;
 
-	this->_header.entrypoint = endian_conv_32(this->_header.entrypoint);
-	this->read_instr(0x150);
+	// this->_header.entrypoint = endian_conv_32(this->_header.entrypoint);
+	// this->read_instr(0x150);
 }
 
 Header::Header(const Header & cp) : _file(cp._file)

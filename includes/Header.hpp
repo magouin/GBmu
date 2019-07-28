@@ -14,11 +14,13 @@ class Header {
 	static const string cartridge_types[0xFF + 1];
 
 	private:
-		struct s_header
+		struct __attribute__((__packed__)) s_header
 		{
 			uint32_t	entrypoint;
 			uint8_t		nin_logo[48];
-			uint8_t		title[16];
+			uint8_t		title[11];
+			uint32_t	game_code;
+			uint8_t		cgb_supp_code;
 			uint16_t	license_code;
 			uint8_t		sgb_flag;
 			uint8_t		cartridge;

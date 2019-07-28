@@ -48,6 +48,8 @@ int main(int ac, const char **av)
 
 	string rom = rom_stream.str();
 
+	Header r(rom);
+
 	emu.set_rom(rom);
 
 	// Disassembler disas(rom);
