@@ -1,6 +1,13 @@
 #ifndef EMULATEUR_HPP
 # define EMULATEUR_HPP
 
+# include <iostream>
+# include <string>
+# include <fstream>
+# include <sstream>
+
+using namespace std;
+
 # include <strings.h>
 # include <string.h>
 # include <string>
@@ -83,8 +90,20 @@ enum e_right {
 	RDWR = 3
 };
 
+class Emulateur;
+
+struct s_ram_regs {
+	enum e_right	right;
+	uint16_t		(Emulateur::*read)();
+	void			(Emulateur::*write)(uint16_t value);
+};
+
 class Emulateur {
 	private:
+		const vector<struct s_ram_regs> _ram_regs;
+		const vector<struct s_instruction_params> _op203;
+		const vector<struct s_instruction_params> _opcode;
+
 		std::string	_ROM;
 		uint64_t	_cycle;
 		uint8_t		_RAM[0x10000];
@@ -98,57 +117,9 @@ class Emulateur {
 		uint8_t		_timer;
 		uint64_t	_timer_counter;
 
-		Emulateur & operator=(const Emulateur & cp);
-		Emulateur(const Emulateur & cp);
-		void		init_registers(void);
-		bool		check_rules(enum e_cond cond);
-
-		void		get_params(struct s_param_info *p, uint8_t size);
-
-		uint16_t	mem_read(void *addr, int8_t size);
-		void		mem_write(void *addr, uint16_t value, int8_t size);
-		void		mem_write_signed(void *addr, int16_t value, int8_t size);
-		bool		is_cpu_regs(void *addr);
-		
-		void		timer_thread();
-		void		sdl_thread();
-		void		sdl_init();
-		void		interrupt(void);
-		void		interrupt_func(short addr, uint8_t iflag);
-
-
-		uint32_t	get_time_from_frequency(uint8_t freq);
-		void		tima_thread();
-
-		// static void	timer_thread(uint8_t *_RAM);
-
-
-	public:
-		static const struct s_instruction_params g_op203[256];
-		static const struct s_instruction_params g_opcode[256];
-		static const vector<enum e_right> g_ram_reg;
-
-		class InvalidRead : public std::exception
-		{
-			public:
-			const char *what() const throw ()
-			{
-				return "Invalid Read" ;
-			}
-		};
-		class InvalidWrite : public std::exception
-		{
-			const char *what() const throw ()
-			{
-				return "Invalid Write" ;
-			}
-		};
 
 		Emulateur();
-		Emulateur(std::string rom);
-		~Emulateur(/* args */);
 
-		void	emu_start(uint32_t begin, uint32_t end);
 		void	set_rom(std::string rom);
 		void	print_regs(void);
 
@@ -203,6 +174,61 @@ class Emulateur {
 		void	ei(struct s_params& p, int cycle);
 		
 		void	op203(struct s_params& p, int cycle);
+
+		Emulateur(const Emulateur & cp);
+		void		init_registers(void);
+		bool		check_rules(enum e_cond cond);
+
+		void		get_params(struct s_param_info *p, uint8_t size);
+
+		uint16_t	mem_read(void *addr, int8_t size);
+		void		mem_write(void *addr, uint16_t value, int8_t size);
+		void		mem_write_signed(void *addr, int16_t value, int8_t size);
+		bool		is_cpu_regs(void *addr);
+		
+		void		timer_thread();
+		void		lcd_thread();
+		void		sdl_thread();
+		void		sdl_init();
+		void		interrupt(void);
+		void		interrupt_func(short addr, uint8_t iflag);
+
+
+		uint32_t	get_time_from_frequency(uint8_t freq);
+		void		tima_thread();
+
+		void		write_stat(uint16_t value);
+		void		write_div(uint16_t value);
+		void		write_scy(uint16_t value);
+		void		write_scx(uint16_t value);
+
+		// static void	timer_thread(uint8_t *_RAM);
+
+
+	public:
+
+		class InvalidRead : public std::exception
+		{
+			public:
+			const char *what() const throw ()
+			{
+				return "Invalid Read" ;
+			}
+		};
+		class InvalidWrite : public std::exception
+		{
+			const char *what() const throw ()
+			{
+				return "Invalid Write" ;
+			}
+		};
+
+		Emulateur(std::string rom);
+		~Emulateur(/* args */);
+		Emulateur & operator=(const Emulateur & cp);
+
+		void	emu_start(uint32_t begin, uint32_t end);
+
 };
 
 #endif

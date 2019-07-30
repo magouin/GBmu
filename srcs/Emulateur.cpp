@@ -1,7 +1,16 @@
 #include <Emulateur.hpp>
+#include <ram_regs.hpp>
+#include <opcode.hpp>
+#include <op203.hpp>
 
 Emulateur::Emulateur()
 {
+}
+
+Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _ROM(rom)
+{
+	bzero(_RAM, sizeof(_RAM));
+	_IME = true;
 }
 
 Emulateur::Emulateur(const Emulateur & cp)
@@ -19,11 +28,7 @@ Emulateur &	Emulateur::operator=(const Emulateur & cp)
 	return (*this);
 }
 
-Emulateur::Emulateur(std::string rom): _ROM(rom)
-{
-	bzero(_RAM, sizeof(_RAM));
-	_IME = true;
-}
+
 
 void	Emulateur::print_regs(void)
 {
@@ -132,12 +137,13 @@ void	Emulateur::timer_thread()
 	int x = 0;
 
 	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
+	printf("nsecond_per_tick = %d\n", nsecond_per_tick);
 	start = std::chrono::high_resolution_clock::now();
 	_timer = 0; 
-	_timer_counter = -1; 
+	_timer_counter = 0; 
 	while (true)
 	{
-		if (_timer == 0)
+		if (_timer == 255)
 		{
 			// if (x == 1000)
 				// std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
@@ -223,73 +229,15 @@ bool		Emulateur::is_cpu_regs(void *addr)
 	return (false);
 }
 
-uint16_t	Emulateur::mem_read(void *addr, int8_t size)
-{
-	uint16_t ram_addr;
 
-	if (is_cpu_regs(addr))
-		;
-	else if (addr >= _RAM && addr <= _RAM + 0xffff)
+void	Emulateur::lcd_thread()
+{
+	while (true)
 	{
-		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		if ((ram_addr >= 0xe000 && ram_addr < 0xfe00)
-			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
-			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & RD)))
-			throw InvalidRead();
+		// while (this->_cycle > _timer + _timer_counter * 256) ;
 	}
-	else
-		throw InvalidRead();
-	if (size == 2)
-		return (*(uint16_t *)addr);
-	else
-		return (*(uint8_t *)addr);
 }
 
-void		Emulateur::mem_write_signed(void *addr, int16_t value, int8_t size)
-{
-	uint16_t ram_addr;
-
-	if (is_cpu_regs(addr))
-		;
-	else if (addr >= _RAM && addr <= _RAM + 0xffff)
-	{
-		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		if ((ram_addr >= 0x0100 && ram_addr < 0x8000)
-			|| (ram_addr >= 0xe000 && ram_addr < 0xfe00)
-			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
-			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & WR)))
-			throw InvalidWrite();
-	}
-	else
-		throw InvalidWrite();
-	if (size == 2)
-		*(uint16_t *)addr = value;
-	else
-		*(uint8_t *)addr = (int8_t)value;
-}
-
-void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
-{
-	uint16_t ram_addr;
-
-	if (is_cpu_regs(addr))
-		;
-	else if (addr >= _RAM && addr <= _RAM + 0xffff)
-	{
-		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		if ((ram_addr >= 0x0100 && ram_addr < 0x8000)
-			|| (ram_addr >= 0xe000 && ram_addr < 0xfe00)
-			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
-			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(g_ram_reg[ram_addr - 0xff00] & WR)))
-			throw InvalidWrite();
-	}
-	else
-		throw InvalidWrite();
-	if (size == 2)
-		*(uint16_t *)addr = value;
-	else
-		*(uint8_t *)addr = (uint8_t)value;
-}
 
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
@@ -307,10 +255,13 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	std::thread timer(&Emulateur::timer_thread, this);
 	// std::thread sdl(&Emulateur::sdl_thread, this);
 	std::thread tima(&Emulateur::tima_thread, this);
+	// std::thread lcd(&Emulateur::timer_thread, this);
 	while (true)
 	{
 		interrupt();
-		instr = &g_opcode[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
+		printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+		printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
+		instr = &_opcode[this->_RAM[this->regs.PC]];
 		# ifdef DEBUG
 			char c[2];
 
@@ -333,9 +284,4 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 		while (this->_cycle > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
-}
-
-void Emulateur::set_rom(std::string rom)
-{
-	_ROM = rom;
 }

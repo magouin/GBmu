@@ -1,10 +1,8 @@
 SRC_NAME =	main.cpp \
 			Header.cpp \
-			notes.cpp \
-			two_bytes_instr.cpp \
-			Disassembler.cpp \
 			instructions.cpp \
-			Emulateur.cpp
+			Emulateur.cpp \
+			memory_controler.cpp
 
 INC_PATH = ./includes/
 OBJ_PATH = ./obj/
