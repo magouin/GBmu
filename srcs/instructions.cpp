@@ -485,7 +485,7 @@ void	Emulateur::op203(struct s_params& p, int cycle)
 {
 	const struct s_instruction_params	*instr;
 
-	instr = &g_op203[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
+	instr = &_op203[*reinterpret_cast<uint8_t*>(this->_RAM + this->regs.PC)];
 	this->regs.PC += 1 + instr->nb_params * 1;
 	instr->f();
 	this->_cycle += cycle;
