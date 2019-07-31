@@ -222,14 +222,6 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
-bool		Emulateur::is_cpu_regs(void *addr)
-{
-	if (addr >= &regs && addr < &regs + sizeof(regs))
-		return (true);
-	return (false);
-}
-
-
 void	Emulateur::lcd_thread()
 {
 	while (true)
@@ -281,7 +273,7 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 		// if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
 		// 	printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
 			// std::cout << "J'ai du retard ??\n";
-		while (this->_cycle > _timer + _timer_counter * 256) ;
+		while (this->_cycle * 4 > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
 }

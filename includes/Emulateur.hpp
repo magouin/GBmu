@@ -197,10 +197,14 @@ class Emulateur {
 		uint32_t	get_time_from_frequency(uint8_t freq);
 		void		tima_thread();
 
-		void		write_stat(uint16_t value);
 		void		write_div(uint16_t value);
+		void		write_lcdc(uint16_t value);
+		void		write_stat(uint16_t value);
 		void		write_scy(uint16_t value);
 		void		write_scx(uint16_t value);
+		void		write_ly(uint16_t value);
+		void		write_lyc(uint16_t value);
+		void		write_dma(uint16_t value);
 
 		// static void	timer_thread(uint8_t *_RAM);
 

@@ -13,7 +13,7 @@ CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
 CFLAGS =  -std=c++11 -Wall -Wextra
-DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address -DDEBUG
+DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address # -DDEBUG
 
 ROOT = ${CURDIR}
 

@@ -503,7 +503,7 @@ void	Emulateur::ei(struct s_params& p, int cycle)
 	(void)p;
 
 	_IME = true;
-	_RAM[0xffff] = 0x1f;
+	mem_write(_RAM + 0xffff, 0x1f, 1);
 	_idata.routine = false;
 	this->_cycle += cycle;
 }
