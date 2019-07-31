@@ -1,6 +1,6 @@
 #ifndef OPCODE
 # define OPCODE \
-{0b00000000, "NOP", 0, {_, _, _, _}, std::bind(&Emulateur::nop, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
+{0b00000000, "NOP", 0, {_, _, _, _}, std::bind(&Emulateur::nop, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 1)}, \
 {0b00000001, "NOT AN INSTRUCTION (0b00000001)", 0, {_, _, _, _}}, \
 {0b00000010, "LD (BC), A", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.BC, &regs.af.af.A, (struct s_params){ADDR_x64, ADDR_x64, true, false, 1}, 2)}, \
 {0b00000011, "INC BC", 0, {_, _, _, _}, std::bind(&Emulateur::inc, this, &regs.bc.BC, (struct s_params){ADDR_x64, ADDR_x64, true, false, 2}, 2)}, \
