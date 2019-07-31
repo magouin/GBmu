@@ -177,7 +177,7 @@ void	Emulateur::sdl_init()
 	}
 }
 
-void	Emulateur::sdl_thread()
+void	Emulateur::sdl()
 {
 	sdl_init();
 	while (42)
@@ -245,9 +245,8 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	this->_cycle = 0;
 
 	std::thread timer(&Emulateur::timer_thread, this);
-	// std::thread sdl(&Emulateur::sdl_thread, this);
 	std::thread tima(&Emulateur::tima_thread, this);
-	// std::thread lcd(&Emulateur::timer_thread, this);
+	std::thread lcd(&Emulateur::lcd_thread, this);
 	while (true)
 	{
 		interrupt();

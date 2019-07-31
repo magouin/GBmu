@@ -186,9 +186,7 @@ class Emulateur {
 		void		mem_write_signed(void *addr, int16_t value, int8_t size);
 		bool		is_cpu_regs(void *addr);
 		
-		void		timer_thread();
-		void		lcd_thread();
-		void		sdl_thread();
+
 		void		sdl_init();
 		void		interrupt(void);
 		void		interrupt_func(short addr, uint8_t iflag);
@@ -196,6 +194,9 @@ class Emulateur {
 
 		uint32_t	get_time_from_frequency(uint8_t freq);
 		void		tima_thread();
+		void		lcd_thread();
+		void		sdl();
+		void		timer_thread();
 
 		void		write_div(uint16_t value);
 		void		write_lcdc(uint16_t value);
