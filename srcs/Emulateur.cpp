@@ -222,11 +222,39 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
+
+
 void	Emulateur::lcd_thread()
 {
+	uint64_t		start;
+	uint8_t			ly;
+	const uint16_t	line_time = 252;
+	const uint16_t	scanline_time = 456;
+	const uint16_t	vblank_time = 4560;
+
 	while (true)
 	{
-		// while (this->_cycle > _timer + _timer_counter * 256) ;
+		start = _timer_counter * 256 + _timer;
+		_RAM[0xff44] = 0;
+		ly = 0;
+		while (ly < 154)
+		{
+			if (ly < 144)
+			{
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 2;
+				//print_line(ly);
+				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 0;
+			}
+			else if (ly == 144)
+			{
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 1;
+				_RAM[0xff0f] |= 1;
+			}
+			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
+			_RAM[0xff44]++;
+			ly++;
+		}
 	}
 }
 
