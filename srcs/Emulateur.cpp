@@ -10,6 +10,7 @@ Emulateur::Emulateur()
 Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _ROM(rom)
 {
 	bzero(_RAM, sizeof(_RAM));
+	_cycle = 0;
 	_IME = true;
 }
 
@@ -222,16 +223,20 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
+void	Emulateur::print_line(uint64_t ly, uint64_t start, const uint64_t line_time)
+{
+	
+}
 
 
 void	Emulateur::lcd_thread()
 {
 	uint64_t		start;
-	uint8_t			ly;
-	const uint16_t	line_time = 252;
-	const uint16_t	scanline_time = 456;
-	const uint16_t	vblank_time = 4560;
+	uint64_t		ly;
+	const uint64_t	line_time = 252;
+	const uint64_t	scanline_time = 456;
 
+	while (0x6000 > _cycle);
 	while (true)
 	{
 		start = _timer_counter * 256 + _timer;
@@ -255,6 +260,7 @@ void	Emulateur::lcd_thread()
 			_RAM[0xff44]++;
 			ly++;
 		}
+		printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
 	}
 }
 
@@ -278,8 +284,8 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	while (true)
 	{
 		interrupt();
-		printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
-		printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
+		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+		// printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
 		instr = &_opcode[this->_RAM[this->regs.PC]];
 		# ifdef DEBUG
 			char c[2];

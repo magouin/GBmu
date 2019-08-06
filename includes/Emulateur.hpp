@@ -192,6 +192,7 @@ class Emulateur {
 		void		interrupt_func(short addr, uint8_t iflag);
 
 
+		void		print_line(uint64_t ly, uint64_t start, const uint64_t line_time);
 		uint32_t	get_time_from_frequency(uint8_t freq);
 		void		tima_thread();
 		void		lcd_thread();
@@ -215,16 +216,21 @@ class Emulateur {
 		class InvalidRead : public std::exception
 		{
 			public:
+			InvalidRead(string ad) throw() : addr(ad) {}
+			string addr;
 			const char *what() const throw ()
 			{
-				return "Invalid Read" ;
+				return (string("Invalid Write at ") + addr).c_str() ;
 			}
 		};
 		class InvalidWrite : public std::exception
 		{
+			public:
+			InvalidWrite(string ad) throw() : addr(ad) {}
+			string addr;
 			const char *what() const throw ()
 			{
-				return "Invalid Write" ;
+				return (string("Invalid Write at ") + addr).c_str() ;
 			}
 		};
 
