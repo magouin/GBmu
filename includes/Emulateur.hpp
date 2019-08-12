@@ -114,8 +114,9 @@ class Emulateur {
 		
 		uint16_t	_cpu_tick_counter;
 		uint32_t	_frequency; // in Hetz
-		uint8_t		_timer;
+		uint16_t	_timer;
 		uint64_t	_timer_counter;
+		bool		_timer_status;
 
 
 		Emulateur();
@@ -207,6 +208,8 @@ class Emulateur {
 		void		write_ly(uint16_t value);
 		void		write_lyc(uint16_t value);
 		void		write_dma(uint16_t value);
+
+		void		print_bg();
 
 		// static void	timer_thread(uint8_t *_RAM);
 
