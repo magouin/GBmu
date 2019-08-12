@@ -15,8 +15,10 @@ using namespace std;
 # include <instructions.hpp>
 # include <Header.hpp>
 # include <thread>
+# include <sdl.hpp>
 # include <vector>
 # include <SDL2/SDL.h>
+# include <csignal>
 
 # include <time.h>
 # include <sys/time.h> 
@@ -109,14 +111,23 @@ class Emulateur {
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
 		s_interrupt	_idata;
+
+		uint32_t _begin;
+		uint32_t _end;
 		
-		SDL_Window*	_window;
-		
+		SDL_Window*		_window;
+		SDL_Renderer*	_renderer;
+		SDL_Surface*	_surface;
+		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
+
+		SDL_Thread		*_cpu_thread;
+		SDL_Thread		*_timer_thread;
+		SDL_Thread		*_tima_thread;
+
 		uint16_t	_cpu_tick_counter;
 		uint32_t	_frequency; // in Hetz
 		uint8_t		_timer;
 		uint64_t	_timer_counter;
-
 
 		Emulateur();
 
@@ -188,15 +199,25 @@ class Emulateur {
 		
 
 		void		sdl_init();
+
 		void		interrupt(void);
 		void		interrupt_func(short addr, uint8_t iflag);
 
+		int			cpu_thread(void *data);
 
 		uint32_t	get_time_from_frequency(uint8_t freq);
-		void		tima_thread();
-		void		lcd_thread();
-		void		sdl();
-		void		timer_thread();
+		int			tima_thread(void *data);
+		int			timer_thread(void *data);
+
+		bool		update();
+		void		render();
+
+		void		set_pixel(uint32_t pixel, uint16_t x, uint16_t y);
+		uint8_t		color_htor(uint32_t color);
+		uint8_t		color_htog(uint32_t color);
+		uint8_t		color_htob(uint32_t color);
+		uint8_t		color_htoa(uint32_t color);
+		uint32_t 	color_5_to_8(uint16_t gb_color);
 
 		void		write_div(uint16_t value);
 		void		write_lcdc(uint16_t value);
@@ -211,6 +232,9 @@ class Emulateur {
 
 
 	public:
+		static int create_cpu_thread(void *ptr);
+		static int create_timer_thread(void *ptr);
+		static int create_tima_thread(void *ptr);
 
 		class InvalidRead : public std::exception
 		{

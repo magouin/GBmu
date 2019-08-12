@@ -104,33 +104,37 @@ uint32_t	Emulateur::get_time_from_frequency(uint8_t	freq)
 	return (_RAM[0xFF04] >> ((num_to_byte[freq]) - 8));
 }
 
-void	Emulateur::tima_thread()
+int			Emulateur::tima_thread(void *data)
 {
 	static bool			start = false;
 	static uint32_t		last_time;
 	uint32_t			tmp_time;
 	const uint8_t		num_to_byte[4] = {10, 4, 6, 8};
 
-	if (start != _RAM[0xFF07])
+	while (true)
 	{
-		start = !start;
-		last_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
-	}
-	else if (start)
-	{
-		tmp_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
-		if (tmp_time < last_time)
-			tmp_time += -1u >> num_to_byte[_RAM[0xFF07] & 0x3];
-		if (_RAM[0xFF05] + (uint8_t)(tmp_time - last_time) > 255)
+		if (start != _RAM[0xFF07])
 		{
-			_RAM[0xFF05] = _RAM[0xFF06];
-			_RAM[0xFF0F] |= 2;
+			start = !start;
+			last_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
 		}
-		_RAM[0xFF05] += (uint8_t)(tmp_time - last_time);
+		else if (start)
+		{
+			tmp_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
+			if (tmp_time < last_time)
+				tmp_time += -1u >> num_to_byte[_RAM[0xFF07] & 0x3];
+			if (_RAM[0xFF05] + (uint8_t)(tmp_time - last_time) > 255)
+			{
+				_RAM[0xFF05] = _RAM[0xFF06];
+				_RAM[0xFF0F] |= 2;
+			}
+			_RAM[0xFF05] += (uint8_t)(tmp_time - last_time);
+		}
 	}
+	return (0);
 }
 
-void	Emulateur::timer_thread()
+int			Emulateur::timer_thread(void *data)
 {
 	std::chrono::time_point<std::chrono::high_resolution_clock> start, end, time;
 	uint32_t nsecond_per_tick;
@@ -157,34 +161,7 @@ void	Emulateur::timer_thread()
 			time = std::chrono::high_resolution_clock::now();
 		_timer++;
 	}
-}
-
-void	Emulateur::sdl_init()
-{
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-	{
-		fprintf(stderr, "Impossible to initialize SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
-	_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160, 144, SDL_WINDOW_SHOWN);
-	if (_window)
-	{
-		SDL_DestroyWindow(_window);
-	}
-	else
-	{
-		fprintf(stderr, "Erreur de création de la fenêtre: %s\n", SDL_GetError());
-	}
-}
-
-void	Emulateur::sdl()
-{
-	sdl_init();
-	while (42)
-	{
-		// break ;
-	}
-	SDL_Quit();
+	return (0);
 }
 
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
@@ -222,36 +199,24 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
-void	Emulateur::lcd_thread()
-{
-	while (true)
-	{
-		// while (this->_cycle > _timer + _timer_counter * 256) ;
-	}
-}
-
-
-void	Emulateur::emu_start(uint32_t begin, uint32_t end)
+int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instruction_params	*instr;
 	int	x;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
-	this->regs.PC = begin;
+	this->regs.PC = _begin;
 	x = 0;
 
 	init_registers();
 	this->_cycle = 0;
 
-	std::thread timer(&Emulateur::timer_thread, this);
-	std::thread tima(&Emulateur::tima_thread, this);
-	std::thread lcd(&Emulateur::lcd_thread, this);
 	while (true)
 	{
 		interrupt();
-		printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
-		printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
+		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+		// printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
 		instr = &_opcode[this->_RAM[this->regs.PC]];
 		# ifdef DEBUG
 			char c[2];
@@ -275,4 +240,67 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 		while (this->_cycle * 4 > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
+	return (0);
+}
+
+int Emulateur::create_cpu_thread(void *ptr)
+{
+	Emulateur *p;
+
+	p = (Emulateur*)ptr;
+	return p->cpu_thread(NULL);
+}
+
+int Emulateur::create_timer_thread(void *ptr)
+{
+	Emulateur *p;
+
+	p = (Emulateur*)ptr;
+	return p->timer_thread(NULL);
+}
+
+int Emulateur::create_tima_thread(void *ptr)
+{
+	Emulateur *p;
+
+	p = (Emulateur*)ptr;
+	return p->tima_thread(NULL);
+}
+
+// void	signal_handler(int signal)
+// {
+// 	SDL_Quit();
+// }
+
+// void	Emulateur::catch_signals(void)
+// {
+// 	signal(SIGABRT, signal_handler);
+// 	signal(SIGFPE, signal_handler);
+// 	signal(SIGILL, signal_handler);
+// 	signal(SIGINT, signal_handler);
+// 	signal(SIGSEGV, signal_handler);
+// 	signal(SIGTERM, signal_handler);
+// }
+
+void	Emulateur::emu_start(uint32_t begin, uint32_t end)
+{
+	sdl_init();
+
+	_begin = begin;
+	_end = end;
+
+	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
+	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
+	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+
+	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
+
+	while (true)
+	{
+		if (!update())
+			break ;
+		render();
+	}
+	SDL_Quit();
+	exit(1);
 }
