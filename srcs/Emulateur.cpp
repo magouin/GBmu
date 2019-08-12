@@ -10,6 +10,7 @@ Emulateur::Emulateur()
 Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _ROM(rom)
 {
 	bzero(_RAM, sizeof(_RAM));
+	_cycle = 0;
 	_IME = true;
 }
 
@@ -136,32 +137,62 @@ int			Emulateur::tima_thread(void *data)
 
 int			Emulateur::timer_thread(void *data)
 {
-	std::chrono::time_point<std::chrono::high_resolution_clock> start, end, time;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start, tmp, time;
 	uint32_t nsecond_per_tick;
-	int x = 0;
 
 	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
 	printf("nsecond_per_tick = %d\n", nsecond_per_tick);
 	start = std::chrono::high_resolution_clock::now();
 	_timer = 0; 
 	_timer_counter = 0; 
+	_timer_status = true;
 	while (true)
 	{
-		if (_timer == 255)
+		time = std::chrono::high_resolution_clock::now();
+		while ((time - start).count() < nsecond_per_tick)
+			time = std::chrono::high_resolution_clock::now();
+		start = time;
+		if (_timer_status == false)
 		{
-			// if (x == 1000)
-				// std::cout << "ElapsedTime: " << (time - start).count() << " nano seconde\n";
-			x++;
-			start = time;
+			// printf("Timer = %llx\n", _timer + _timer_counter * 256);
+			while (_timer_status == false) ;
+			start = std::chrono::high_resolution_clock::now();
+		}
+		_timer++;
+		if (_timer == 256)
+		{
+			_timer = 0;
 			_timer_counter++;
 			_RAM[0xFF04]++;
 		}
-		time = std::chrono::high_resolution_clock::now();
-		while ((time - start).count() < ((uint32_t)_timer + 1) * nsecond_per_tick)
-			time = std::chrono::high_resolution_clock::now();
-		_timer++;
 	}
-	return (0);
+}
+
+void	Emulateur::print_bg()
+{
+	uint8_t *b_code;
+	uint8_t *b_data;
+	uint8_t code;
+	// uint8_t data;
+	int		x, y;
+	int		wx, wy;
+
+	b_code = _RAM + ((_RAM[0xff40] & (1 << 3)) ? 0x9c00 : 0x9800);
+	b_data = _RAM + ((_RAM[0xff40] & (1 << 4)) ? 0x8000 : 0x8800);
+	y = 0;
+	wx = _RAM[0xff43] / 8;
+	wy = _RAM[0xff42] / 8;
+	while (y < 18)
+	{
+		x = 0;
+		while (x < 20)
+		{
+			code = b_code[(y + wy) * 32 + wx + x];
+			// data
+			x++;
+		}
+		y++;
+	}
 }
 
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
@@ -199,15 +230,57 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
+void	Emulateur::print_line(uint64_t ly, uint64_t start, const uint64_t line_time)
+{
+	
+}
+
+
+int		Emulateur::lcd_thread(void *data)
+{
+	uint64_t		start;
+	uint64_t		ly;
+	const uint64_t	line_time = 252;
+	const uint64_t	scanline_time = 456;
+
+	while (true)
+	{
+		start = _timer_counter * 256 + _timer;
+		_RAM[0xff44] = 0;
+		ly = 0;
+		while (ly < 154)
+		{
+			if (ly < 144)
+			{
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 2;
+				//print_line(ly);
+				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 0;
+			}
+			else if (ly == 144)
+			{
+				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 1;
+				_RAM[0xff0f] |= 1;
+			}
+			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
+			_RAM[0xff44]++;
+			ly++;
+		}
+		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
+	}
+}
+
+
 int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instruction_params	*instr;
-	int	x;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
+	# ifdef DEBUG
+		_frequency = 41943; // Need to change if it is a CGB
+	# endif
 	this->regs.PC = _begin;
-	x = 0;
 
 	init_registers();
 	this->_cycle = 0;
@@ -220,27 +293,22 @@ int		Emulateur::cpu_thread(void *data)
 		instr = &_opcode[this->_RAM[this->regs.PC]];
 		# ifdef DEBUG
 			char c[2];
+			_timer_status = false;
 
 			print_regs();
 			if (!read(0, &c, 2)) // to change
 				exit(0);
+			_timer_status = true;
 			// std::cout << instr->mnemonic << " -> ";
 		# endif
-		x++;
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-		if (x == 0)
-		{
-			_timer = 0;
-			_timer_counter = 0;
-		}
 		// if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
 		// 	printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
 			// std::cout << "J'ai du retard ??\n";
 		while (this->_cycle * 4 > _timer + _timer_counter * 256) ;
 		// std::cout << std::endl;
 	}
-	return (0);
 }
 
 int Emulateur::create_cpu_thread(void *ptr)
@@ -249,6 +317,14 @@ int Emulateur::create_cpu_thread(void *ptr)
 
 	p = (Emulateur*)ptr;
 	return p->cpu_thread(NULL);
+}
+
+int Emulateur::create_lcd_thread(void *ptr)
+{
+	Emulateur *p;
+
+	p = (Emulateur*)ptr;
+	return p->lcd_thread(NULL);
 }
 
 int Emulateur::create_timer_thread(void *ptr)
@@ -290,6 +366,7 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	_end = end;
 
 	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
+	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
 	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
 
