@@ -121,13 +121,15 @@ class Emulateur {
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
 
 		SDL_Thread		*_cpu_thread;
+		SDL_Thread		*_lcd_thread;
 		SDL_Thread		*_timer_thread;
 		SDL_Thread		*_tima_thread;
 
 		uint16_t	_cpu_tick_counter;
 		uint32_t	_frequency; // in Hetz
-		uint8_t		_timer;
+		uint16_t	_timer;
 		uint64_t	_timer_counter;
+		bool		_timer_status;
 
 		Emulateur();
 
@@ -203,9 +205,12 @@ class Emulateur {
 		void		interrupt(void);
 		void		interrupt_func(short addr, uint8_t iflag);
 
-		int			cpu_thread(void *data);
 
+		void		print_line(uint64_t ly, uint64_t start, const uint64_t line_time);
 		uint32_t	get_time_from_frequency(uint8_t freq);
+
+		int			cpu_thread(void *data);
+		int			lcd_thread(void *data);
 		int			tima_thread(void *data);
 		int			timer_thread(void *data);
 
@@ -228,27 +233,35 @@ class Emulateur {
 		void		write_lyc(uint16_t value);
 		void		write_dma(uint16_t value);
 
+		void		print_bg();
+
 		// static void	timer_thread(uint8_t *_RAM);
 
 
 	public:
 		static int create_cpu_thread(void *ptr);
+		static int create_lcd_thread(void *ptr);
 		static int create_timer_thread(void *ptr);
 		static int create_tima_thread(void *ptr);
 
 		class InvalidRead : public std::exception
 		{
 			public:
+			InvalidRead(string ad) throw() : addr(ad) {}
+			string addr;
 			const char *what() const throw ()
 			{
-				return "Invalid Read" ;
+				return (string("Invalid Write at ") + addr).c_str() ;
 			}
 		};
 		class InvalidWrite : public std::exception
 		{
+			public:
+			InvalidWrite(string ad) throw() : addr(ad) {}
+			string addr;
 			const char *what() const throw ()
 			{
-				return "Invalid Write" ;
+				return (string("Invalid Write at ") + addr).c_str() ;
 			}
 		};
 

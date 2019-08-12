@@ -77,56 +77,56 @@ void	Emulateur::decr(void *param, struct s_params& p, int cycle)
 
 void	Emulateur::rlca(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rrca(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rla(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rra(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::daa(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::cpl(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::stop(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::halt(struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
@@ -232,21 +232,21 @@ void	Emulateur::add(void *param_1, void *param_2, struct s_params& p, int cycle)
 
 void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::sub(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::sbc(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
@@ -382,70 +382,70 @@ void	Emulateur::push(void *param, struct s_params& p, int cycle)
 
 void	Emulateur::rst(uint8_t nb, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::ldhl(void *param1, void *param2, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rlc(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rrc(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rl(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::rr(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::sla(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::sra(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::srl(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
 
 void	Emulateur::_swap(void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
@@ -476,7 +476,7 @@ void	Emulateur::res(uint8_t bit, void *param, struct s_params& p, int cycle)
 
 void	Emulateur::set(uint8_t bit, void *param1, struct s_params& p, int cycle)
 {
-	// printf("In %s\n", __FUNCTION__);
+	printf("In %s\n", __FUNCTION__);
 	exit(1);
 	this->_cycle += cycle;
 }
