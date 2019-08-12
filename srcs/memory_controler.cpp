@@ -72,7 +72,7 @@ uint16_t	Emulateur::mem_read(void *addr, int8_t size)
 	{
 		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
 		if ((ram_addr >= 0xe000 && ram_addr < 0xfe00)
-			|| (ram_addr >= 0xfea0 && ram_addr < 0xff00)
+			// || (ram_addr >= 0xfea0 && ram_addr < 0xff00)
 			|| (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - 0xff00].right & RD)))
 			throw InvalidRead();
 		if (ram_addr >= 0xff00 && ram_addr < 0xff80 && _ram_regs[ram_addr - 0xff00].read)
