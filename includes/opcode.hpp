@@ -234,7 +234,7 @@
 {0b11100111, "RST 4", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 4, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11101000, "ADD SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::add, this, &regs.SP, (void *)NULL, (struct s_params){ADDR_x64, DIRECT, false, false, 1}, 4)}, \
 {0b11101001, "JP (HL)", 0, {_, _, _, _}, std::bind(&Emulateur::jp, this, EMPTY, &regs.hl.HL, (struct s_params){ADDR_x64, NO_PARAM, true, false, 2}, 1)}, \
-{0b11101010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, true, 1}, 4)}, \
+{0b11101010, "LD (nn), A", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, (void*)NULL, &regs.af.af.A, (struct s_params){UDIRECT, ADDR_x64, true, false, 2}, 4)}, \
 {0b11101011, "NOT AN INSTRUCTION (0b11101011)", 0, {_, _, _, _}}, \
 {0b11101100, "NOT AN INSTRUCTION (0b11101100)", 0, {_, _, _, _}}, \
 {0b11101101, "NOT AN INSTRUCTION (0b11101101)", 0, {_, _, _, _}}, \
@@ -250,8 +250,8 @@
 {0b11110111, "RST 6", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 6, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11111000, "LDHL SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::ldhl, this, &regs.SP, (void*)NULL, (struct s_params){ADDR_x64, DIRECT, false, false, 1}, 3)}, \
 {0b11111001, "LD SP, HL", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.SP, &regs.hl.HL, (struct s_params){ADDR_x64, ADDR_x64, false, false, 2}, 2)}, \
-{0b11111010, "LD (nn), A", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, (void*)NULL, &regs.af.af.A, (struct s_params){UDIRECT, ADDR_x64, true, false, 1}, 4)}, \
-{0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::di, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
+{0b11111010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, true, 1}, 4)}, \
+{0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::ei, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}}, \
 {0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}}, \
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, std::bind(&Emulateur::cp, this, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \

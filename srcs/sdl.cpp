@@ -61,9 +61,10 @@ bool	Emulateur::update()
 
 	while (SDL_PollEvent(&e))
 	{
-		if (e.type == SDL_KEYDOWN)
-			SDL_Log("Poulet\n");
-		else if (e.type == SDL_QUIT)
+		// if (e.type == SDL_KEYDOWN)
+		// 	SDL_Log("Poulet\n");
+		// else
+		if (e.type == SDL_QUIT)
 		{
 			printf("Event SDL_QUIT\n");
 			return (false);
