@@ -30,7 +30,15 @@ int main(int ac, const char **av)
 
 	Emulateur emu(rom);
 
-	emu.emu_start(0x100, 0x110);
+	try {
+		emu.emu_start(0x100, 0x110);
+	}
+	catch (Emulateur::InvalidRead &e) {
+		cout << e.what() << endl;
+	}
+	catch (Emulateur::InvalidWrite &e) {
+		cout << e.what() << endl;
+	}
 
 
 	return (0);

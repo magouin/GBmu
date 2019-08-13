@@ -25,6 +25,8 @@ using namespace std;
 # include <sys/types.h>
 # include <sys/uio.h>
 # include <unistd.h>
+# include <stdio.h>
+# include <string.h>
 
 # define FLAG_Z  (1 << 7)
 # define FLAG_N  (1 << 6)
@@ -247,21 +249,27 @@ class Emulateur {
 		class InvalidRead : public std::exception
 		{
 			public:
-			InvalidRead(string ad) throw() : addr(ad) {}
-			string addr;
+			short addr;
+			stringstream s;
+			InvalidRead(short ad) throw() : addr(ad) {
+				s << "Invalid Read at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
+			}
 			const char *what() const throw ()
 			{
-				return (string("Invalid Write at ") + addr).c_str() ;
+				return (s.str().c_str());
 			}
 		};
 		class InvalidWrite : public std::exception
 		{
 			public:
-			InvalidWrite(string ad) throw() : addr(ad) {}
-			string addr;
+			short addr;
+			stringstream s;
+			InvalidWrite(short ad) throw() : addr(ad) {
+				s << "Invalid Write at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
+			}
 			const char *what() const throw ()
 			{
-				return (string("Invalid Write at ") + addr).c_str() ;
+				return (s.str().c_str());
 			}
 		};
 

@@ -141,7 +141,7 @@ int			Emulateur::timer_thread(void *data)
 	uint32_t nsecond_per_tick;
 
 	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
-	printf("nsecond_per_tick = %d\n", nsecond_per_tick);
+	// printf("nsecond_per_tick = %d\n", nsecond_per_tick);
 	start = std::chrono::high_resolution_clock::now();
 	_timer = 0; 
 	_timer_counter = 0; 
@@ -316,7 +316,14 @@ int Emulateur::create_cpu_thread(void *ptr)
 	Emulateur *p;
 
 	p = (Emulateur*)ptr;
-	return p->cpu_thread(NULL);
+	try {
+		return p->cpu_thread(NULL);
+	}
+	catch (std::exception &e)
+	{
+		cout << e.what() << endl;
+		exit(0);
+	};
 }
 
 int Emulateur::create_lcd_thread(void *ptr)
@@ -369,6 +376,7 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
 	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+
 
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
 
