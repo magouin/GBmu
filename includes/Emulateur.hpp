@@ -33,6 +33,15 @@ using namespace std;
 # define FLAG_H  (1 << 5)
 # define FLAG_CY (1 << 4)
 
+# define IO_RIGHT 1
+# define IO_LEFT 2
+# define IO_UP 4
+# define IO_DOWN 8
+# define IO_A 1
+# define IO_B 2
+# define IO_SELECT 4
+# define IO_START 8
+
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
 struct s_regs {
@@ -72,6 +81,12 @@ struct s_regs {
 	uint16_t PC;
 };
 
+struct user_input
+{
+	uint8_t p14;
+	uint8_t p15;
+};
+
 struct s_param_info
 {
 	void				*param;
@@ -98,7 +113,7 @@ class Emulateur;
 
 struct s_ram_regs {
 	enum e_right	right;
-	uint16_t		(Emulateur::*read)();
+	uint8_t		(Emulateur::*read)();
 	void			(Emulateur::*write)(uint16_t value);
 };
 
@@ -113,6 +128,8 @@ class Emulateur {
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
 		s_interrupt	_idata;
+
+		struct user_input	_input;
 
 		uint32_t _begin;
 		uint32_t _end;
@@ -226,6 +243,8 @@ class Emulateur {
 		uint8_t		color_htoa(uint32_t color);
 		uint32_t 	color_5_to_8(uint16_t gb_color);
 
+		uint8_t		read_p1();
+
 		void		write_div(uint16_t value);
 		void		write_lcdc(uint16_t value);
 		void		write_stat(uint16_t value);
@@ -236,6 +255,10 @@ class Emulateur {
 		void		write_dma(uint16_t value);
 
 		void		print_bg();
+		void		print_tile(uint8_t *tile, int x, int y);
+		void		print_all_tiles();
+		void		dump_data_tiles();
+		void		fill_input_from_key(SDL_Keycode sym, SDL_EventType t);
 
 		// static void	timer_thread(uint8_t *_RAM);
 
