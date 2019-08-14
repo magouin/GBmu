@@ -1,6 +1,6 @@
 #ifndef RAM_REGS
 # define RAM_REGS \
-/* 0xFF00 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
+/* 0xFF00 */ (struct s_ram_regs){RDWR, &Emulateur::read_p1, NULL}, \
 /* 0xFF01 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF02 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF03 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \

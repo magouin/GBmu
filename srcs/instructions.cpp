@@ -201,32 +201,53 @@ void	Emulateur::add(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
 	struct s_param_info	p1;
 	struct s_param_info	p2;
-	uint16_t v1;
-	uint16_t v2;
 
 	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&p1, p.size);
 	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&p2, p.size);
-	v1 = mem_read(p1.rez, 2);
-	if (p2.rez)
+	if (p.size == 2)
 	{
-		v2 = mem_read(p2.rez, 2);
-		this->regs.af.af.F &= ~FLAG_N;
-		if ((uint32_t)v1 + (uint32_t)v2 > 0xffff)
-			this->regs.af.af.F |= FLAG_CY;
-		if ((v1 & 0x0fff) + (v2 & 0x0fff) > 0x0fff)
-			this->regs.af.af.F |= FLAG_H;
-		mem_write(p1.rez, v1 + v2, 2);
+		uint16_t v1;
+		uint16_t v2;
+
+		v1 = mem_read(p1.rez, 2);
+		if (p2.rez)
+		{
+			v2 = mem_read(p2.rez, 2);
+			this->regs.af.af.F &= ~FLAG_N;
+			if ((uint32_t)v1 + (uint32_t)v2 > 0xffff)
+				this->regs.af.af.F |= FLAG_CY;
+			if ((v1 & 0x0fff) + (v2 & 0x0fff) > 0x0fff)
+				this->regs.af.af.F |= FLAG_H;
+			mem_write(p1.rez, v1 + v2, 2);
+		}
+		else
+		{
+			this->regs.af.af.F = 0;
+			if ((uint32_t)v1 + (int32_t)p2.e > 0xffff)
+				this->regs.af.af.F |= FLAG_CY;
+			if (((v1) & 0x0fff) + (p2.e & 0x0fff) > 0x0fff)
+				this->regs.af.af.F |= FLAG_H;
+			mem_write_signed(p1.rez, v1 + p2.e, 2);
+		}
 	}
 	else
 	{
-		this->regs.af.af.F = 0;
-		if ((uint32_t)v1 + (int32_t)p2.e > 0xffff)
+		uint8_t v1;
+		uint8_t v2;
+
+		v1 = mem_read(p1.rez, 1);
+		v2 = mem_read(p2.rez, 1);
+		if (v1 + v2 == 0)
+			this->regs.af.af.F = FLAG_Z;
+		else
+			this->regs.af.af.F = 0;
+		if ((uint16_t)v1 + (uint16_t)v2 > 0xff)
 			this->regs.af.af.F |= FLAG_CY;
-		if (((v1) & 0x0fff) + (p2.e & 0x0fff) > 0x0fff)
+		if ((v1 & 0x0f) + (v2 & 0x0f) > 0x0f)
 			this->regs.af.af.F |= FLAG_H;
-		mem_write_signed(p1.rez, v1 + p2.e, 2);
+		mem_write(p1.rez, v1 + v2, 1);
 	}
 	this->_cycle += cycle;
 }
@@ -339,7 +360,7 @@ void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
 	{
 		p->rez = (uint16_t *)p->param;
 		if (p->type == MEM_gb)
-			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + *(uint8_t *)p->rez);
+			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + mem_read(p->rez, 1));
 		else if (p->type != ADDR_x64)
 			exit(0);
 	}
@@ -348,16 +369,16 @@ void	Emulateur::get_params(struct s_param_info *p, uint8_t size)
 		p->rez = (uint16_t *)(this->_RAM + this->regs.PC - size);
 		if (p->type == DIRECT)
 		{
-			p->e = (int16_t)*(int8_t *)p->rez;
+			p->e = (int8_t)mem_read(p->rez, 1);
 			p->rez = NULL;
 		}
 		else if (p->type == MEM_gb)
-			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + *(uint8_t *)p->rez);
+			p->rez = (uint16_t *)(this->_RAM + 0xFF00 + mem_read(p->rez, 1));
 		else if (p->type != UDIRECT)
 			exit(0);
 	}
 	if (p->deref)
-		p->rez = (uint16_t *)(this->_RAM + *(p->rez));
+		p->rez = (uint16_t *)(this->_RAM + mem_read(p->rez, 2));
 }
 
 void	Emulateur::jp(enum e_cond cond, void* param1, struct s_params& p, int cycle)

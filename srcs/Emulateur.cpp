@@ -168,17 +168,67 @@ int			Emulateur::timer_thread(void *data)
 	}
 }
 
+uint32_t	graytopixel(uint8_t g)
+{
+	return ((((((0xff << 8) | g) << 8) | g) << 8) | g);
+}
+
+void	Emulateur::print_tile(uint8_t *tile, int x, int y)
+{
+	int z;
+	uint8_t p1, p2, p3 ,p4;
+
+	z = 0;
+	// printf("tile = %p\n", tile);
+	while (z < 16)
+	{
+		p1 = ((tile[z] >> 0) & 3) * (256 / 3);
+		p2 = ((tile[z] >> 2) & 3) * (256 / 3);
+		p3 = ((tile[z] >> 4) & 3) * (256 / 3);
+		p4 = ((tile[z] >> 6) & 3) * (256 / 3);
+		set_pixel(graytopixel(p1), x * 8 + 0 + (z % 2 * 4), y * 8 + (z / 2));
+		set_pixel(graytopixel(p2), x * 8 + 1 + (z % 2 * 4), y * 8 + (z / 2));
+		set_pixel(graytopixel(p3), x * 8 + 2 + (z % 2 * 4), y * 8 + (z / 2));
+		set_pixel(graytopixel(p4), x * 8 + 3 + (z % 2 * 4), y * 8 + (z / 2));
+		z++;
+	}
+}
+
+void	Emulateur::dump_data_tiles()
+{
+	int x;
+	uint32_t a;
+
+	x = 0;
+	while (x < 0x800)
+	{
+		a = 0x8000 + x;
+		printf("%x: %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx\t%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx\n", a, _RAM[a + 0], _RAM[a + 1], _RAM[a + 2], _RAM[a + 3], _RAM[a + 4], _RAM[a + 5], _RAM[a + 6], _RAM[a + 7], _RAM[a + 8], _RAM[a + 9], _RAM[a + 10], _RAM[a + 11], _RAM[a + 12], _RAM[a + 13], _RAM[a + 14], _RAM[a + 15]);
+		x += 16;
+	}
+}
+
+void	Emulateur::print_all_tiles()
+{
+	int x;
+
+	x = 0;
+	while (x < 256)
+	{
+		print_tile(_RAM + 0x8800 + (x * 16), (x % 20), x / 20);
+		x++;
+	}
+}
+
 void	Emulateur::print_bg()
 {
-	uint8_t *b_code;
-	uint8_t *b_data;
-	uint8_t code;
-	// uint8_t data;
+	uint8_t	*b_code;
+	uint8_t	*b_data;
+	uint8_t	code;
 	int		x, y;
 	int		wx, wy;
 
 	b_code = _RAM + ((_RAM[0xff40] & (1 << 3)) ? 0x9c00 : 0x9800);
-	b_data = _RAM + ((_RAM[0xff40] & (1 << 4)) ? 0x8000 : 0x8800);
 	y = 0;
 	wx = _RAM[0xff43] / 8;
 	wy = _RAM[0xff42] / 8;
@@ -188,7 +238,13 @@ void	Emulateur::print_bg()
 		while (x < 20)
 		{
 			code = b_code[(y + wy) * 32 + wx + x];
-			// data
+			b_data = _RAM + (_RAM[0xff40] & (1 << 4) ? 0x8000 : 0x8800);
+			if (code > 0x80)
+			{
+				b_data = _RAM + 0x8800;
+				code -= 0x80;
+			}
+			print_tile(b_data + (code * 16), x, y);
 			x++;
 		}
 		y++;
@@ -235,18 +291,24 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, const uint64_t line_time
 	
 }
 
-
 int		Emulateur::lcd_thread(void *data)
 {
 	uint64_t		start;
 	uint64_t		ly;
 	const uint64_t	line_time = 252;
 	const uint64_t	scanline_time = 456;
+	int x;
 
+	x = 0;
 	while (true)
 	{
 		start = _timer_counter * 256 + _timer;
 		_RAM[0xff44] = 0;
+		// print_bg();
+		// printf("\nDump %d\n", x);
+		// dump_data_tiles();
+		x++;
+		// print_all_tiles();
 		ly = 0;
 		while (ly < 154)
 		{
@@ -379,7 +441,8 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 
 
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
-
+	_input.p14 = 0xff;
+	_input.p15 = 0xff;
 	while (true)
 	{
 		if (!update())

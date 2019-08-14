@@ -28,7 +28,7 @@ uint32_t Emulateur::color_5_to_8(uint16_t gb_color)
 	color_g = ((gb_color & 0x03e0) * 255) / 31;
 	color_b = ((gb_color & 0x7c00) * 255) / 31;
 
-	return ((color_r < 24) | (color_g < 16) | (color_b < 8) | 0xff);
+	return ((color_r << 24) | (color_g << 16) | (color_b << 8) | 0xff);
 }
 
 void	Emulateur::sdl_init()
@@ -55,21 +55,71 @@ void	Emulateur::sdl_init()
 	}
 }
 
+void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
+{
+	if (t == SDL_KEYDOWN)
+		switch (sym)
+		{
+			case SDLK_UP:
+				_input.p14 &= ~IO_UP;
+			case SDLK_DOWN:
+				_input.p14 &= ~IO_DOWN;
+			case SDLK_LEFT:
+				_input.p14 &= ~IO_LEFT;
+			case SDLK_RIGHT:
+				_input.p14 &= ~IO_RIGHT;
+			case SDLK_a:
+				_input.p15 &= ~IO_A;
+			case SDLK_b:
+				_input.p15 &= ~IO_B;
+			case SDLK_p:
+				_input.p15 &= ~IO_START;
+			case SDLK_o:
+				_input.p15 &= ~IO_SELECT;
+		}
+	else
+		switch (sym)
+		{
+			case SDLK_UP:
+				_input.p14 |= IO_UP;
+			case SDLK_DOWN:
+				_input.p14 |= IO_DOWN;
+			case SDLK_LEFT:
+				_input.p14 |= IO_LEFT;
+			case SDLK_RIGHT:
+				_input.p14 |= IO_RIGHT;
+			case SDLK_a:
+				_input.p15 |= IO_A;
+			case SDLK_b:
+				_input.p15 |= IO_B;
+			case SDLK_p:
+				_input.p15 |= IO_START;
+			case SDLK_o:
+				_input.p15 |= IO_SELECT;
+		}
+}
+
 bool	Emulateur::update()
 {
 	SDL_Event	e;
 
 	while (SDL_PollEvent(&e))
 	{
-		// if (e.type == SDL_KEYDOWN)
-		// 	SDL_Log("Poulet\n");
-		// else
-		if (e.type == SDL_QUIT)
+		switch (e.type)
 		{
-			printf("Event SDL_QUIT\n");
-			return (false);
+			case SDL_KEYDOWN:
+				fill_input_from_key(e.key.keysym.sym, SDL_KEYDOWN);
+				break;
+			case SDL_KEYUP:
+				fill_input_from_key(e.key.keysym.sym, SDL_KEYUP);
+				break;
+			case SDL_QUIT:
+				printf("Event SDL_QUIT\n");
+				return (false);
+			default:
+				break;
 		}
-    }
+	}
 	return (true);
 }
 
@@ -80,7 +130,7 @@ void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 
 void	Emulateur::render()
 {
-    SDL_RenderClear(_renderer);
+	SDL_RenderClear(_renderer);
 
 	SDL_LockSurface(_surface);
 	memcpy(_surface->pixels, _pixels_map, sizeof(_pixels_map));

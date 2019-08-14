@@ -55,6 +55,21 @@ void			Emulateur::write_dma(uint16_t value)
 	// handle dma
 }
 
+uint8_t			Emulateur::read_p1()
+{
+	uint8_t value;
+
+	// printf("_RAM[0xff00] = %hhx\n", _RAM[0xff00]);
+	value = ~0x30 | _RAM[0xff00];
+	// printf("value = %hhx\n", value);
+	if (!(_RAM[0xff00] & 0x10))
+		value &= (-1u << 4) | _input.p14;
+	if (!(_RAM[0xff00] & 0x20))
+		value &= (-1u << 4) | _input.p15;
+	_RAM[0xff00] = value;
+	return (value);
+}
+
 bool		Emulateur::is_cpu_regs(void *addr)
 {
 	if (addr >= &regs && addr < &regs + sizeof(regs))
