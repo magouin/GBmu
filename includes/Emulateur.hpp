@@ -259,6 +259,7 @@ class Emulateur {
 		void		print_all_tiles();
 		void		dump_data_tiles();
 		void		fill_input_from_key(SDL_Keycode sym, SDL_EventType t);
+		uint8_t		bit_to_gray(uint8_t b);
 
 		// static void	timer_thread(uint8_t *_RAM);
 

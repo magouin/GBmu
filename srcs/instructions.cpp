@@ -12,14 +12,17 @@ void	Emulateur::ld(int8_t inc, void *param_1, void *param_2, struct s_params& p,
 {
 	struct s_param_info	param1;
 	struct s_param_info	param2;
-	const struct s_params tmp = (struct s_params){ADDR_x64, ADDR_x64, false, false, 2};
+	const struct s_params tmp1 = (struct s_params){ADDR_x64, UDIRECT, false, true, 2};
+	const struct s_params tmp2 = (struct s_params){UDIRECT, ADDR_x64, true, false, 2};
 
 	param1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&param1, p.size);
 	param2 = {param_2, p.param2, p.deref_param2, NULL, 0};
 	this->get_params(&param2, p.size);
 	this->regs.hl.HL += inc;
-	if (p.size == 1 || (!memcmp((void *)&p, (void *)&tmp, sizeof(p)) && (param2.rez == (uint16_t *)&regs.af.af.A)))
+	if (p.size == 1
+		|| (!memcmp((void *)&p, (void *)&tmp1, sizeof(p)) && (param1.rez == (uint16_t *)&regs.af.af.A))
+		|| (!memcmp((void *)&p, (void *)&tmp2, sizeof(p)) && (param2.rez == (uint16_t *)&regs.af.af.A)))
 		mem_write(param1.rez, mem_read(param2.rez, 1), 1);
 	else if (p.size == 2)
 		mem_write(param1.rez, mem_read(param2.rez, 2), 2);
@@ -78,8 +81,11 @@ void	Emulateur::decr(void *param, struct s_params& p, int cycle)
 
 void	Emulateur::rlca(struct s_params& p, int cycle)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	uint8_t				*m;
+
+	m = &regs.af.af.A;
+	*m = *m << 1 | ((*m & 0x80) >> 7);
+	regs.af.af.F = (regs.af.af.F & FLAG_Z) | (*m & 0x1 ? FLAG_CY : 0);
 	this->_cycle += cycle;
 }
 
@@ -259,8 +265,6 @@ void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p, int cycle)
 	uint16_t v1;
 	uint16_t v2;
 
-	printf("ici\n");
-	exit(1);
 	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
 	this->get_params(&p1, p.size);
 	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
@@ -278,8 +282,23 @@ void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p, int cycle)
 
 void	Emulateur::sub(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	p1;
+	struct s_param_info	p2;
+	uint8_t v1;
+	uint8_t v2;
+
+	p1 = {param_1, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&p1, p.size);
+	p2 = {param_2, p.param2, p.deref_param2, NULL, 0};
+	this->get_params(&p2, p.size);
+	v1 = mem_read(p1.rez, 1);
+	v2 = mem_read(p2.rez, 1);
+	this->regs.af.af.F &= ~FLAG_N;
+	if (v1 < v2)
+		this->regs.af.af.F |= FLAG_CY;
+	if ((v1 & 0x0f) < (v2 & 0x0f))
+		this->regs.af.af.F |= FLAG_H;
+	mem_write(p1.rez, v1 - v2, 1);
 	this->_cycle += cycle;
 }
 
@@ -320,6 +339,8 @@ void	Emulateur::ret(enum e_cond cond, struct s_params& p, int cycle)
 	this->_cycle += 2;
 	if (!check_rules(cond))
 		return ;
+	if (cond == EMPTY)
+		this->_cycle -= 1;
 	this->regs.PC = mem_read(this->_RAM + this->regs.SP, 2);
 	this->regs.SP += 2;
 	if (_idata.routine && this->regs.PC == _idata.old_pc)
@@ -463,10 +484,16 @@ void	Emulateur::rr(void *param1, struct s_params& p, int cycle)
 	this->_cycle += cycle;
 }
 
-void	Emulateur::sla(void *param1, struct s_params& p, int cycle)
+void	Emulateur::sla(void *param, struct s_params& p, int cycle)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	para;
+	uint8_t				m;
+
+	para = {param, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&para, p.size);
+	m = mem_read(para.rez, 1);
+	regs.af.af.F = (regs.af.af.F & FLAG_Z) | (m & 0x80 ? FLAG_CY : 0);
+	mem_write(para.rez, m << 1, 1);
 	this->_cycle += cycle;
 }
 
@@ -477,10 +504,16 @@ void	Emulateur::sra(void *param1, struct s_params& p, int cycle)
 	this->_cycle += cycle;
 }
 
-void	Emulateur::srl(void *param1, struct s_params& p, int cycle)
+void	Emulateur::srl(void *param, struct s_params& p, int cycle)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	para;
+	uint8_t				m;
+
+	para = {param, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&para, p.size);
+	m = mem_read(para.rez, 1);
+	regs.af.af.F = (regs.af.af.F & FLAG_Z) | (m & 1 ? FLAG_CY : 0);
+	mem_write(para.rez, m >> 1, 1);
 	this->_cycle += cycle;
 }
 

@@ -41,7 +41,7 @@ void	Emulateur::print_regs(void)
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.de.de.D, this->regs.de.de.E, this->regs.de.DE);
 	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.hl.hl.H, this->regs.hl.hl.L, this->regs.hl.HL);
 	printf("PC: %04hX  SP: %04X\n", this->regs.PC, this->regs.SP);
-	printf("ROM: 01  RAM: 00  WRAM: 01  VRAM: 00\n");
+	printf("ROM: 01  RAM: 00  WRAM: %02X  VRAM: %02X\n", (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
 	printf("F: [");
 	this->regs.af.af.F & FLAG_Z ? printf("Z") : printf("-");
 	this->regs.af.af.F & FLAG_N ? printf("N") : printf("-");
@@ -58,6 +58,11 @@ void	Emulateur::init_registers(void)
 	this->regs.bc.BC = 0x0013;
 	this->regs.de.DE = 0x00d8;
 	this->regs.hl.HL = 0x014d;
+
+	// this->regs.af.AF = 0x1180; // cpu_instr
+	// this->regs.bc.BC = 0x0000;
+	// this->regs.de.DE = 0x0008;
+	// this->regs.hl.HL = 0x007c;
 	this->regs.SP = 0xfffe;
 
 
@@ -168,6 +173,34 @@ int			Emulateur::timer_thread(void *data)
 	}
 }
 
+uint8_t		Emulateur::bit_to_gray(uint8_t b)
+{
+	static  uint8_t t = _RAM[0xff47];
+	if (_RAM[0xff47] != t)
+	{
+		printf("t from %x change to %x\n", t, _RAM[0xff47]);
+		t = _RAM[0xff47];
+	}
+	b = (_RAM[0xff47] >> ((b & 3) * 2)) & 3;
+	if (b == 0)
+	{
+		// printf("1");
+		return (COLOR_DMG_00);
+	}
+	if (b == 1)
+	{
+		// printf("2");
+		return (COLOR_DMG_01);
+	}
+	if (b == 2)
+	{
+		// printf("3");
+		return (COLOR_DMG_10);
+	}
+	// printf("4");
+	return (COLOR_DMG_11);
+}
+
 uint32_t	graytopixel(uint8_t g)
 {
 	return ((((((0xff << 8) | g) << 8) | g) << 8) | g);
@@ -175,22 +208,21 @@ uint32_t	graytopixel(uint8_t g)
 
 void	Emulateur::print_tile(uint8_t *tile, int x, int y)
 {
-	int z;
-	uint8_t p1, p2, p3 ,p4;
+	int h, w;
+	uint8_t p;
 
-	z = 0;
+	h = 0;
 	// printf("tile = %p\n", tile);
-	while (z < 16)
+	while (h < 8)
 	{
-		p1 = ((tile[z] >> 0) & 3) * (256 / 3);
-		p2 = ((tile[z] >> 2) & 3) * (256 / 3);
-		p3 = ((tile[z] >> 4) & 3) * (256 / 3);
-		p4 = ((tile[z] >> 6) & 3) * (256 / 3);
-		set_pixel(graytopixel(p1), x * 8 + 0 + (z % 2 * 4), y * 8 + (z / 2));
-		set_pixel(graytopixel(p2), x * 8 + 1 + (z % 2 * 4), y * 8 + (z / 2));
-		set_pixel(graytopixel(p3), x * 8 + 2 + (z % 2 * 4), y * 8 + (z / 2));
-		set_pixel(graytopixel(p4), x * 8 + 3 + (z % 2 * 4), y * 8 + (z / 2));
-		z++;
+		w = 0;
+		while (w < 8)
+		{
+			p = bit_to_gray((tile[h * 2] >> w << 1) | (tile[h * 2 + 1] >> w));
+			set_pixel(graytopixel(p), x * 8 + (7 - w), y * 8 + h);
+			w++;
+		}
+		h++;
 	}
 }
 
@@ -215,7 +247,7 @@ void	Emulateur::print_all_tiles()
 	x = 0;
 	while (x < 256)
 	{
-		print_tile(_RAM + 0x8800 + (x * 16), (x % 20), x / 20);
+		print_tile(_RAM + 0x8000 + (x * 16), (x % 20), x / 20);
 		x++;
 	}
 }
@@ -226,20 +258,21 @@ void	Emulateur::print_bg()
 	uint8_t	*b_data;
 	uint8_t	code;
 	int		x, y;
-	int		wx, wy;
+	uint8_t	scx, scy;
 
 	b_code = _RAM + ((_RAM[0xff40] & (1 << 3)) ? 0x9c00 : 0x9800);
 	y = 0;
-	wx = _RAM[0xff43] / 8;
-	wy = _RAM[0xff42] / 8;
+	scx = _RAM[0xff43] >> 3;
+	scy = _RAM[0xff42] >> 3;
+	// printf("SCX -> [%hhx] | SCY -> [%hhx]\n", scx, scy);
 	while (y < 18)
 	{
 		x = 0;
 		while (x < 20)
 		{
-			code = b_code[(y + wy) * 32 + wx + x];
+			code = b_code[(y + scy) * 32 + (scx + x) % 32];
 			b_data = _RAM + (_RAM[0xff40] & (1 << 4) ? 0x8000 : 0x8800);
-			if (code > 0x80)
+			if (code >= 0x80)
 			{
 				b_data = _RAM + 0x8800;
 				code -= 0x80;
@@ -250,7 +283,6 @@ void	Emulateur::print_bg()
 		y++;
 	}
 }
-
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	_IME = false;
@@ -304,7 +336,7 @@ int		Emulateur::lcd_thread(void *data)
 	{
 		start = _timer_counter * 256 + _timer;
 		_RAM[0xff44] = 0;
-		// print_bg();
+		print_bg();
 		// printf("\nDump %d\n", x);
 		// dump_data_tiles();
 		x++;
