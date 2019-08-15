@@ -1,9 +1,9 @@
 #ifndef OPCODE
 # define OPCODE \
 {0b00000000, "NOP", 0, {_, _, _, _}, std::bind(&Emulateur::nop, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 1)}, \
-{0b00000001, "LD DE, nn", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.BC, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 2}, 3)}, \
+{0b00000001, "LD BC, nn", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.BC, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 2}, 3)}, \
 {0b00000010, "LD (BC), A", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.BC, &regs.af.af.A, (struct s_params){ADDR_x64, ADDR_x64, true, false, 1}, 2)}, \
-{0b00000011, "INC BC", 0, {_, _, _, _}, std::bind(&Emulateur::inc, this, &regs.bc.BC, (struct s_params){ADDR_x64, ADDR_x64, true, false, 2}, 2)}, \
+{0b00000011, "INC BC", 0, {_, _, _, _}, std::bind(&Emulateur::inc, this, &regs.bc.BC, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 2)}, \
 {0b00000100, "INC B", 0, {_, SET, SET_0, SET}, std::bind(&Emulateur::inc, this, &regs.bc.bc.B, (struct s_params){ADDR_x64, NO_PARAM, false, false, 1}, 1)}, \
 {0b00000101, "DEC B", 0, {_, SET, SET_1, SET}, std::bind(&Emulateur::decr, this, &regs.bc.bc.B, (struct s_params){ADDR_x64, NO_PARAM, false, false, 1}, 1)}, \
 {0b00000110, "LD B, n", 1, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.bc.B, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
@@ -24,7 +24,7 @@
 {0b00010101, "DEC D", 0, {_, SET, SET_1, SET}, std::bind(&Emulateur::decr, this, &regs.de.de.D, (struct s_params){ADDR_x64, NO_PARAM, false, false, 1}, 1)}, \
 {0b00010110, "LD D, n", 1, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.de.de.D, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
 {0b00010111, "RLA", 0, {SET, SET_0, SET_0, SET_0}, std::bind(&Emulateur::rla, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 1)}, \
-{0b00011000, "JR e", 1, {_, _, _, _}, std::bind(&Emulateur::jr, this, EMPTY, (struct s_params){DIRECT, NO_PARAM, false, false, 1}, 3)}, \
+{0b00011000, "JR e", 1, {_, _, _, _}, std::bind(&Emulateur::jr, this, EMPTY, (struct s_params){DIRECT, NO_PARAM, false, false, 1}, 0)}, \
 {0b00011001, "ADD HL, DE", 0, {SET, SET, SET_0, _}, std::bind(&Emulateur::add, this, &regs.hl.HL, &regs.de.DE, (struct s_params){ADDR_x64, ADDR_x64, false, false, 2}, 2)}, \
 {0b00011010, "LD A, (DE)", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, &regs.de.DE, (struct s_params){ADDR_x64, ADDR_x64, false, true, 1}, 2)}, \
 {0b00011011, "DEC DE", 0, {_, _, _, _}, std::bind(&Emulateur::decr, this, &regs.de.DE, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 2)}, \
@@ -55,7 +55,7 @@
 {0b00110100, "INC (HL)", 0, {_, SET, SET_0, SET}, std::bind(&Emulateur::inc, this, &regs.hl.HL, (struct s_params){ADDR_x64, NO_PARAM, true, false, 1}, 3)}, \
 {0b00110101, "DEC (HL)", 0, {_, SET, SET_1, SET}, std::bind(&Emulateur::decr, this, &regs.hl.HL, (struct s_params){ADDR_x64, NO_PARAM, true, false, 1}, 3)}, \
 {0b00110110, "LD (HL), n", 1, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.hl.HL, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, true, false, 1}, 3)}, \
-{0b00110111, "NOT AN INSTRUCTION (0b00110111)", 0, {_, _, _, _}}, \
+{0b00110111, "SCF", 0, {_, _, _, _}}, \
 {0b00111000, "JR C, e", 1, {_, _, _, _}, std::bind(&Emulateur::jr, this, C, (struct s_params){DIRECT, NO_PARAM, false, false, 1}, 0)}, \
 {0b00111001, "ADD HL, SP", 0, {SET, SET, SET_0, _}, std::bind(&Emulateur::add, this, &regs.hl.HL, &regs.SP, (struct s_params){ADDR_x64, ADDR_x64, false, false, 2}, 2)}, \
 {0b00111010, "LD A, (HLD)", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, -1, &regs.af.af.A, &regs.hl.HL, (struct s_params){ADDR_x64, ADDR_x64, false, true, 1}, 2)}, \
@@ -63,7 +63,7 @@
 {0b00111100, "INC A", 0, {_, SET, SET_0, SET}, std::bind(&Emulateur::inc, this, &regs.af.af.A, (struct s_params){ADDR_x64, NO_PARAM, false, false, 1}, 1)}, \
 {0b00111101, "DEC A", 0, {_, SET, SET_1, SET}, std::bind(&Emulateur::decr, this, &regs.af.af.A, (struct s_params){ADDR_x64, NO_PARAM, false, false, 1}, 1)}, \
 {0b00111110, "LD A, n", 1, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
-{0b00111111, "NOT AN INSTRUCTION (0b00111111)", 0, {_, _, _, _}}, \
+{0b00111111, "CCF", 0, {_, _, _, _}}, \
 {0b01000000, "LD B, B", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.bc.B, &regs.bc.bc.B, (struct s_params){ADDR_x64, ADDR_x64, false, false, 1}, 1)}, \
 {0b01000001, "LD B, C", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.bc.B, &regs.bc.bc.C, (struct s_params){ADDR_x64, ADDR_x64, false, false, 1}, 1)}, \
 {0b01000010, "LD B, D", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.bc.bc.B, &regs.de.de.D, (struct s_params){ADDR_x64, ADDR_x64, false, false, 1}, 1)}, \
@@ -195,17 +195,17 @@
 {0b11000000, "RET NZ", 0, {_, _, _, _}, std::bind(&Emulateur::ret, this, NZ, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
 {0b11000001, "POP BC", 0, {_, _, _, _}, std::bind(&Emulateur::pop, this, &regs.bc.BC, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 3)}, \
 {0b11000010, "JP NZ, nn", 2, {_, _, _, _}, std::bind(&Emulateur::jp, this, NZ, (void*)NULL, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
-{0b11000011, "JP nn", 2, {_, _, _, _}, std::bind(&Emulateur::jp, this, EMPTY, (void*)NULL, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 4)}, \
+{0b11000011, "JP nn", 2, {_, _, _, _}, std::bind(&Emulateur::jp, this, EMPTY, (void*)NULL, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
 {0b11000100, "CALL NZ, nn", 2, {_, _, _, _}, std::bind(&Emulateur::call, this, NZ, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
 {0b11000101, "PUSH BC", 0, {_, _, _, _}, std::bind(&Emulateur::push, this, &regs.bc.BC, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 4)}, \
 {0b11000110, "ADD A, n", 1, {SET, SET, SET_0, SET}, std::bind(&Emulateur::add, this, &regs.af.af.A, (void *)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
 {0b11000111, "RST 0", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 0, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11001000, "RET Z", 0, {_, _, _, _}, std::bind(&Emulateur::ret, this, Z, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
-{0b11001001, "RET", 0, {_, _, _, _}, std::bind(&Emulateur::ret, this, EMPTY, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
+{0b11001001, "RET", 0, {_, _, _, _}, std::bind(&Emulateur::ret, this, EMPTY, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
 {0b11001010, "JP Z, nn", 2, {_, _, _, _}, std::bind(&Emulateur::jp, this, Z, (void*)NULL, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
 {0b11001011, "op203", 0, {SET, SET, SET, SET}, std::bind(&Emulateur::op203, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
 {0b11001100, "CALL Z, nn", 2, {_, _, _, _}, std::bind(&Emulateur::call, this, Z, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
-{0b11001101, "CALL nn", 2, {_, _, _, _}, std::bind(&Emulateur::call, this, EMPTY, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 6)}, \
+{0b11001101, "CALL nn", 2, {_, _, _, _}, std::bind(&Emulateur::call, this, EMPTY, (struct s_params){UDIRECT, NO_PARAM, false, false, 2}, 0)}, \
 {0b11001110, "ADC A, n", 1, {SET, SET, SET_0, SET}, std::bind(&Emulateur::adc, this, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
 {0b11001111, "RST 1", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 1, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11010000, "RET NC", 0, {_, _, _, _}, std::bind(&Emulateur::ret, this, NC, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 0)}, \
@@ -233,7 +233,7 @@
 {0b11100110, "AND n", 1, {SET_0, SET_1, SET_0, SET}, std::bind(&Emulateur::_and, this, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
 {0b11100111, "RST 4", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 4, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11101000, "ADD SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::add, this, &regs.SP, (void *)NULL, (struct s_params){ADDR_x64, DIRECT, false, false, 1}, 4)}, \
-{0b11101001, "JP (HL)", 0, {_, _, _, _}, std::bind(&Emulateur::jp, this, EMPTY, &regs.hl.HL, (struct s_params){ADDR_x64, NO_PARAM, true, false, 2}, 1)}, \
+{0b11101001, "JP (HL)", 0, {_, _, _, _}, std::bind(&Emulateur::jp, this, EMPTY, &regs.hl.HL, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 1)}, \
 {0b11101010, "LD (nn), A", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, (void*)NULL, &regs.af.af.A, (struct s_params){UDIRECT, ADDR_x64, true, false, 2}, 4)}, \
 {0b11101011, "NOT AN INSTRUCTION (0b11101011)", 0, {_, _, _, _}}, \
 {0b11101100, "NOT AN INSTRUCTION (0b11101100)", 0, {_, _, _, _}}, \
@@ -243,15 +243,15 @@
 {0b11110000, "LD A, (n)", 1, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, MEM_gb, false, false, 1}, 3)}, \
 {0b11110001, "POP AF", 0, {_, _, _, _}, std::bind(&Emulateur::pop, this, &regs.af.AF, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 3)}, \
 {0b11110010, "LD A, (C)", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, &regs.bc.bc.C, (struct s_params){ADDR_x64, MEM_gb, false, false, 1}, 2)}, \
-{0b11110011, "DI", 0, {_, _, _, _}, std::bind(&Emulateur::di, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
+{0b11110011, "DI", 0, {_, _, _, _}, std::bind(&Emulateur::di, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 1)}, \
 {0b11110100, "NOT AN INSTRUCTION (0b11110100)", 0, {_, _, _, _}}, \
 {0b11110101, "PUSH AF", 0, {_, _, _, _}, std::bind(&Emulateur::push, this, &regs.af.AF, (struct s_params){ADDR_x64, NO_PARAM, false, false, 2}, 4)}, \
 {0b11110110, "OR n", 1, {SET_0, SET_0, SET_0, SET}, std::bind(&Emulateur::_or, this, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
 {0b11110111, "RST 6", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 6, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
 {0b11111000, "LDHL SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::ldhl, this, &regs.SP, (void*)NULL, (struct s_params){ADDR_x64, DIRECT, false, false, 1}, 3)}, \
 {0b11111001, "LD SP, HL", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.SP, &regs.hl.HL, (struct s_params){ADDR_x64, ADDR_x64, false, false, 2}, 2)}, \
-{0b11111010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, true, 1}, 4)}, \
-{0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::ei, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 4)}, \
+{0b11111010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, 0, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, true, 2}, 4)}, \
+{0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::ei, this, (struct s_params){NO_PARAM, NO_PARAM, false, false, 0}, 1)}, \
 {0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}}, \
 {0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}}, \
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, std::bind(&Emulateur::cp, this, &regs.af.af.A, (void*)NULL, (struct s_params){ADDR_x64, UDIRECT, false, false, 1}, 2)}, \
