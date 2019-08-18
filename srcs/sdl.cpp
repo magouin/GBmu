@@ -58,45 +58,43 @@ void	Emulateur::sdl_init()
 void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 {
 	if (t == SDL_KEYDOWN)
-		switch (sym)
-		{
-			case SDLK_UP:
-				_input.p14 &= ~IO_UP;
-			case SDLK_DOWN:
-				_input.p14 &= ~IO_DOWN;
-			case SDLK_LEFT:
-				_input.p14 &= ~IO_LEFT;
-			case SDLK_RIGHT:
-				_input.p14 &= ~IO_RIGHT;
-			case SDLK_a:
-				_input.p15 &= ~IO_A;
-			case SDLK_b:
-				_input.p15 &= ~IO_B;
-			case SDLK_p:
-				_input.p15 &= ~IO_START;
-			case SDLK_o:
-				_input.p15 &= ~IO_SELECT;
-		}
+	{
+		if (sym == SDLK_UP)
+			_input.p14 &= ~IO_UP;
+		else if (sym == SDLK_DOWN)
+			_input.p14 &= ~IO_DOWN;
+		else if (sym == SDLK_LEFT)
+			_input.p14 &= ~IO_LEFT;
+		else if (sym == SDLK_RIGHT)
+			_input.p14 &= ~IO_RIGHT;
+		else if (sym == SDLK_a)
+			_input.p15 &= ~IO_A;
+		else if (sym == SDLK_b)
+			_input.p15 &= ~IO_B;
+		else if (sym == SDLK_p)
+			_input.p15 &= ~IO_START;
+		else if (sym == SDLK_o)
+			_input.p15 &= ~IO_SELECT;
+	}
 	else
-		switch (sym)
-		{
-			case SDLK_UP:
-				_input.p14 |= IO_UP;
-			case SDLK_DOWN:
-				_input.p14 |= IO_DOWN;
-			case SDLK_LEFT:
-				_input.p14 |= IO_LEFT;
-			case SDLK_RIGHT:
-				_input.p14 |= IO_RIGHT;
-			case SDLK_a:
-				_input.p15 |= IO_A;
-			case SDLK_b:
-				_input.p15 |= IO_B;
-			case SDLK_p:
-				_input.p15 |= IO_START;
-			case SDLK_o:
-				_input.p15 |= IO_SELECT;
-		}
+	{
+		if (sym == SDLK_UP)
+			_input.p14 |= IO_UP;
+		else if (sym == SDLK_DOWN)
+			_input.p14 |= IO_DOWN;
+		else if (sym == SDLK_LEFT)
+			_input.p14 |= IO_LEFT;
+		else if (sym == SDLK_RIGHT)
+			_input.p14 |= IO_RIGHT;
+		else if (sym == SDLK_a)
+			_input.p15 |= IO_A;
+		else if (sym == SDLK_b)
+			_input.p15 |= IO_B;
+		else if (sym == SDLK_p)
+			_input.p15 |= IO_START;
+		else if (sym == SDLK_o)
+			_input.p15 |= IO_SELECT;
+	}
 }
 
 bool	Emulateur::update()
