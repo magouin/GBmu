@@ -555,10 +555,13 @@ void	Emulateur::res(uint8_t bit, void *param, struct s_params& p, int cycle)
 	this->_cycle += cycle;
 }
 
-void	Emulateur::set(uint8_t bit, void *param1, struct s_params& p, int cycle)
+void	Emulateur::set(uint8_t bit, void *param, struct s_params& p, int cycle)
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	struct s_param_info	para;
+
+	para = {param, p.param1, p.deref_param1, NULL, 0};
+	this->get_params(&para, p.size);
+	mem_write(para.rez, mem_read(para.rez, 1) | (uint8_t)(1 << bit), 1);
 	this->_cycle += cycle;
 }
 

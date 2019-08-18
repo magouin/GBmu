@@ -349,7 +349,6 @@ int		Emulateur::lcd_thread(void *data)
 			_RAM[0xff44]++;
 			ly++;
 		}
-		printf("ff47 = %x", _RAM[0xff47]);
 		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
 	}
 }
