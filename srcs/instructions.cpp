@@ -280,6 +280,7 @@ void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p, int cycle)
 	this->_cycle += cycle;
 }
 
+ 
 void	Emulateur::sub(void *param_1, void *param_2, struct s_params& p, int cycle)
 {
 	struct s_param_info	p1;

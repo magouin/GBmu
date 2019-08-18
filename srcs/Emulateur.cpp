@@ -175,29 +175,13 @@ int			Emulateur::timer_thread(void *data)
 
 uint8_t		Emulateur::bit_to_gray(uint8_t b)
 {
-	static  uint8_t t = _RAM[0xff47];
-	if (_RAM[0xff47] != t)
-	{
-		printf("t from %x change to %x\n", t, _RAM[0xff47]);
-		t = _RAM[0xff47];
-	}
-	b = (_RAM[0xff47] >> ((b & 3) * 2)) & 3;
+	b = (_RAM[0xff47] >> (b * 2)) & 3;
 	if (b == 0)
-	{
-		// printf("1");
 		return (COLOR_DMG_00);
-	}
-	if (b == 1)
-	{
-		// printf("2");
-		return (COLOR_DMG_01);
-	}
 	if (b == 2)
-	{
-		// printf("3");
+		return (COLOR_DMG_01);
+	if (b == 1)
 		return (COLOR_DMG_10);
-	}
-	// printf("4");
 	return (COLOR_DMG_11);
 }
 
@@ -212,13 +196,18 @@ void	Emulateur::print_tile(uint8_t *tile, int x, int y)
 	uint8_t p;
 
 	h = 0;
-	// printf("tile = %p\n", tile);
 	while (h < 8)
 	{
 		w = 0;
 		while (w < 8)
 		{
-			p = bit_to_gray((tile[h * 2] >> w << 1) | (tile[h * 2 + 1] >> w));
+			p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
+			// if ((p & 3) == 2)
+			// {
+			// 	printf("with w : %x -- tile[x] = %x et tile[x + 1] = %x\n", w, tile[h * 2], tile[h * 2 + 1]);
+			// 	printf("(tile[h * 2] >> w << 1) = %x\n", (tile[h * 2] >> w << 1));
+			// 	printf("(tile[h * 2 + 1] >> w) = %x\n", (tile[h * 2 + 1] >> w));
+			// }
 			set_pixel(graytopixel(p), x * 8 + (7 - w), y * 8 + h);
 			w++;
 		}
@@ -360,6 +349,7 @@ int		Emulateur::lcd_thread(void *data)
 			_RAM[0xff44]++;
 			ly++;
 		}
+		printf("ff47 = %x", _RAM[0xff47]);
 		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
 	}
 }
