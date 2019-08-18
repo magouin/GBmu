@@ -202,12 +202,6 @@ void	Emulateur::print_tile(uint8_t *tile, int x, int y)
 		while (w < 8)
 		{
 			p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
-			// if ((p & 3) == 2)
-			// {
-			// 	printf("with w : %x -- tile[x] = %x et tile[x + 1] = %x\n", w, tile[h * 2], tile[h * 2 + 1]);
-			// 	printf("(tile[h * 2] >> w << 1) = %x\n", (tile[h * 2] >> w << 1));
-			// 	printf("(tile[h * 2 + 1] >> w) = %x\n", (tile[h * 2 + 1] >> w));
-			// }
 			set_pixel(graytopixel(p), x * 8 + (7 - w), y * 8 + h);
 			w++;
 		}
@@ -276,14 +270,6 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	_IME = false;
 	_RAM[0xFF0F] &= ~iflag;
-	// this->regs.SP -= 2;
-	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.af.AF;
-	// this->regs.SP -= 2;
-	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.bc.BC;
-	// this->regs.SP -= 2;
-	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.de.DE;
-	// this->regs.SP -= 2;
-	// *(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.hl.HL;
 	this->regs.SP -= 2;
 	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
 	_idata.old_pc = this->regs.PC; 
@@ -307,17 +293,82 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
-void	Emulateur::print_line(uint64_t ly, uint64_t start, const uint64_t line_time)
+void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 {
-	
+	struct s_oam_obj	*obj_to_print[10];
+	uint8_t				height;
+	int					x;
+	int					nb_print;
+	const uint64_t		scanline_time = 456;
+
+	nb_print = 0;
+	x = 0;
+	height = (_RAM[0xff40] & 4) ? 16 : 8;
+	while (x < 40)
+	{
+		if (ly + 10 >= objs[x]->y &&
+			ly + 10 < objs[x]->y + height)
+		{
+			obj_to_print[nb_print] = objs[x];
+			nb_print++;
+		}
+		x++;
+	}
+	while (start + ly * scanline_time + 80 > _timer_counter * 256 + _timer) ;
+	_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 3;
+	x = 0;
+	while (x < nb_print)
+	{
+		
+	}
+
 }
+
+void	Emulateur::sort_obj(struct s_oam_obj **objs)
+{
+	int					x;
+	int					y;
+	struct s_oam_obj	*obj;
+	bool				used[40] = {false};
+	bool				init;
+
+	y = 0;
+	obj = (struct s_oam_obj *)(_RAM + 0xfe00);
+	while (y < 40)
+	{
+		x = 0;
+		init = false;
+		while (x < 40)
+		{
+			if (!used[x] && !init)
+			{
+				init = true;
+				objs[y] = &obj[x];
+				used[x] = true;
+			}
+			else if (!used[x] && objs[y]->x > obj[x].x)
+			{
+				// printf("objs[y]->x = %d, obj[x].x = %d\n", objs[y]->x, obj[x].x);
+				used[x] = true;
+				used[(uint32_t)((uint8_t *)objs[y] - (uint8_t *)_RAM - 0xfe00) / 4] = false;
+				objs[y] = &obj[x];
+			}
+			x++;
+		}
+		// printf("%d-", (uint32_t)((uint8_t *)objs[y] - (uint8_t *)_RAM - 0xfe00) / 4);
+		y++;
+	}
+	// printf("\n");
+}
+
 
 int		Emulateur::lcd_thread(void *data)
 {
-	uint64_t		start;
-	uint64_t		ly;
-	const uint64_t	line_time = 252;
-	const uint64_t	scanline_time = 456;
+	uint64_t			start;
+	uint64_t			ly;
+	const uint64_t		line_time = 252;
+	const uint64_t		scanline_time = 456;
+	struct s_oam_obj	*objs[40];
 	int x;
 
 	x = 0;
@@ -326,8 +377,7 @@ int		Emulateur::lcd_thread(void *data)
 		start = _timer_counter * 256 + _timer;
 		_RAM[0xff44] = 0;
 		print_bg();
-		// printf("\nDump %d\n", x);
-		// dump_data_tiles();
+		sort_obj(objs);
 		x++;
 		// print_all_tiles();
 		ly = 0;
@@ -336,7 +386,7 @@ int		Emulateur::lcd_thread(void *data)
 			if (ly < 144)
 			{
 				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 2;
-				//print_line(ly);
+				print_line(ly, start, objs);
 				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
 				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 0;
 			}
@@ -382,15 +432,10 @@ int		Emulateur::cpu_thread(void *data)
 			if (!read(0, &c, 2)) // to change
 				exit(0);
 			_timer_status = true;
-			// std::cout << instr->mnemonic << " -> ";
 		# endif
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
-		// if (this->_cycle + 1000000 < _timer + _timer_counter * 256)
-		// 	printf("_cycle = %llu et _timer = %llu\n", this->_cycle, _timer + _timer_counter * 256);
-			// std::cout << "J'ai du retard ??\n";
 		while (this->_cycle * 4 > _timer + _timer_counter * 256) ;
-		// std::cout << std::endl;
 	}
 }
 
@@ -433,34 +478,16 @@ int Emulateur::create_tima_thread(void *ptr)
 	return p->tima_thread(NULL);
 }
 
-// void	signal_handler(int signal)
-// {
-// 	SDL_Quit();
-// }
-
-// void	Emulateur::catch_signals(void)
-// {
-// 	signal(SIGABRT, signal_handler);
-// 	signal(SIGFPE, signal_handler);
-// 	signal(SIGILL, signal_handler);
-// 	signal(SIGINT, signal_handler);
-// 	signal(SIGSEGV, signal_handler);
-// 	signal(SIGTERM, signal_handler);
-// }
-
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
+	printf("sizeof(struct s_oam_obj) = %u\n", sizeof(struct s_oam_obj));
 	sdl_init();
-
 	_begin = begin;
 	_end = end;
-
 	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
 	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
 	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
-
-
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
 	_input.p14 = 0xff;
 	_input.p15 = 0xff;
