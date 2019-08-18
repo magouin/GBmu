@@ -96,6 +96,19 @@ struct s_param_info
 	uint16_t			e;
 };
 
+struct s_oam_obj
+{
+	uint8_t				y;
+	uint8_t				x;
+	uint8_t				chrcode;
+	uint8_t				color_pal : 3;
+	bool				char_bank : 1;
+	bool				mono_pal : 1;
+	bool				h_flip : 1;
+	bool				v_flip : 1;
+	bool				prio : 1;
+};
+
 struct s_interrupt
 {
 	uint16_t	old_pc;
@@ -225,7 +238,7 @@ class Emulateur {
 		void		interrupt_func(short addr, uint8_t iflag);
 
 
-		void		print_line(uint64_t ly, uint64_t start, const uint64_t line_time);
+		void		print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs);
 		uint32_t	get_time_from_frequency(uint8_t freq);
 
 		int			cpu_thread(void *data);
@@ -262,6 +275,8 @@ class Emulateur {
 		uint8_t		bit_to_gray(uint8_t b);
 
 		// static void	timer_thread(uint8_t *_RAM);
+
+		void		sort_obj(struct s_oam_obj **objs);
 
 
 	public:
