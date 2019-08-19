@@ -41,10 +41,10 @@ void	Emulateur::inc(void *param, struct s_params& p, int cycle)
 	if (p.size == 1)
 	{
 		this->regs.af.af.F &= ~FLAG_N;
-		this->regs.af.af.F &= ~FLAG_Z;
 		this->regs.af.af.F &= ~FLAG_H;
+		this->regs.af.af.F &= ~FLAG_Z;
 		val = mem_read(para.rez, 1);
-		if ((val & ((1 << 4) - 1)) == ((1 << 4) - 1))
+		if ((val & 0xf) == 0xf)
 			this->regs.af.af.F |= FLAG_H;
 		if (val == 0xff)
 			this->regs.af.af.F |= FLAG_Z;
@@ -65,10 +65,10 @@ void	Emulateur::decr(void *param, struct s_params& p, int cycle)
 	if (p.size == 1)
 	{
 		this->regs.af.af.F |= FLAG_N;
-		this->regs.af.af.F &= ~FLAG_Z;
 		this->regs.af.af.F &= ~FLAG_H;
+		this->regs.af.af.F &= ~FLAG_Z;
 		val = mem_read(para.rez, 1);
-		if (((val) & ((1 << 4) - 1)) == 0)
+		if ((val & 0xf) == 0)
 			this->regs.af.af.F |= FLAG_H;
 		if (val == 0x01)
 			this->regs.af.af.F |= FLAG_Z;
@@ -114,7 +114,6 @@ void	Emulateur::daa(struct s_params& p, int cycle)
 {
 	uint8_t convert_bcd = 0;
 
-	print_regs();
 	if ((regs.af.af.F & FLAG_H) || (!(regs.af.af.F & FLAG_N) && (regs.af.af.A & 0x0f) > 9))
 		convert_bcd = 0x06;
 
@@ -124,7 +123,6 @@ void	Emulateur::daa(struct s_params& p, int cycle)
 	}
 
 	regs.af.af.A += (regs.af.af.F & FLAG_N) ? (-convert_bcd) : convert_bcd;
-	printf("---> convert_bcd [0x%hhx] | current PC [0x%hx]\n", (uint8_t)(convert_bcd), regs.PC);
 	regs.af.af.F &= ~FLAG_H;
 	if (regs.af.af.A == 0)
 		regs.af.af.F |= FLAG_Z;
@@ -259,10 +257,7 @@ void	Emulateur::add(void *param_1, void *param_2, struct s_params& p, int cycle)
 
 		v1 = mem_read(p1.rez, 1);
 		v2 = mem_read(p2.rez, 1);
-		if (v1 + v2 == 0)
-			this->regs.af.af.F = FLAG_Z;
-		else
-			this->regs.af.af.F = 0;
+		this->regs.af.af.F = (uint8_t)(v1 + v2) == 0 ? FLAG_Z : 0;
 		if ((uint16_t)v1 + (uint16_t)v2 > 0xff)
 			this->regs.af.af.F |= FLAG_CY;
 		if ((v1 & 0x0f) + (v2 & 0x0f) > 0x0f)
@@ -286,9 +281,9 @@ void	Emulateur::adc(void *param_1, void *param_2, struct s_params& p, int cycle)
 	this->get_params(&p2, p.size);
 	v1 = mem_read(p1.rez, 1);
 	v2 = mem_read(p2.rez, 1);
-	carry = regs.af.af.F | FLAG_CY ? 1 : 0;
+	carry = regs.af.af.F & FLAG_CY ? 1 : 0;
 	mem_write(p1.rez, v1 + v2 + carry, 1);
-	this->regs.af.af.F = ((v1 + v2 + carry == 0) ? FLAG_Z : 0);
+	this->regs.af.af.F = ((uint8_t)(v1 + v2 + carry) == 0) ? FLAG_Z : 0;
 	if ((uint16_t)v1 + (uint16_t)v2 + carry > 0xff)
 		this->regs.af.af.F |= FLAG_CY;
 	if ((v1 & 0x0f) + (v2 & 0x0f) + carry > 0x0f)
