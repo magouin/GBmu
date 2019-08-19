@@ -277,6 +277,8 @@ class Emulateur {
 		// static void	timer_thread(uint8_t *_RAM);
 
 		void		sort_obj(struct s_oam_obj **objs);
+		void		print_obj_line(struct s_oam_obj	*obj, uint64_t ly);
+		void		print_tile_line(uint8_t *tile, int x, int y, int ly, bool flip);
 
 
 	public:

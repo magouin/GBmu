@@ -209,6 +209,21 @@ void	Emulateur::print_tile(uint8_t *tile, int x, int y)
 	}
 }
 
+void	Emulateur::print_tile_line(uint8_t *tile, int x, int y, int h, bool flip)
+{
+	int		w;
+	uint8_t	p;
+
+	w = 0;
+	while (w < 8)
+	{
+		p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
+		set_pixel(graytopixel(p), x + (flip ? w : (7 - w)), y + h);
+		// printf("I set %x on %d, %d\n", p, x + (flip ? w : (7 - w)), y + h);
+		w++;
+	}
+}
+
 void	Emulateur::dump_data_tiles()
 {
 	int x;
@@ -247,7 +262,6 @@ void	Emulateur::print_bg()
 	y = 0;
 	scx = _RAM[0xff43] >> 3;
 	scy = _RAM[0xff42] >> 3;
-	// printf("SCX -> [%hhx] | SCY -> [%hhx]\n", scx, scy);
 	while (y < 18)
 	{
 		x = 0;
@@ -293,6 +307,21 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 }
 
+void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
+{
+	uint8_t	*tile;
+	uint8_t	code;
+	uint8_t	h;
+
+	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
+	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
+	h = (ly - (obj->y - 16));
+	if (obj->h_flip)
+		h = ((_RAM[0xff40] & 4 ? 15 : 7) - h);
+	print_tile_line(tile, obj->x - 8, obj->y - 16, h, obj->v_flip);
+
+}
+
 void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 {
 	struct s_oam_obj	*obj_to_print[10];
@@ -306,20 +335,29 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 	height = (_RAM[0xff40] & 4) ? 16 : 8;
 	while (x < 40)
 	{
-		if (ly + 10 >= objs[x]->y &&
-			ly + 10 < objs[x]->y + height)
+		// printf("objs[x] = %p\n", (uint8_t *)objs[x] - (uint8_t *)_RAM);
+		// printf("objs[x] = %x\n", *(uint32_t *)objs[x]);
+		// if (objs[x]->y != 0)
+		// {
+		// 	printf("ly = %llu\n", ly);
+		// 	printf("objs[x]->y - 16 = %d\n", objs[x]->y - 16);
+		// }
+		if (ly >= objs[x]->y - 16 &&
+			ly < objs[x]->y - 16 + height)
 		{
 			obj_to_print[nb_print] = objs[x];
 			nb_print++;
+			// printf("nb_print = %d\n", nb_print);
 		}
 		x++;
 	}
 	while (start + ly * scanline_time + 80 > _timer_counter * 256 + _timer) ;
 	_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 3;
-	x = 0;
-	while (x < nb_print)
+	x = nb_print - 1;
+	while (x >= 0)
 	{
-		
+		print_obj_line(obj_to_print[x], ly);
+		x--;
 	}
 
 }
