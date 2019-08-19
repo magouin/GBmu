@@ -49,10 +49,15 @@ void			Emulateur::write_lyc(uint16_t value)
 
 void			Emulateur::write_dma(uint16_t value)
 {
+	uint64_t	t;
+
+	t = _timer_counter * 256 + _timer;
 	if (value < 0x80 || value > 0xdf)
 		throw InvalidWrite((value));
 	_RAM[0xff46] = value;
-	// handle dma
+	while ((_RAM[0xff41] & 3) != 2) ;
+	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
+	while (_timer_counter * 256 + _timer < t + 160) ;
 }
 
 uint8_t			Emulateur::read_p1()
