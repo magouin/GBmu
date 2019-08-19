@@ -123,7 +123,8 @@ bool	Emulateur::update()
 
 void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 {
-	_pixels_map[y * GB_WINDOW_SIZE_X + x] = pixel;
+	if (x >= 0 && x < GB_WINDOW_SIZE_X && y >= 0 && y < GB_WINDOW_SIZE_Y)
+		_pixels_map[y * GB_WINDOW_SIZE_X + x] = pixel;
 }
 
 void	Emulateur::render()
