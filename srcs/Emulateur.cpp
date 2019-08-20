@@ -254,11 +254,13 @@ void	Emulateur::print_bg()
 {
 	uint8_t	*b_code;
 	uint8_t	*b_data;
+	uint8_t	*data;
 	uint8_t	code;
 	int		x, y;
 	uint8_t	scx, scy;
 
 	b_code = _RAM + ((_RAM[0xff40] & (1 << 3)) ? 0x9c00 : 0x9800);
+	b_data = _RAM + (_RAM[0xff40] & (1 << 4) ? 0x8000 : 0x8800);
 	y = 0;
 	scx = _RAM[0xff43] >> 3;
 	scy = _RAM[0xff42] >> 3;
@@ -268,18 +270,16 @@ void	Emulateur::print_bg()
 		while (x < 20)
 		{
 			code = b_code[(y + scy) * 32 + (scx + x) % 32];
-			b_data = _RAM + (_RAM[0xff40] & (1 << 4) ? 0x8000 : 0x8800);
-			if (code >= 0x80)
-			{
-				b_data = _RAM + 0x8800;
-				code -= 0x80;
-			}
-			print_tile(b_data + (code * 16), x * 8, y * 8, false, false, 8);
+			data = b_data + (code * 16);
+			if (data >= _RAM + 0x9800)
+				data -= 0x1000;
+			print_tile(data, x * 8, y * 8, false, false, 8);
 			x++;
 		}
 		y++;
 	}
 }
+
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	_IME = false;
@@ -478,7 +478,6 @@ int		Emulateur::cpu_thread(void *data)
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
 		// printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
 		instr = &_opcode[this->_RAM[this->regs.PC]];
-		print_regs();
 		# ifdef DEBUG
 			char c[2];
 			_timer_status = false;
