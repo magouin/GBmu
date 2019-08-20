@@ -22,14 +22,16 @@ void			Emulateur::write_stat(uint16_t value)
 void			Emulateur::write_scy(uint16_t value)
 {
 	if (abs(value - _RAM[0xff42]) > 1)
-		throw InvalidWrite((value));
+		printf("SHOULDNT HAPPEN SCY -> value [%hx] | _RAM[0xff42] [%hhx]\n", value, _RAM[0xff42]);
+		// throw InvalidWrite((value));
 	_RAM[0xff42] = value;
 }
 
 void			Emulateur::write_scx(uint16_t value)
 {
 	if (abs(value - _RAM[0xff43]) > 1)
-		throw InvalidWrite((value));
+		printf("SHOULDNT HAPPEN 1 [%hx]\n", value);
+		// throw InvalidWrite((value));
 	_RAM[0xff43] = value;
 }
 
@@ -53,7 +55,8 @@ void			Emulateur::write_dma(uint16_t value)
 
 	t = _timer_counter * 256 + _timer;
 	if (value < 0x80 || value > 0xdf)
-		throw InvalidWrite((value));
+		printf("SHOULDNT HAPPEN 2 [%hx]\n", value);
+		// throw InvalidWrite((value));
 	_RAM[0xff46] = value;
 	while ((_RAM[0xff41] & 3) != 2) ;
 	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
@@ -115,11 +118,11 @@ void		Emulateur::mem_write_signed(void *addr, int16_t value, int8_t size)
 	else if (addr >= _RAM && addr <= _RAM + 0xffff)
 	{
 		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
+		// if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
 		//	|| (ram_addr >= 0xe000 && ram_addr < 0xfe00))
 			// || (ram_addr >= 0xfea0 && ram_addr < 0xff00)
 			// || (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - 0xff00].right & WR)))
-			throw InvalidWrite((ram_addr));
+			// throw InvalidWrite((ram_addr));
 		if (ram_addr >= 0xff00 && ram_addr < 0xff80 && _ram_regs[ram_addr - 0xff00].write)
 		{
 			printf("Signed non géré sur un registre de la ram dans mem_write_signed\n");
@@ -127,8 +130,8 @@ void		Emulateur::mem_write_signed(void *addr, int16_t value, int8_t size)
 			return ;
 		}
 	}
-	else
-		throw InvalidWrite(((uint64_t)addr));
+	// else
+	// 	throw InvalidWrite(((uint64_t)addr));
 	if (size == 2)
 		*(uint16_t *)addr = value;
 	else
@@ -144,19 +147,19 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 	else if (addr >= _RAM && addr <= _RAM + 0xffff)
 	{
 		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
+		// if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
 		//	|| (ram_addr >= 0xe000 && ram_addr < 0xfe00))
 			// || (ram_addr >= 0xfea0 && ram_addr < 0xff00)
 			// || (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - 0xff00].right & WR)))
-			throw InvalidWrite((ram_addr));
+			// throw InvalidWrite((ram_addr));
 		if (ram_addr >= 0xff00 && ram_addr < 0xff80 && _ram_regs[ram_addr - 0xff00].write)
 		{
 			(this->*_ram_regs[ram_addr - 0xff00].write)(value);
 			return ;
 		}
 	}
-	else
-		throw InvalidWrite(((uint64_t)addr));
+	// else
+	// 	throw InvalidWrite(((uint64_t)addr));
 	if (size == 2)
 		*(uint16_t *)addr = value;
 	else
