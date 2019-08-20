@@ -268,7 +268,8 @@ class Emulateur {
 		void		write_dma(uint16_t value);
 
 		void		print_bg();
-		void		print_tile(uint8_t *tile, int x, int y);
+		void		print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size);
+		// void		print_tile(uint8_t *tile, int x, int y);
 		void		print_all_tiles();
 		void		dump_data_tiles();
 		void		fill_input_from_key(SDL_Keycode sym, SDL_EventType t);
@@ -276,7 +277,9 @@ class Emulateur {
 
 		// static void	timer_thread(uint8_t *_RAM);
 
-		void		sort_obj(struct s_oam_obj **objs);
+		void		sort_objs(struct s_oam_obj **objs);
+		void		print_objs(struct s_oam_obj **objs);
+		void		print_obj(struct s_oam_obj *objs);
 		void		print_obj_line(struct s_oam_obj	*obj, uint64_t ly);
 		void		print_tile_line(uint8_t *tile, int x, int y, int ly, bool flip);
 

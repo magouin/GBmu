@@ -190,19 +190,19 @@ uint32_t	graytopixel(uint8_t g)
 	return ((((((0xff << 8) | g) << 8) | g) << 8) | g);
 }
 
-void	Emulateur::print_tile(uint8_t *tile, int x, int y)
+void	Emulateur::print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size)
 {
 	int h, w;
 	uint8_t p;
 
 	h = 0;
-	while (h < 8)
+	while (h < size)
 	{
 		w = 0;
 		while (w < 8)
 		{
 			p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
-			set_pixel(graytopixel(p), x * 8 + (7 - w), y * 8 + h);
+			set_pixel(graytopixel(p), x + (v_flip ? w : (7 - w)), y + (h_flip ? ((size - 1) - h) : h));
 			w++;
 		}
 		h++;
@@ -245,7 +245,7 @@ void	Emulateur::print_all_tiles()
 	x = 0;
 	while (x < 256)
 	{
-		print_tile(_RAM + 0x8000 + (x * 16), (x % 20), x / 20);
+		print_tile(_RAM + 0x8000 + (x * 16), (x % 20) * 8, (x / 20) * 8, false, false, 8);
 		x++;
 	}
 }
@@ -274,7 +274,7 @@ void	Emulateur::print_bg()
 				b_data = _RAM + 0x8800;
 				code -= 0x80;
 			}
-			print_tile(b_data + (code * 16), x, y);
+			print_tile(b_data + (code * 16), x * 8, y * 8, false, false, 8);
 			x++;
 		}
 		y++;
@@ -319,7 +319,6 @@ void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
 	if (obj->h_flip)
 		h = ((_RAM[0xff40] & 4 ? 15 : 7) - h);
 	print_tile_line(tile, obj->x - 8, obj->y - 16, h, obj->v_flip);
-
 }
 
 void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
@@ -335,19 +334,11 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 	height = (_RAM[0xff40] & 4) ? 16 : 8;
 	while (x < 40)
 	{
-		// printf("objs[x] = %p\n", (uint8_t *)objs[x] - (uint8_t *)_RAM);
-		// printf("objs[x] = %x\n", *(uint32_t *)objs[x]);
-		// if (objs[x]->y != 0)
-		// {
-		// 	printf("ly = %llu\n", ly);
-		// 	printf("objs[x]->y - 16 = %d\n", objs[x]->y - 16);
-		// }
 		if (ly >= objs[x]->y - 16 &&
 			ly < objs[x]->y - 16 + height)
 		{
 			obj_to_print[nb_print] = objs[x];
 			nb_print++;
-			// printf("nb_print = %d\n", nb_print);
 		}
 		x++;
 	}
@@ -362,7 +353,7 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 
 }
 
-void	Emulateur::sort_obj(struct s_oam_obj **objs)
+void	Emulateur::sort_objs(struct s_oam_obj **objs)
 {
 	int					x;
 	int					y;
@@ -386,19 +377,42 @@ void	Emulateur::sort_obj(struct s_oam_obj **objs)
 			}
 			else if (!used[x] && objs[y]->x > obj[x].x)
 			{
-				// printf("objs[y]->x = %d, obj[x].x = %d\n", objs[y]->x, obj[x].x);
 				used[x] = true;
 				used[(uint32_t)((uint8_t *)objs[y] - (uint8_t *)_RAM - 0xfe00) / 4] = false;
 				objs[y] = &obj[x];
 			}
 			x++;
 		}
-		// printf("%d-", (uint32_t)((uint8_t *)objs[y] - (uint8_t *)_RAM - 0xfe00) / 4);
 		y++;
 	}
-	// printf("\n");
 }
 
+void	Emulateur::print_obj(struct s_oam_obj *obj)
+{
+	uint8_t	*tile;
+	uint8_t	code;
+	uint8_t	h;
+
+	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
+	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
+	print_tile(tile, obj->x - 8, obj->y - 16, obj->h_flip, obj->v_flip, (_RAM[0xff40] & 4 ? 16 : 8));
+}
+
+void	Emulateur::print_objs(struct s_oam_obj	**objs)
+{
+	uint8_t	*tile;
+	uint8_t	code;
+	uint8_t	h;
+
+	int x;
+
+	x = 0;
+	while (x < 40)
+	{
+		print_obj(objs[x]);
+		x++;
+	}
+}
 
 int		Emulateur::lcd_thread(void *data)
 {
@@ -415,7 +429,8 @@ int		Emulateur::lcd_thread(void *data)
 		start = _timer_counter * 256 + _timer;
 		_RAM[0xff44] = 0;
 		print_bg();
-		sort_obj(objs);
+		sort_objs(objs);
+		// print_objs(objs);
 		x++;
 		// print_all_tiles();
 		ly = 0;
@@ -438,6 +453,7 @@ int		Emulateur::lcd_thread(void *data)
 			ly++;
 		}
 		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
+		render();
 	}
 }
 
@@ -462,6 +478,7 @@ int		Emulateur::cpu_thread(void *data)
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
 		// printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
 		instr = &_opcode[this->_RAM[this->regs.PC]];
+		print_regs();
 		# ifdef DEBUG
 			char c[2];
 			_timer_status = false;
@@ -533,7 +550,6 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	{
 		if (!update())
 			break ;
-		render();
 	}
 	SDL_Quit();
 	exit(1);
