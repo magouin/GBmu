@@ -45,38 +45,43 @@ using namespace std;
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
 struct s_regs {
-	union u_AF {
-		struct s_AF {
-			uint8_t F;
+	union {
+		struct {
 			uint8_t A;
-		} af;
+			union {
+				uint8_t F;
+				struct {
+					bool Z : 1;
+					bool N : 1;
+					bool HC : 1;
+					bool CY : 1;
+					uint8_t unused : 4;
+				};
+			};
+		};
 		uint16_t AF;
-	} af;
-
-	union u_BC {
-		struct s_BC {
+	};
+	union {
+		struct {
 			uint8_t C;
 			uint8_t B;
-		} bc;
+		};
 		uint16_t BC;
-	} bc;
-
-	union u_DE {
-		struct s_DE {
+	};
+	union {
+		struct {
 			uint8_t E;
 			uint8_t D;
-		} de;
+		};
 		uint16_t DE;
-	} de;
-
-	union u_HL {
-		struct s_HL {
+	};
+	union {
+		struct {
 			uint8_t L;
 			uint8_t H;
-		} hl;
+		};
 		uint16_t HL;
-	} hl;
-
+	};
 	uint16_t SP;
 	uint16_t PC;
 };
