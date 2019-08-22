@@ -8,6 +8,7 @@ using namespace std::placeholders;
 
 int main(int ac, const char **av)
 {
+	printf("val = %hd, sizeof(t) = %zu\n", ((uint16_t)-1u + (int8_t)1), sizeof(((uint16_t)-1u + (int8_t)-1)));
 	if (ac != 2)
 	{
 		cerr << "Usage : " << av[0] << " rom.gb" << endl;

@@ -36,17 +36,17 @@ void	Emulateur::print_regs(void)
 	int i;
 
 	i = 0;
-	printf("A: %02hhX  F: %02hhX  (AF: %04hX)\n", this->regs.af.af.A, this->regs.af.af.F, this->regs.af.AF);
-	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.bc.bc.B, this->regs.bc.bc.C, this->regs.bc.BC);
-	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.de.de.D, this->regs.de.de.E, this->regs.de.DE);
-	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.hl.hl.H, this->regs.hl.hl.L, this->regs.hl.HL);
+	printf("A: %02hhX  F: %02hhX  (AF: %04hX)\n", this->regs.A, this->regs.F, this->regs.AF);
+	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.B, this->regs.C, this->regs.BC);
+	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.D, this->regs.E, this->regs.DE);
+	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.H, this->regs.L, this->regs.HL);
 	printf("PC: %04hX  SP: %04X\n", this->regs.PC, this->regs.SP);
 	printf("ROM: 01  RAM: 00  WRAM: %02X  VRAM: %02X\n", (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
 	printf("F: [");
-	this->regs.af.af.F & FLAG_Z ? printf("Z") : printf("-");
-	this->regs.af.af.F & FLAG_N ? printf("N") : printf("-");
-	this->regs.af.af.F & FLAG_H ? printf("H") : printf("-");
-	this->regs.af.af.F & FLAG_CY ? printf("C") : printf("-");
+	this->regs.F & FLAG_Z ? printf("Z") : printf("-");
+	this->regs.F & FLAG_N ? printf("N") : printf("-");
+	this->regs.F & FLAG_H ? printf("H") : printf("-");
+	this->regs.F & FLAG_CY ? printf("C") : printf("-");
 	printf("]\n");
 
 
@@ -54,15 +54,15 @@ void	Emulateur::print_regs(void)
 
 void	Emulateur::init_registers(void)
 {
-	this->regs.af.AF = 0x01B0; // Il faudra faire gaffe a A
-	this->regs.bc.BC = 0x0013;
-	this->regs.de.DE = 0x00d8;
-	this->regs.hl.HL = 0x014d;
+	this->regs.AF = 0x01B0; // Il faudra faire gaffe a A
+	this->regs.BC = 0x0013;
+	this->regs.DE = 0x00d8;
+	this->regs.HL = 0x014d;
 
-	// this->regs.af.AF = 0x1180; // cpu_instr
-	// this->regs.bc.BC = 0x0000;
-	// this->regs.de.DE = 0x0008;
-	// this->regs.hl.HL = 0x007c;
+	// this->regs.AF = 0x1180; // cpu_instr
+	// this->regs.BC = 0x0000;
+	// this->regs.DE = 0x0008;
+	// this->regs.HL = 0x007c;
 	this->regs.SP = 0xfffe;
 
 
