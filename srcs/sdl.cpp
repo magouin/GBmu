@@ -38,7 +38,7 @@ void	Emulateur::sdl_init()
 		fprintf(stderr, "Impossible to initialize SDL: %s\n", SDL_GetError());
 		exit(1);
 	}
-	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X, GB_WINDOW_SIZE_Y, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN)))
+	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN)))
 	{
 		fprintf(stderr, "Error on window creation: %s\n", SDL_GetError());
 		exit(1);

@@ -250,7 +250,7 @@
 {0b11110111, "RST 6", 0, {_, _, _, _}, std::bind(&Emulateur::rst, this, 6, 4)}, \
 {0b11111000, "LDHL SP, e", 1, {SET, SET, SET_0, SET_0}, std::bind(&Emulateur::ldhl, this, &p_e, 3)}, \
 {0b11111001, "LD SP, HL", 0, {_, _, _, _}, std::bind(&Emulateur::ld, this, &p_SP, &p_HL, 0, 2, 2)}, \
-{0b11111010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, &p_A, &p_nn_D1, 0, 2, 4)}, \
+{0b11111010, "LD A, (nn)", 2, {_, _, _, _}, std::bind(&Emulateur::ld, this, &p_A, &p_nn_D1, 0, 1, 4)}, \
 {0b11111011, "EI", 0, {_, _, _, _}, std::bind(&Emulateur::ei, this, 1)}, \
 {0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}}, \
 {0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}}, \
