@@ -102,6 +102,9 @@ class Emulateur {
 		uint64_t	_timer_counter;
 		bool		_timer_status;
 
+		bool		_halt_status;
+		bool		_stop_status;
+
 		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_B = {REG, &regs.B, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_C = {REG, &regs.C, NULL, UNSIGN, false, 1, 1};

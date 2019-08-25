@@ -124,15 +124,14 @@ void	Emulateur::cpl(int cycle)
 
 void	Emulateur::stop(int cycle) // TODO
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	while ((_input.p14 & 0xf) != 0xf || (_input.p15 & 0xf) != 0xf) ;
+	_stop_status = true;
 	_cycle += cycle;
 }
 
 void	Emulateur::halt(int cycle) // TODO
 {
-	printf("In %s\n", __FUNCTION__);
-	exit(1);
+	_halt_status = true;
 	_cycle += cycle;
 }
 

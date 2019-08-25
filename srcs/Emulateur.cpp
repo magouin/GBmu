@@ -56,7 +56,7 @@ void	Emulateur::init_registers(void)
 {
 	regs.AF = 0x01B0; // Il faudra faire gaffe a A
 	regs.BC = 0x0013;
-	regs.DE = 0x00d8;
+	regs.DE = 0x00d8;	
 	regs.HL = 0x014d;
 
 	// regs.AF = 0x1180; // cpu_instr
@@ -66,7 +66,7 @@ void	Emulateur::init_registers(void)
 	regs.SP = 0xfffe;
 
 
-	_RAM[0xff00] = 0x00; // P1
+	_RAM[REG_P1] = 0x00; // P1
 	_RAM[0xff05] = 0x00; // TIMA
 	_RAM[0xff06] = 0x00; // TMA 
 	_RAM[0xff07] = 0x00; // TAC
@@ -153,6 +153,8 @@ int			Emulateur::timer_thread(void *data)
 	_timer_status = true;
 	while (true)
 	{
+		if (_stop_status)
+			continue ;
 		time = std::chrono::high_resolution_clock::now();
 		while ((time - start).count() < nsecond_per_tick)
 			time = std::chrono::high_resolution_clock::now();
@@ -186,23 +188,22 @@ void	Emulateur::interrupt(void)
 {
 	if (!_IME)
 		return ;
-	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16)
+	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
 		interrupt_func(0x0060, 16);
-	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8)
+	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
 		interrupt_func(0x0058, 8);
-	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4)
+	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
 		interrupt_func(0x0050, 4);
-	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2)
+	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
 		interrupt_func(0x0048, 2);
-	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1)
+	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
 		interrupt_func(0x0040, 1);
 }
 
 int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instruction_params	*instr;
-	bool								inst[256] = {0};
-	uint8_t							tmp;
+	static	uint64_t					tmp2 = 0;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
@@ -217,6 +218,14 @@ int		Emulateur::cpu_thread(void *data)
 	while (true)
 	{
 		interrupt();
+		if (_halt_status)
+			continue ;
+		if (tmp2 == 1000000)
+		{
+			printf("Entering in STOP mode\n");
+			_stop_status = true;
+		}
+		tmp2++;
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
 		// printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
 		instr = &_opcode[this->_RAM[this->regs.PC]];
@@ -281,6 +290,8 @@ void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
 	_input.p14 = 0xff;
 	_input.p15 = 0xff;
+	_halt_status = false;
+	_stop_status = false;
 	while (true)
 	{
 		if (!update())
