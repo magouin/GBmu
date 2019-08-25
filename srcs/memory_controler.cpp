@@ -39,14 +39,26 @@ void			Emulateur::write_ly(uint8_t value)
 {
 	_RAM[REG_LY] = value;
 	if (_RAM[REG_LY] == _RAM[REG_LYC])
+	{
 		_RAM[REG_STAT] |= 4;
+		if (_RAM[REG_STAT] | (1 << 6))
+				_RAM[REG_IF] |= (1 << 1);
+	}
+	else
+		_RAM[REG_STAT] &= ~4;
 }
 
 void			Emulateur::write_lyc(uint8_t value)
 {
 	_RAM[REG_LYC] = value;
-	if (_RAM[REG_LYC] == _RAM[REG_LY])
+	if (_RAM[REG_LY] == _RAM[REG_LYC])
+	{
 		_RAM[REG_STAT] |= 4;
+		if (_RAM[REG_STAT] | (1 << 6))
+				_RAM[REG_IF] |= (1 << 1);
+	}
+	else
+		_RAM[REG_STAT] &= ~4;
 }
 
 void			Emulateur::write_dma(uint8_t value)

@@ -54,51 +54,51 @@ void	Emulateur::print_regs(void)
 
 void	Emulateur::init_registers(void)
 {
-	this->regs.AF = 0x01B0; // Il faudra faire gaffe a A
-	this->regs.BC = 0x0013;
-	this->regs.DE = 0x00d8;
-	this->regs.HL = 0x014d;
+	regs.AF = 0x01B0; // Il faudra faire gaffe a A
+	regs.BC = 0x0013;
+	regs.DE = 0x00d8;
+	regs.HL = 0x014d;
 
-	// this->regs.AF = 0x1180; // cpu_instr
-	// this->regs.BC = 0x0000;
-	// this->regs.DE = 0x0008;
-	// this->regs.HL = 0x007c;
-	this->regs.SP = 0xfffe;
+	// regs.AF = 0x1180; // cpu_instr
+	// regs.BC = 0x0000;
+	// regs.DE = 0x0008;
+	// regs.HL = 0x007c;
+	regs.SP = 0xfffe;
 
 
-	this->_RAM[0xff00] = 0x00; // P1
-	this->_RAM[0xff05] = 0x00; // TIMA
-	this->_RAM[0xff06] = 0x00; // TMA 
-	this->_RAM[0xff07] = 0x00; // TAC
-	this->_RAM[0xff10] = 0x80; // NR10
-	this->_RAM[0xff11] = 0xbf; // NR11
-	this->_RAM[0xff12] = 0xf3; // NR12
-	this->_RAM[0xff14] = 0xbf; // NR14
-	this->_RAM[0xff16] = 0x3f; // NR21
-	this->_RAM[0xff17] = 0x00; // NR22
-	this->_RAM[0xff19] = 0xbf; // NR24
-	this->_RAM[0xff1a] = 0x7f; // NR30
-	this->_RAM[0xff1b] = 0xff; // NR31
-	this->_RAM[0xff1c] = 0x9f; // NR32
-	this->_RAM[0xff1e] = 0xbf; // NR33
-	this->_RAM[0xff20] = 0xff; // NR41
-	this->_RAM[0xff21] = 0x00; // NR42
-	this->_RAM[0xff22] = 0x00; // NR43
-	this->_RAM[0xff23] = 0xbf; // NR30
-	this->_RAM[0xff24] = 0x77; // NR50
-	this->_RAM[0xff25] = 0xf3; // NR51
-	this->_RAM[0xff26] = 0xf1; // NR52
-	this->_RAM[REG_LCDC] = 0x91; // LCDC
-	this->_RAM[0xff42] = 0x00; // SCY
-	this->_RAM[0xff43] = 0x00; // SCX
-	this->_RAM[REG_LY] = 0x05; // LY
-	this->_RAM[REG_LYC] = 0x00; // LYC
-	this->_RAM[0xff47] = 0xfc; // BGP
-	this->_RAM[0xff48] = 0xff; // OBPO
-	this->_RAM[0xff49] = 0xff; // OBP1
-	this->_RAM[0xff4a] = 0x00; // WY
-	this->_RAM[0xff4b] = 0x00; // WX
-	this->_RAM[0xffff] = 0x00; // IE
+	_RAM[0xff00] = 0x00; // P1
+	_RAM[0xff05] = 0x00; // TIMA
+	_RAM[0xff06] = 0x00; // TMA 
+	_RAM[0xff07] = 0x00; // TAC
+	_RAM[0xff10] = 0x80; // NR10
+	_RAM[0xff11] = 0xbf; // NR11
+	_RAM[0xff12] = 0xf3; // NR12
+	_RAM[0xff14] = 0xbf; // NR14
+	_RAM[0xff16] = 0x3f; // NR21
+	_RAM[0xff17] = 0x00; // NR22
+	_RAM[0xff19] = 0xbf; // NR24
+	_RAM[0xff1a] = 0x7f; // NR30
+	_RAM[0xff1b] = 0xff; // NR31
+	_RAM[0xff1c] = 0x9f; // NR32
+	_RAM[0xff1e] = 0xbf; // NR33
+	_RAM[0xff20] = 0xff; // NR41
+	_RAM[0xff21] = 0x00; // NR42
+	_RAM[0xff22] = 0x00; // NR43
+	_RAM[0xff23] = 0xbf; // NR30
+	_RAM[0xff24] = 0x77; // NR50
+	_RAM[0xff25] = 0xf3; // NR51
+	_RAM[0xff26] = 0xf1; // NR52
+	_RAM[REG_LCDC] = 0x91; // LCDC
+	_RAM[0xff42] = 0x00; // SCY
+	_RAM[0xff43] = 0x00; // SCX
+	_RAM[REG_LY] = 0x05; // LY
+	_RAM[REG_LYC] = 0x00; // LYC
+	_RAM[0xff47] = 0xfc; // BGP
+	_RAM[0xff48] = 0xff; // OBPO
+	_RAM[0xff49] = 0xff; // OBP1
+	_RAM[0xff4a] = 0x00; // WY
+	_RAM[0xff4b] = 0x00; // WX
+	_RAM[0xffff] = 0x00; // IE
 }
 
 uint32_t	Emulateur::get_time_from_frequency(uint8_t	freq)

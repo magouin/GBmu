@@ -22,6 +22,7 @@
 # define REG_STAT	0xff41
 # define REG_LY		0xff44
 # define REG_LYC	0xff45
+# define REG_IE		0xffff
 
 struct s_regs {
 	union {
