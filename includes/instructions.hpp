@@ -7,11 +7,15 @@
 
 enum e_param_type
 {
-	ADDR_x64,
-	UDIRECT,
-	DIRECT,
-	MEM_gb,
-	NO_PARAM
+	REG,
+	DIR,
+	GB
+};
+
+enum e_type
+{
+	SIGN,
+	UNSIGN
 };
 
 enum e_cond
@@ -23,16 +27,14 @@ enum e_cond
 	EMPTY
 };
 
-struct s_params {
-	enum e_param_type	param1;
-	enum e_param_type	param2;
-	bool				deref_param1;
-	bool				deref_param2;
+struct s_param {
+	enum e_param_type	type;
+	void				*p;
+	void				*val;
+	enum e_type			t;
+	bool				deref;
+	uint8_t				s;
 	uint8_t				size;
-	// Magouin: "Y en n'a jamais plus que deux", le 09/06/19
-	// Paris de cafe lance par jeremy
-
-	// Second paris de cafe lance par maxime, quant a l'inexistence de trucs avec deux n qui ne soient pas des nn. (Ca veut dire quelque chose, promis.)
 };
 
 enum e_flags_modif {
