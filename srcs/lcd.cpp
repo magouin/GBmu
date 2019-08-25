@@ -252,7 +252,7 @@ int		Emulateur::lcd_thread(void *data)
 			}
 			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
 			_RAM[REG_LY]++;
-			ly++;
+				ly++;
 		}
 		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
 		render();

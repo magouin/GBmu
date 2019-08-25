@@ -75,6 +75,11 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_input.p15 &= ~IO_START;
 		else if (sym == SDLK_o)
 			_input.p15 &= ~IO_SELECT;
+		else
+			return ;
+		if ((!(_RAM[REG_P1] & 0x10) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(_RAM[REG_P1] & 0x20) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
+			_RAM[REG_IF] |= (1 << 4);
+		_stop_status = false;
 	}
 	else
 	{

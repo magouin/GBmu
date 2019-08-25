@@ -17,6 +17,8 @@
 # define IO_SELECT 4
 # define IO_START 8
 
+# define REG_P1		0xff00
+
 # define REG_IF		0xff0f
 # define REG_IE		0xffff
 

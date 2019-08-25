@@ -82,14 +82,14 @@ uint8_t			Emulateur::read_p1()
 {
 	uint8_t value;
 
-	// printf("_RAM[0xff00] = %hhx\n", _RAM[0xff00]);
-	value = ~0x30 | _RAM[0xff00];
+	// printf("_RAM[REG_P1] = %hhx\n", _RAM[REG_P1]);
+	value = _RAM[REG_P1] | 0xf;
 	// printf("value = %hhx\n", value);
-	if (!(_RAM[0xff00] & 0x10))
-		value &= (-1u << 4) | _input.p14;
-	if (!(_RAM[0xff00] & 0x20))
-		value &= (-1u << 4) | _input.p15;
-	_RAM[0xff00] = value;
+	if (!(value & 0x10))
+		value &= 0xf0 | _input.p14;
+	if (!(value & 0x20))
+		value &= 0xf0 | _input.p15;
+	_RAM[REG_P1] = value;
 	return (value);
 }
 
@@ -110,11 +110,11 @@ uint16_t	Emulateur::mem_read(void *addr, int8_t size)
 	{
 		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
 		// if ((ram_addr >= 0xe000 && ram_addr < 0xfe00))
-			// || (ram_addr >= 0xfea0 && ram_addr < 0xff00)
-			// || (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - 0xff00].right & RD)))
+			// || (ram_addr >= 0xfea0 && ram_addr < REG_P1)
+			// || (ram_addr >= REG_P1 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - REG_P1].right & RD)))
 		//	throw InvalidRead((ram_addr));
-		if (ram_addr >= 0xff00 && ram_addr < 0xff80 && _ram_regs[ram_addr - 0xff00].read)
-			return ((this->*_ram_regs[ram_addr - 0xff00].read)());
+		if (ram_addr >= REG_P1 && ram_addr < 0xff80 && _ram_regs[ram_addr - REG_P1].read)
+			return ((this->*_ram_regs[ram_addr - REG_P1].read)());
 	}
 	else
 		throw InvalidRead(((uint64_t)addr));
@@ -135,12 +135,12 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
 		// if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
 		//	|| (ram_addr >= 0xe000 && ram_addr < 0xfe00))
-			// || (ram_addr >= 0xfea0 && ram_addr < 0xff00)
-			// || (ram_addr >= 0xff00 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - 0xff00].right & WR)))
+			// || (ram_addr >= 0xfea0 && ram_addr < REG_P1)
+			// || (ram_addr >= REG_P1 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - REG_P1].right & WR)))
 			// throw InvalidWrite((ram_addr));
-		if (ram_addr >= 0xff00 && ram_addr < 0xff80 && _ram_regs[ram_addr - 0xff00].write)
+		if (ram_addr >= REG_P1 && ram_addr < 0xff80 && _ram_regs[ram_addr - REG_P1].write)
 		{
-			(this->*_ram_regs[ram_addr - 0xff00].write)(value);
+			(this->*_ram_regs[ram_addr - REG_P1].write)(value);
 			return ;
 		}
 	}
