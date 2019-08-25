@@ -310,7 +310,6 @@ void	Emulateur::interrupt(void)
 void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
 {
 	uint8_t	*tile;
-	uint8_t	code;
 	uint8_t	h;
 
 	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
@@ -390,8 +389,6 @@ void	Emulateur::sort_objs(struct s_oam_obj **objs)
 void	Emulateur::print_obj(struct s_oam_obj *obj)
 {
 	uint8_t	*tile;
-	uint8_t	code;
-	uint8_t	h;
 
 	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
 	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
@@ -400,10 +397,6 @@ void	Emulateur::print_obj(struct s_oam_obj *obj)
 
 void	Emulateur::print_objs(struct s_oam_obj	**objs)
 {
-	uint8_t	*tile;
-	uint8_t	code;
-	uint8_t	h;
-
 	int x;
 
 	x = 0;
@@ -430,7 +423,7 @@ int		Emulateur::lcd_thread(void *data)
 		_RAM[0xff44] = 0;
 		print_bg();
 		sort_objs(objs);
-		// print_objs(objs);
+		print_objs(objs);
 		x++;
 		// print_all_tiles();
 		ly = 0;
@@ -439,7 +432,7 @@ int		Emulateur::lcd_thread(void *data)
 			if (ly < 144)
 			{
 				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 2;
-				print_line(ly, start, objs);
+				//print_line(ly, start, objs);
 				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
 				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 0;
 			}
@@ -461,6 +454,8 @@ int		Emulateur::lcd_thread(void *data)
 int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instruction_params	*instr;
+	bool								inst[256] = {0};
+	uint8_t							tmp;
 
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
@@ -476,7 +471,14 @@ int		Emulateur::cpu_thread(void *data)
 	{
 		interrupt();
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
-		// printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
+		// printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
+		/*tmp = this->_RAM[this->regs.PC];
+		if (!inst[tmp])
+		{
+			printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+			printf("mnemonic = %s\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str());
+			print_regs();
+		}*/
 		instr = &_opcode[this->_RAM[this->regs.PC]];
 		# ifdef DEBUG
 			char c[2];
@@ -489,6 +491,12 @@ int		Emulateur::cpu_thread(void *data)
 		# endif
 		this->regs.PC += 1 + instr->nb_params * 1;
 		instr->f();
+		/*if (!inst[tmp])
+		{
+			inst[tmp] = true;
+			print_regs();
+			printf("-------------------\n");
+		}*/
 		while (this->_cycle * 4 > _timer + _timer_counter * 256) ;
 	}
 }
@@ -498,14 +506,14 @@ int Emulateur::create_cpu_thread(void *ptr)
 	Emulateur *p;
 
 	p = (Emulateur*)ptr;
-	try {
+	//try {
 		return p->cpu_thread(NULL);
-	}
+	/*}
 	catch (std::exception &e)
 	{
 		cout << e.what() << endl;
 		exit(0);
-	};
+	};*/
 }
 
 int Emulateur::create_lcd_thread(void *ptr)
@@ -534,8 +542,9 @@ int Emulateur::create_tima_thread(void *ptr)
 
 void	Emulateur::emu_start(uint32_t begin, uint32_t end)
 {
-	printf("sizeof(struct s_oam_obj) = %u\n", sizeof(struct s_oam_obj));
 	sdl_init();
+
+	struct s_instruction_params w[] = {OPCODE};
 	_begin = begin;
 	_end = end;
 	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);

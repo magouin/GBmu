@@ -47,17 +47,17 @@ using namespace std;
 struct s_regs {
 	union {
 		struct {
-			uint8_t A;
 			union {
 				uint8_t F;
 				struct {
-					bool Z : 1;
-					bool N : 1;
-					bool HC : 1;
-					bool CY : 1;
 					uint8_t unused : 4;
+					bool CY : 1;
+					bool HC : 1;
+					bool N : 1;
+					bool Z : 1;
 				};
 			};
+			uint8_t A;
 		};
 		uint16_t AF;
 	};
@@ -132,7 +132,7 @@ class Emulateur;
 struct s_ram_regs {
 	enum e_right	right;
 	uint8_t		(Emulateur::*read)();
-	void			(Emulateur::*write)(uint16_t value);
+	void			(Emulateur::*write)(uint8_t value);
 };
 
 class Emulateur {
@@ -168,6 +168,45 @@ class Emulateur {
 		uint64_t	_timer_counter;
 		bool		_timer_status;
 
+		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_B = {REG, &regs.B, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_C = {REG, &regs.C, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_D = {REG, &regs.D, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_E = {REG, &regs.E, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_F = {REG, &regs.F, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_H = {REG, &regs.H, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_L = {REG, &regs.L, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_A_D = {REG, &regs.A, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_B_D = {REG, &regs.B, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_C_D = {REG, &regs.C, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_D_D = {REG, &regs.D, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_E_D = {REG, &regs.E, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_F_D = {REG, &regs.F, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_H_D = {REG, &regs.H, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_L_D = {REG, &regs.L, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_BC = {REG, &regs.BC, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_AF = {REG, &regs.AF, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_DE = {REG, &regs.DE, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_HL = {REG, &regs.HL, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_SP = {REG, &regs.SP, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_PC = {REG, &regs.PC, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_BC_D1 = {REG, &regs.BC, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_AF_D1 = {REG, &regs.AF, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_DE_D1 = {REG, &regs.DE, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_HL_D1 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_SP_D1 = {REG, &regs.SP, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_BC_D2 = {REG, &regs.BC, NULL, UNSIGN, true, 2, 2};
+		struct s_param	p_AF_D2 = {REG, &regs.AF, NULL, UNSIGN, true, 2, 2};
+		struct s_param	p_DE_D2 = {REG, &regs.DE, NULL, UNSIGN, true, 2, 2};
+		struct s_param	p_HL_D2 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 2};
+		struct s_param	p_SP_D2 = {REG, &regs.SP, NULL, UNSIGN, true, 2, 2};
+		struct s_param	p_n = {DIR, NULL, NULL, UNSIGN, false, 1, 1};
+		struct s_param	p_nn = {DIR, NULL, NULL, UNSIGN, false, 2, 2};
+		struct s_param	p_e = {DIR, NULL, NULL, SIGN, false, 1, 1};
+		struct s_param	p_n_D = {DIR, NULL, NULL, UNSIGN, true, 1, 1};
+		struct s_param	p_nn_D1 = {DIR, NULL, NULL, UNSIGN, true, 2, 1};
+		struct s_param	p_nn_D2 = {DIR, NULL, NULL, UNSIGN, true, 2, 2};
+
 		Emulateur();
 
 		void	set_rom(std::string rom);
@@ -175,65 +214,59 @@ class Emulateur {
 
 		struct s_regs regs;
 
-		void	nop(struct s_params& p, int cycle);
-		void	ld(int8_t inc, void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	inc(void *param, struct s_params& p, int cycle);
-		void	decr(void *param, struct s_params& p, int cycle);
-		void	rlca(struct s_params& p, int cycle);
-		void	rla(struct s_params& p, int cycle);
-		void	rrca(struct s_params& p, int cycle);
-		void	rra(struct s_params& p, int cycle);
-		void	daa(struct s_params& p, int cycle);
-		void	cpl(struct s_params& p, int cycle);
-		void	stop(struct s_params& p, int cycle);
-		void	halt(struct s_params& p, int cycle);
-		void	_and(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	_or(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	_xor(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	cp(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	add(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	adc(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	sub(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	sbc(void *param_1, void *param_2, struct s_params& p, int cycle);
-		void	jr(enum e_cond cond, struct s_params& p, int cycle);
 
-		void	jp(enum e_cond cond, void *param_1, struct s_params& p, int cycle);
-
-		void	ret(enum e_cond cond, struct s_params& p, int cycle);
-		void	reti(struct s_params& p, int cycle);
-		void	pop(void *param, struct s_params& p, int cycle);
-		void	push(void *param, struct s_params& p, int cycle);
-		void	call(enum e_cond cond, struct s_params& p, int cycle);
-		void	rst(uint8_t nb, struct s_params& p, int cycle);
-
-		void	ldhl(void *param1, void *param2, struct s_params& p, int cycle);
-
-		void	rlc(void *param1, struct s_params& p, int cycle);
-		void	rrc(void *param1, struct s_params& p, int cycle);
-		void	rl(void *param1, struct s_params& p, int cycle);
-		void	rr(void *param1, struct s_params& p, int cycle);
-		void	sla(void *param1, struct s_params& p, int cycle);
-		void	sra(void *param1, struct s_params& p, int cycle);
-		void	srl(void *param1, struct s_params& p, int cycle);
-		void	_swap(void *param1, struct s_params& p, int cycle);
-		void	bit(uint8_t bit, void *param1, struct s_params& p, int cycle);
-		void	res(uint8_t bit, void *param1, struct s_params& p, int cycle);
-		void	set(uint8_t bit, void *param1, struct s_params& p, int cycle);
-
-		void	di(struct s_params& p, int cycle);
-		void	ei(struct s_params& p, int cycle);
-		
-		void	op203(struct s_params& p, int cycle);
+		void	nop(int cycle);
+		void	ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size, int cycle);
+		void	inc(struct s_param *p, int cycle);
+		void	dec(struct s_param *p, int cycle);
+		void	rrca(int cycle);
+		void	rlca(int cycle);
+		void	rla(int cycle);
+		void	rra(int cycle);
+		void	daa(int cycle);
+		void	cpl(int cycle);
+		void	stop(int cycle);
+		void	halt(int cycle);
+		void	_and(struct s_param *p, int cycle);
+		void	_or(struct s_param *p, int cycle);
+		void	_xor(struct s_param *p, int cycle);
+		void	cp(struct s_param *p, int cycle);
+		void	add(struct s_param *p1, struct s_param *p2, int size, int cycle);
+		void	adc(struct s_param *p, int cycle);
+		void	sub(struct s_param *p, int cycle);
+		void	sbc(struct s_param *p, int cycle);
+		void	jr(struct s_param *p, enum e_cond cond);
+		void	ret(enum e_cond cond);
+		void	reti(int cycle);
+		void	pop(struct s_param *p, int cycle);
+		void	jp(struct s_param *p, enum e_cond cond);
+		void	call(struct s_param *p, enum e_cond cond);
+		void	push(struct s_param *p, int cycle);
+		void	rst(uint8_t nb, int cycle);
+		void	ldhl(struct s_param *p, int cycle);
+		void	rlc(struct s_param *p, int cycle);
+		void	rrc(struct s_param *p, int cycle);
+		void	rl(struct s_param *p, int cycle);
+		void	rr(struct s_param *p, int cycle);
+		void	sla(struct s_param *p, int cycle);
+		void	sra(struct s_param *p, int cycle);
+		void	srl(struct s_param *p, int cycle);
+		void	_swap(struct s_param *p, int cycle);
+		void	bit(struct s_param *p, uint8_t bit, int cycle);
+		void	res(struct s_param *p, uint8_t bit, int cycle);
+		void	set(struct s_param *p, uint8_t bit, int cycle);
+		void	di(int cycle);
+		void	ei(int cycle);
+		void	ccf(int cycle);
+		void	op203();
+		void	get_param(struct s_param *p);
 
 		Emulateur(const Emulateur & cp);
 		void		init_registers(void);
 		bool		check_rules(enum e_cond cond);
 
-		void		get_params(struct s_param_info *p, uint8_t size);
-
 		uint16_t	mem_read(void *addr, int8_t size);
 		void		mem_write(void *addr, uint16_t value, int8_t size);
-		void		mem_write_signed(void *addr, int16_t value, int8_t size);
 		bool		is_cpu_regs(void *addr);
 		
 
@@ -263,14 +296,14 @@ class Emulateur {
 
 		uint8_t		read_p1();
 
-		void		write_div(uint16_t value);
-		void		write_lcdc(uint16_t value);
-		void		write_stat(uint16_t value);
-		void		write_scy(uint16_t value);
-		void		write_scx(uint16_t value);
-		void		write_ly(uint16_t value);
-		void		write_lyc(uint16_t value);
-		void		write_dma(uint16_t value);
+		void		write_div(uint8_t value);
+		void		write_lcdc(uint8_t value);
+		void		write_stat(uint8_t value);
+		void		write_scy(uint8_t value);
+		void		write_scx(uint8_t value);
+		void		write_ly(uint8_t value);
+		void		write_lyc(uint8_t value);
+		void		write_dma(uint8_t value);
 
 		void		print_bg();
 		void		print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size);
