@@ -110,50 +110,6 @@ void	Emulateur::print_bg()
 	}
 }
 
-int		Emulateur::lcd_thread(void *data)
-{
-	uint64_t			start;
-	uint64_t			ly;
-	const uint64_t		line_time = 252;
-	const uint64_t		scanline_time = 456;
-	struct s_oam_obj	*objs[40];
-	int x;
-
-	x = 0;
-	while (true)
-	{
-		start = _timer_counter * 256 + _timer;
-		_RAM[REG_LY] = 0;
-		print_bg();
-		sort_objs(objs);
-		print_objs(objs);
-		x++;
-		// print_all_tiles();
-		ly = 0;
-		while (ly < 154)
-		{
-			if (ly < 144)
-			{
-				
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
-				//print_line(ly, start, objs);
-				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
-			}
-			else if (ly == 144)
-			{
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
-				_RAM[0xff0f] |= 1;
-			}
-			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
-			_RAM[REG_LY]++;
-			ly++;
-		}
-		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
-		render();
-	}
-}
-
 void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
 {
 	uint8_t	*tile;
@@ -251,5 +207,54 @@ void	Emulateur::print_objs(struct s_oam_obj	**objs)
 	{
 		print_obj(objs[x]);
 		x++;
+	}
+}
+
+int		Emulateur::lcd_thread(void *data)
+{
+	uint64_t			start;
+	uint64_t			ly;
+	const uint64_t		line_time = 252;
+	const uint64_t		scanline_time = 456;
+	struct s_oam_obj	*objs[40];
+	int x;
+
+	x = 0;
+	while (true)
+	{
+		start = _timer_counter * 256 + _timer;
+		_RAM[REG_LY] = 0;
+		print_bg();
+		sort_objs(objs);
+		print_objs(objs);
+		x++;
+		// print_all_tiles();
+		ly = 0;
+		while (ly < 154)
+		{
+			if (ly < 144)
+			{
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
+				if (_RAM[REG_STAT] & (1 << 5))
+					_RAM[REG_IF] |= (1 << 1);
+				//print_line(ly, start, objs);
+				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
+				if (_RAM[REG_STAT] & (1 << 3))
+					_RAM[REG_IF] |= (1 << 1);
+			}
+			else if (ly == 144)
+			{
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
+				if (_RAM[REG_STAT] & (1 << 4))
+					_RAM[REG_IF] |= (1 << 1);
+				_RAM[0xff0f] |= 1;
+			}
+			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
+			_RAM[REG_LY]++;
+			ly++;
+		}
+		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
+		render();
 	}
 }
