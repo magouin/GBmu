@@ -3,6 +3,7 @@ SRC_NAME =	main.cpp \
 			instructions.cpp \
 			Emulateur.cpp \
 			sdl.cpp \
+			lcd.cpp \
 			memory_controler.cpp
 
 INC_PATH = ./includes/
