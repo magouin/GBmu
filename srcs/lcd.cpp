@@ -226,7 +226,7 @@ int		Emulateur::lcd_thread(void *data)
 		_RAM[REG_LY] = 0;
 		print_bg();
 		sort_objs(objs);
-		print_objs(objs);
+		// print_objs(objs);
 		x++;
 		// print_all_tiles();
 		ly = 0;
@@ -237,7 +237,7 @@ int		Emulateur::lcd_thread(void *data)
 				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
 				if (_RAM[REG_STAT] & (1 << 5))
 					_RAM[REG_IF] |= (1 << 1);
-				//print_line(ly, start, objs);
+				print_line(ly, start, objs);
 				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
 				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 				if (_RAM[REG_STAT] & (1 << 3))
