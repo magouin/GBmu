@@ -10,13 +10,13 @@ void			Emulateur::write_div(uint8_t value)
 
 void			Emulateur::write_lcdc(uint8_t value)
 {
-	if ((_RAM[0xff40] & 128) && (!(value & 128)))
-		_RAM[0xff44] = 0;
+	if ((_RAM[REG_LCDC] & 128) && (!(value & 128)))
+		_RAM[REG_LY] = 0;
 }
 
 void			Emulateur::write_stat(uint8_t value)
 {
-	_RAM[0xff41] = (_RAM[0xff41] & 3) + (value & 120);
+	_RAM[REG_STAT] = (_RAM[REG_STAT] & 3) + (value & 120);
 }
 
 void			Emulateur::write_scy(uint8_t value)
@@ -37,16 +37,16 @@ void			Emulateur::write_scx(uint8_t value)
 
 void			Emulateur::write_ly(uint8_t value)
 {
-	_RAM[0xff44] = value;
-	if (_RAM[0xff44] == _RAM[0xff45])
-		_RAM[0xff41] |= 4;
+	_RAM[REG_LY] = value;
+	if (_RAM[REG_LY] == _RAM[REG_LYC])
+		_RAM[REG_STAT] |= 4;
 }
 
 void			Emulateur::write_lyc(uint8_t value)
 {
-	_RAM[0xff45] = value;
-	if (_RAM[0xff45] == _RAM[0xff44])
-		_RAM[0xff41] |= 4;
+	_RAM[REG_LYC] = value;
+	if (_RAM[REG_LYC] == _RAM[REG_LY])
+		_RAM[REG_STAT] |= 4;
 }
 
 void			Emulateur::write_dma(uint8_t value)
@@ -61,9 +61,9 @@ void			Emulateur::write_dma(uint8_t value)
 		throw InvalidWrite((value));
 	}
 	_RAM[0xff46] = value;
-	while ((_RAM[0xff41] & 3) != 2) ;
+	while ((_RAM[REG_STAT] & 3) != 2) ;
 	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
-	while (_timer_counter * 256 + _timer < t + 160) ;
+	// while (_timer_counter * 256 + _timer < t + 160) ;
 }
 
 uint8_t			Emulateur::read_p1()

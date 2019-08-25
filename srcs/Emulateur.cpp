@@ -88,11 +88,11 @@ void	Emulateur::init_registers(void)
 	this->_RAM[0xff24] = 0x77; // NR50
 	this->_RAM[0xff25] = 0xf3; // NR51
 	this->_RAM[0xff26] = 0xf1; // NR52
-	this->_RAM[0xff40] = 0x91; // LCDC
+	this->_RAM[REG_LCDC] = 0x91; // LCDC
 	this->_RAM[0xff42] = 0x00; // SCY
 	this->_RAM[0xff43] = 0x00; // SCX
-	this->_RAM[0xff44] = 0x05; // LY
-	this->_RAM[0xff45] = 0x00; // LYC
+	this->_RAM[REG_LY] = 0x05; // LY
+	this->_RAM[REG_LYC] = 0x00; // LYC
 	this->_RAM[0xff47] = 0xfc; // BGP
 	this->_RAM[0xff48] = 0xff; // OBPO
 	this->_RAM[0xff49] = 0xff; // OBP1
@@ -132,7 +132,7 @@ int			Emulateur::tima_thread(void *data)
 			if (_RAM[0xFF05] + (uint8_t)(tmp_time - last_time) > 255)
 			{
 				_RAM[0xFF05] = _RAM[0xFF06];
-				_RAM[0xFF0F] |= 2;
+				_RAM[REG_IF] |= 2;
 			}
 			_RAM[0xFF05] += (uint8_t)(tmp_time - last_time);
 		}
@@ -259,8 +259,8 @@ void	Emulateur::print_bg()
 	int		x, y;
 	uint8_t	scx, scy;
 
-	b_code = _RAM + ((_RAM[0xff40] & (1 << 3)) ? 0x9c00 : 0x9800);
-	b_data = _RAM + (_RAM[0xff40] & (1 << 4) ? 0x8000 : 0x8800);
+	b_code = _RAM + ((_RAM[REG_LCDC] & (1 << 3)) ? 0x9c00 : 0x9800);
+	b_data = _RAM + (_RAM[REG_LCDC] & (1 << 4) ? 0x8000 : 0x8800);
 	y = 0;
 	scx = _RAM[0xff43] >> 3;
 	scy = _RAM[0xff42] >> 3;
@@ -283,27 +283,25 @@ void	Emulateur::print_bg()
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	_IME = false;
-	_RAM[0xFF0F] &= ~iflag;
+	_RAM[REG_IF] &= ~iflag;
 	this->regs.SP -= 2;
 	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
-	_idata.old_pc = this->regs.PC; 
 	regs.PC = addr;
-	_idata.routine = true; 
 }
 
 void	Emulateur::interrupt(void)
 {
 	if (!_IME)
 		return ;
-	if(_RAM[0xFF0F] & 16 && _RAM[0xFFFF] & 16)
+	if(_RAM[REG_IF] & 16 && _RAM[0xFFFF] & 16)
 		interrupt_func(0x0060, 16);
-	else if(_RAM[0xFF0F] & 8 && _RAM[0xFFFF] & 8)
+	else if(_RAM[REG_IF] & 8 && _RAM[0xFFFF] & 8)
 		interrupt_func(0x0058, 8);
-	else if(_RAM[0xFF0F] & 4 && _RAM[0xFFFF] & 4)
+	else if(_RAM[REG_IF] & 4 && _RAM[0xFFFF] & 4)
 		interrupt_func(0x0050, 4);
-	else if(_RAM[0xFF0F] & 2 && _RAM[0xFFFF] & 2)
+	else if(_RAM[REG_IF] & 2 && _RAM[0xFFFF] & 2)
 		interrupt_func(0x0048, 2);
-	else if(_RAM[0xFF0F] & 1 && _RAM[0xFFFF] & 1)
+	else if(_RAM[REG_IF] & 1 && _RAM[0xFFFF] & 1)
 		interrupt_func(0x0040, 1);
 }
 
@@ -312,11 +310,11 @@ void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
 	uint8_t	*tile;
 	uint8_t	h;
 
-	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
+	obj->chrcode &= (_RAM[REG_LCDC] & 4 ? ~1 : ~0);
 	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
 	h = (ly - (obj->y - 16));
 	if (obj->h_flip)
-		h = ((_RAM[0xff40] & 4 ? 15 : 7) - h);
+		h = ((_RAM[REG_LCDC] & 4 ? 15 : 7) - h);
 	print_tile_line(tile, obj->x - 8, obj->y - 16, h, obj->v_flip);
 }
 
@@ -330,7 +328,7 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 
 	nb_print = 0;
 	x = 0;
-	height = (_RAM[0xff40] & 4) ? 16 : 8;
+	height = (_RAM[REG_LCDC] & 4) ? 16 : 8;
 	while (x < 40)
 	{
 		if (ly >= objs[x]->y - 16 &&
@@ -342,7 +340,7 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 		x++;
 	}
 	while (start + ly * scanline_time + 80 > _timer_counter * 256 + _timer) ;
-	_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 3;
+	_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 3;
 	x = nb_print - 1;
 	while (x >= 0)
 	{
@@ -390,9 +388,9 @@ void	Emulateur::print_obj(struct s_oam_obj *obj)
 {
 	uint8_t	*tile;
 
-	obj->chrcode &= (_RAM[0xff40] & 4 ? ~1 : ~0);
+	obj->chrcode &= (_RAM[REG_LCDC] & 4 ? ~1 : ~0);
 	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
-	print_tile(tile, obj->x - 8, obj->y - 16, obj->h_flip, obj->v_flip, (_RAM[0xff40] & 4 ? 16 : 8));
+	print_tile(tile, obj->x - 8, obj->y - 16, obj->h_flip, obj->v_flip, (_RAM[REG_LCDC] & 4 ? 16 : 8));
 }
 
 void	Emulateur::print_objs(struct s_oam_obj	**objs)
@@ -420,7 +418,7 @@ int		Emulateur::lcd_thread(void *data)
 	while (true)
 	{
 		start = _timer_counter * 256 + _timer;
-		_RAM[0xff44] = 0;
+		_RAM[REG_LY] = 0;
 		print_bg();
 		sort_objs(objs);
 		print_objs(objs);
@@ -431,18 +429,19 @@ int		Emulateur::lcd_thread(void *data)
 		{
 			if (ly < 144)
 			{
-				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 2;
+				
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
 				//print_line(ly, start, objs);
 				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
-				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 0;
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 			}
 			else if (ly == 144)
 			{
-				_RAM[0xff41] = (_RAM[0xff41] & ~(uint8_t)3) | 1;
+				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
 				_RAM[0xff0f] |= 1;
 			}
 			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
-			_RAM[0xff44]++;
+			_RAM[REG_LY]++;
 			ly++;
 		}
 		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));

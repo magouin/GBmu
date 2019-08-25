@@ -12,7 +12,7 @@ void	Emulateur::ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size,
 	get_param(p1);
 	get_param(p2);
 	regs.HL += inc;
-	mem_write(p1->val, mem_read(p2->val, p2->size), size);
+	mem_write(p1->val, mem_read(p2->val, size), size);
 	_cycle += cycle;
 }
 
@@ -191,6 +191,7 @@ void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size, int cycle)
 	CY_val = (size == 2 ? 0xffff : 0xff);
 	regs.N = false;
 	regs.Z = (size == 1) ? !val : regs.Z;
+	regs.Z = (p2->t == SIGN) ? false : regs.Z;
 	regs.CY = (val > CY_val);
 	regs.HC = ((v1 & H_val) + (v2 & H_val) > H_val);
 	mem_write(p1->val, val, size);
@@ -282,11 +283,6 @@ void	Emulateur::ret(enum e_cond cond)
 		_cycle -= 1;
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
-	if (_idata.routine && regs.PC == _idata.old_pc) // A VERIFIER
-	{
-		_idata.routine = false;
-		_IME = false;
-	}
 	_cycle += 3;
 }
 
@@ -294,8 +290,6 @@ void	Emulateur::reti(int cycle)
 {
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
-	if (_idata.routine && regs.PC == _idata.old_pc) // A VERIFIER
-		_idata.routine = false;
 	_IME = true;
 	_cycle += cycle;
 }
@@ -527,7 +521,6 @@ void	Emulateur::ei(int cycle)
 {
 	_IME = true;
 	mem_write(_RAM + 0xffff, 0x1f, 1);
-	_idata.routine = false;
 	_cycle += cycle;
 }
 

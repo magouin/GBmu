@@ -28,69 +28,10 @@ using namespace std;
 # include <stdio.h>
 # include <string.h>
 
-# define FLAG_Z  (1 << 7)
-# define FLAG_N  (1 << 6)
-# define FLAG_H  (1 << 5)
-# define FLAG_CY (1 << 4)
-
-# define IO_RIGHT 1
-# define IO_LEFT 2
-# define IO_UP 4
-# define IO_DOWN 8
-# define IO_A 1
-# define IO_B 2
-# define IO_SELECT 4
-# define IO_START 8
+# include <registers.hpp>
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
-struct s_regs {
-	union {
-		struct {
-			union {
-				uint8_t F;
-				struct {
-					uint8_t unused : 4;
-					bool CY : 1;
-					bool HC : 1;
-					bool N : 1;
-					bool Z : 1;
-				};
-			};
-			uint8_t A;
-		};
-		uint16_t AF;
-	};
-	union {
-		struct {
-			uint8_t C;
-			uint8_t B;
-		};
-		uint16_t BC;
-	};
-	union {
-		struct {
-			uint8_t E;
-			uint8_t D;
-		};
-		uint16_t DE;
-	};
-	union {
-		struct {
-			uint8_t L;
-			uint8_t H;
-		};
-		uint16_t HL;
-	};
-	uint16_t SP;
-	uint16_t PC;
-};
-
-struct user_input
-{
-	uint8_t p14;
-	uint8_t p15;
-};
 
 struct s_param_info
 {
@@ -112,12 +53,6 @@ struct s_oam_obj
 	bool				h_flip : 1;
 	bool				v_flip : 1;
 	bool				prio : 1;
-};
-
-struct s_interrupt
-{
-	uint16_t	old_pc;
-	bool		routine;
 };
 
 enum e_right {
@@ -145,7 +80,6 @@ class Emulateur {
 		uint64_t	_cycle;
 		uint8_t		_RAM[0x10000];
 		bool		_IME;
-		s_interrupt	_idata;
 
 		struct user_input	_input;
 
@@ -176,14 +110,7 @@ class Emulateur {
 		struct s_param	p_F = {REG, &regs.F, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_H = {REG, &regs.H, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_L = {REG, &regs.L, NULL, UNSIGN, false, 1, 1};
-		struct s_param	p_A_D = {REG, &regs.A, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_B_D = {REG, &regs.B, NULL, UNSIGN, true, 1, 1};
 		struct s_param	p_C_D = {REG, &regs.C, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_D_D = {REG, &regs.D, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_E_D = {REG, &regs.E, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_F_D = {REG, &regs.F, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_H_D = {REG, &regs.H, NULL, UNSIGN, true, 1, 1};
-		struct s_param	p_L_D = {REG, &regs.L, NULL, UNSIGN, true, 1, 1};
 		struct s_param	p_BC = {REG, &regs.BC, NULL, UNSIGN, false, 2, 2};
 		struct s_param	p_AF = {REG, &regs.AF, NULL, UNSIGN, false, 2, 2};
 		struct s_param	p_DE = {REG, &regs.DE, NULL, UNSIGN, false, 2, 2};
@@ -195,11 +122,7 @@ class Emulateur {
 		struct s_param	p_DE_D1 = {REG, &regs.DE, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_HL_D1 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_SP_D1 = {REG, &regs.SP, NULL, UNSIGN, true, 2, 1};
-		struct s_param	p_BC_D2 = {REG, &regs.BC, NULL, UNSIGN, true, 2, 2};
-		struct s_param	p_AF_D2 = {REG, &regs.AF, NULL, UNSIGN, true, 2, 2};
-		struct s_param	p_DE_D2 = {REG, &regs.DE, NULL, UNSIGN, true, 2, 2};
 		struct s_param	p_HL_D2 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 2};
-		struct s_param	p_SP_D2 = {REG, &regs.SP, NULL, UNSIGN, true, 2, 2};
 		struct s_param	p_n = {DIR, NULL, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_nn = {DIR, NULL, NULL, UNSIGN, false, 2, 2};
 		struct s_param	p_e = {DIR, NULL, NULL, SIGN, false, 1, 1};
