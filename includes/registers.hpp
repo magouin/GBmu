@@ -68,6 +68,12 @@ struct s_regs {
 	};
 	uint16_t SP;
 	uint16_t PC;
+	bool	IME;
+	bool	RAM_ENABLE;
+	uint8_t	ROM_BANK;
+	uint8_t	ROM_RAM_BANK;
+	uint8_t	ROM_RAM_SELECT;
+
 };
 
 struct user_input

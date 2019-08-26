@@ -132,6 +132,8 @@ void	Emulateur::stop(int cycle) // TODO
 void	Emulateur::halt(int cycle) // TODO
 {
 	_halt_status = true;
+	// printf("Entering halt status\n");
+	// printf("ime: %d, ie : %02x, if: %02x\n", regs.IME, _RAM[REG_IE], _RAM[REG_IF]);
 	_cycle += cycle;
 }
 
@@ -289,7 +291,7 @@ void	Emulateur::reti(int cycle)
 {
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
-	_IME = true;
+	regs.IME = true;
 	_cycle += cycle;
 }
 
@@ -512,13 +514,13 @@ void	Emulateur::op203()
 
 void	Emulateur::di(int cycle)
 {
-	_IME = false;
+	regs.IME = false;
 	_cycle += cycle;
 }
 
 void	Emulateur::ei(int cycle)
 {
-	_IME = true;
+	regs.IME = true;
 	mem_write(_RAM + 0xffff, 0x1f, 1);
 	_cycle += cycle;
 }

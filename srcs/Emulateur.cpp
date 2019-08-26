@@ -7,11 +7,8 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _ROM(rom)
+Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _header(rom), _ROM(rom)
 {
-	bzero(_RAM, sizeof(_RAM));
-	_cycle = 0;
-	_IME = true;
 }
 
 Emulateur::Emulateur(const Emulateur & cp)
@@ -64,6 +61,12 @@ void	Emulateur::init_registers(void)
 	// regs.DE = 0x0008;
 	// regs.HL = 0x007c;
 	regs.SP = 0xfffe;
+	regs.PC = 0x100;
+	regs.IME = false;
+	regs.RAM_ENABLE = false;
+	regs.ROM_BANK = 1;
+	regs.ROM_RAM_BANK = 0;
+	regs.ROM_RAM_SELECT = 0;
 
 
 	_RAM[REG_P1] = 0x00; // P1
@@ -148,9 +151,6 @@ int			Emulateur::timer_thread(void *data)
 	nsecond_per_tick = (1.0 / _frequency) * 1000 * 1000 * 1000;
 	// printf("nsecond_per_tick = %d\n", nsecond_per_tick);
 	start = std::chrono::high_resolution_clock::now();
-	_timer = 0; 
-	_timer_counter = 0; 
-	_timer_status = true;
 	while (true)
 	{
 		if (_stop_status)
@@ -177,7 +177,7 @@ int			Emulateur::timer_thread(void *data)
 
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
-	_IME = false;
+	regs.IME = false;
 	_RAM[REG_IF] &= ~iflag;
 	this->regs.SP -= 2;
 	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
@@ -186,8 +186,12 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 
 void	Emulateur::interrupt(void)
 {
-	if (!_IME)
+	if (!regs.IME)
+	{
+		// printf("Leaving _halt_status because ime disabled\n");
+		_halt_status = false;
 		return ;
+	}
 	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
 		interrupt_func(0x0060, 16);
 	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
@@ -198,34 +202,22 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0048, 2);
 	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
 		interrupt_func(0x0040, 1);
+	else
+		return ;
+	if (_halt_status == true)
+		printf("Leaving _halt_status\n");
+	_halt_status = false;
 }
 
 int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instruction_params	*instr;
-	static	uint64_t					tmp2 = 0;
-
-	memcpy(_RAM, _ROM.c_str(), 0x8000);
-	_frequency = 4194300; // Need to change if it is a CGB
-	# ifdef DEBUG
-		_frequency = 41943; // Need to change if it is a CGB
-	# endif
-	this->regs.PC = _begin;
-
-	init_registers();
-	this->_cycle = 0;
 
 	while (true)
 	{
 		interrupt();
 		if (_halt_status)
 			continue ;
-		if (tmp2 == 1000000)
-		{
-			printf("Entering in STOP mode\n");
-			_stop_status = true;
-		}
-		tmp2++;
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
 		// printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
 		instr = &_opcode[this->_RAM[this->regs.PC]];
@@ -276,22 +268,43 @@ int Emulateur::create_tima_thread(void *ptr)
 	return p->tima_thread(NULL);
 }
 
-void	Emulateur::emu_start(uint32_t begin, uint32_t end)
+void Emulateur::emu_init()
 {
-	sdl_init();
+	bzero(_RAM, sizeof(_RAM));
+	_external_ram = new uint8_t[_header.get_ram_size()];
+	_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000);
+	_ram_bank = _external_ram;
 
-	struct s_instruction_params w[] = {OPCODE};
-	_begin = begin;
-	_end = end;
-	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
-	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
-	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
-	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+	_cycle = 0;
+	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
 	_input.p14 = 0xff;
 	_input.p15 = 0xff;
 	_halt_status = false;
 	_stop_status = false;
+	sdl_init();
+	memcpy(_RAM, _ROM.c_str(), 0x8000);
+	_frequency = 4194300; // Need to change if it is a CGB
+	# ifdef DEBUG
+		_frequency = 41943; // Need to change if it is a CGB
+	# endif
+	init_registers();
+
+	_timer = 0; 
+	_timer_counter = 0; 
+	_timer_status = true;
+
+}
+
+void	Emulateur::emu_start()
+{
+	emu_init();
+
+	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
+	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
+	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
+	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+
 	while (true)
 	{
 		if (!update())

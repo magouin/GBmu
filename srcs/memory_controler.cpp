@@ -75,77 +75,138 @@ void			Emulateur::write_dma(uint8_t value)
 	_RAM[0xff46] = value;
 	while ((_RAM[REG_STAT] & 3) != 2) ;
 	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
-	// while (_timer_counter * 256 + _timer < t + 160) ;
 }
 
-uint8_t			Emulateur::read_p1()
+void			Emulateur::read_p1()
 {
 	uint8_t value;
 
-	// printf("_RAM[REG_P1] = %hhx\n", _RAM[REG_P1]);
 	value = _RAM[REG_P1] | 0xf;
-	// printf("value = %hhx\n", value);
 	if (!(value & 0x10))
 		value &= 0xf0 | _input.p14;
 	if (!(value & 0x20))
 		value &= 0xf0 | _input.p15;
 	_RAM[REG_P1] = value;
-	return (value);
 }
 
-bool		Emulateur::is_cpu_regs(void *addr)
+void		*Emulateur::read_ROM_RAM_regs(uint8_t *addr)
+{
+	if (addr < _RAM)
+		return (NULL);
+	if (addr - _RAM < 0x4000)
+		return (NULL);
+	else if (addr - _RAM  < 0x8000)
+		return (void*)(_rom_bank + (addr - _RAM));
+	else if (addr - _RAM  >= 0xA000 && addr - _RAM  < 0xC000)
+	{
+		if (regs.RAM_ENABLE)
+			return (void*)(_ram_bank + (addr - _RAM));
+		else throw InvalidRead((uint64_t)addr);
+	}
+	else return (NULL);
+}
+
+bool		Emulateur::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
+{
+	uint8_t id;
+
+	if (addr < _RAM)
+		return (false);
+
+	if (addr - _RAM < 0x2000)
+		regs.RAM_ENABLE = ((value & 0xf) == 0xa ? true : false);
+	else if (addr - _RAM < 0x4000)
+	{
+		if (value < 1 || value > 0x1f)
+			printf("ERROR: This value should be between 1 and 1f\n");
+		else
+			regs.ROM_BANK = value;
+	}
+	else if (addr - _RAM < 0x6000)
+	{
+		if (value > 3)
+			printf("ERROR: This value should be between 0 and 3\n");
+		else
+			regs.ROM_RAM_BANK = value;
+	}
+	else if (addr - _RAM  < 0x8000)
+	{
+		if (value > 1)
+			printf("ERROR: This value should be between 0 and 1\n");
+		else
+			regs.ROM_RAM_SELECT = value;
+	}
+	else
+		return (false);
+
+	if (regs.ROM_RAM_SELECT == 0)
+	{
+		id = regs.ROM_BANK + (regs.ROM_RAM_SELECT << 5);
+		_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000 * id);
+		_ram_bank = _external_ram;
+	}
+	else if (regs.ROM_RAM_SELECT == 1)
+	{
+		id = regs.ROM_BANK;
+		_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000 * id);
+		_ram_bank = _external_ram + regs.ROM_RAM_BANK * 0x2000;
+	}
+	return (true);
+}
+
+void		*Emulateur::is_cpu_regs(void *addr)
 {
 	if (addr >= &regs && addr < &regs + sizeof(regs))
-		return (true);
-	return (false);
+		return (addr);
+	return (NULL);
+}
+
+void		*Emulateur::read_gb_regs(uint8_t *addr)
+{
+	if (addr < _RAM + 0xff00 || addr > _RAM + 0xffff)
+		return (NULL);
+	if (_ram_regs[addr - 0xff00 - _RAM].read)
+		(this->*_ram_regs[addr - 0xff00 - _RAM].read)();
+	else return (NULL);
+	return (addr);
+}
+
+void		*Emulateur::write_gb_regs(uint8_t *addr, uint8_t value, int8_t size)
+{
+	if (addr < _RAM + 0xff00 || addr > _RAM + 0xffff)
+		return (NULL);
+	if (_ram_regs[addr - 0xff00 - _RAM].write)
+		(this->*_ram_regs[addr - 0xff00 - _RAM].write)(value);
+	else return (NULL);
+	return (addr);
 }
 
 uint16_t	Emulateur::mem_read(void *addr, int8_t size)
 {
-	uint16_t ram_addr;
+	void	*read_addr;
 
-	if (is_cpu_regs(addr))
-		;
-	else if (addr >= _RAM && addr <= _RAM + 0xffff)
-	{
-		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		// if ((ram_addr >= 0xe000 && ram_addr < 0xfe00))
-			// || (ram_addr >= 0xfea0 && ram_addr < REG_P1)
-			// || (ram_addr >= REG_P1 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - REG_P1].right & RD)))
-		//	throw InvalidRead((ram_addr));
-		if (ram_addr >= REG_P1 && ram_addr < 0xff80 && _ram_regs[ram_addr - REG_P1].read)
-			return ((this->*_ram_regs[ram_addr - REG_P1].read)());
-	}
-	else
-		throw InvalidRead(((uint64_t)addr));
+	if ((read_addr = read_ROM_RAM_regs((uint8_t*)addr))) ;
+	else if ((read_addr = is_cpu_regs(addr))) ;
+	else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
+	else throw InvalidRead((uint64_t)read_addr);
+
 	if (size == 2)
-		return (*(uint16_t *)addr);
+		return (*(uint16_t *)read_addr);
 	else
-		return (*(uint8_t *)addr);
+		return (*(uint8_t *)read_addr);
 }
 
 void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
-	uint16_t ram_addr;
+	void	*write_addr;
 
-	if (is_cpu_regs(addr))
-		;
-	else if (addr >= _RAM && addr <= _RAM + 0xffff)
-	{
-		ram_addr = (uint16_t)((uint8_t *)addr - _RAM);
-		// if ((ram_addr >= 0x0000 && ram_addr < 0x0150))
-		//	|| (ram_addr >= 0xe000 && ram_addr < 0xfe00))
-			// || (ram_addr >= 0xfea0 && ram_addr < REG_P1)
-			// || (ram_addr >= REG_P1 && ram_addr < 0xff80 && !(_ram_regs[ram_addr - REG_P1].right & WR)))
-			// throw InvalidWrite((ram_addr));
-		if (ram_addr >= REG_P1 && ram_addr < 0xff80 && _ram_regs[ram_addr - REG_P1].write)
-		{
-			(this->*_ram_regs[ram_addr - REG_P1].write)(value);
-			return ;
-		}
-	}
-	// else
-	// 	throw InvalidWrite(((uint64_t)addr));
+	if ((write_addr = is_cpu_regs(addr))) ;
+	else if (write_ROM_regs((uint8_t*)addr, value, size))
+		return ;
+	// else if (write_RAM_regs((uint8_t*)addr, value, size))
+	// 	return ;
+	else if (write_gb_regs((uint8_t *)addr, value, size))
+		return ;
 	if (size == 2)
 		*(uint16_t *)addr = value;
 	else

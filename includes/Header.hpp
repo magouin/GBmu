@@ -32,15 +32,19 @@ class Header {
 			uint8_t		header_checksum;
 			uint16_t	global_checksum;
 		};
-		const string & _file;
+		const string _file;
 		struct s_header _header;
 
+
+
 	public:
+		Header();
 		Header(const string & file);
 		Header(const Header & cp);
 		~Header();
 		void read_instr(size_t offset);
 		Header & operator=(const Header & cp);
+		size_t get_ram_size(void) const;
 };
 
 #endif

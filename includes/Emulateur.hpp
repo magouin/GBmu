@@ -30,6 +30,8 @@ using namespace std;
 
 # include <registers.hpp>
 
+# include <Header.hpp>
+
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
 
@@ -66,7 +68,7 @@ class Emulateur;
 
 struct s_ram_regs {
 	enum e_right	right;
-	uint8_t		(Emulateur::*read)();
+	void			(Emulateur::*read)();
 	void			(Emulateur::*write)(uint8_t value);
 };
 
@@ -76,16 +78,18 @@ class Emulateur {
 		const vector<struct s_instruction_params> _op203;
 		const vector<struct s_instruction_params> _opcode;
 
+		const Header		_header;
 		std::string	_ROM;
 		uint64_t	_cycle;
 		uint8_t		_RAM[0x10000];
-		bool		_IME;
+
+		uint8_t		*_external_ram;
+
+		const uint8_t	*_rom_bank;
+		uint8_t			*_ram_bank;
 
 		struct user_input	_input;
 
-		uint32_t _begin;
-		uint32_t _end;
-		
 		SDL_Window*		_window;
 		SDL_Renderer*	_renderer;
 		SDL_Surface*	_surface;
@@ -134,6 +138,8 @@ class Emulateur {
 		struct s_param	p_nn_D2 = {DIR, NULL, NULL, UNSIGN, true, 2, 2};
 
 		Emulateur();
+
+		void	emu_init();
 
 		void	set_rom(std::string rom);
 		void	print_regs(void);
@@ -193,8 +199,11 @@ class Emulateur {
 
 		uint16_t	mem_read(void *addr, int8_t size);
 		void		mem_write(void *addr, uint16_t value, int8_t size);
-		bool		is_cpu_regs(void *addr);
-		
+		void		*is_cpu_regs(void *addr);
+		void		*read_gb_regs(uint8_t *addr);
+		void		*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
+		void		*read_ROM_RAM_regs(uint8_t *addr);
+		bool		write_ROM_regs(uint8_t *addr, uint8_t value, int8_t sizek);
 
 		void		sdl_init();
 
@@ -220,7 +229,7 @@ class Emulateur {
 		uint8_t		color_htoa(uint32_t color);
 		uint32_t 	color_5_to_8(uint16_t gb_color);
 
-		uint8_t		read_p1();
+		void		read_p1();
 
 		void		write_div(uint8_t value);
 		void		write_lcdc(uint8_t value);
@@ -285,7 +294,7 @@ class Emulateur {
 		~Emulateur(/* args */);
 		Emulateur & operator=(const Emulateur & cp);
 
-		void	emu_start(uint32_t begin, uint32_t end);
+		void	emu_start();
 
 };
 
