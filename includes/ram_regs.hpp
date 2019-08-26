@@ -15,7 +15,7 @@
 /* 0xFF0C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF0D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF0E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* REG_IF */ (struct s_ram_regs){RDWR, NULL, NULL}, \
+/* 0xFF0F */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF10 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF11 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF12 */ (struct s_ram_regs){RDWR, NULL, NULL}, \

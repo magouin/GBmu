@@ -220,7 +220,7 @@ int		Emulateur::cpu_thread(void *data)
 			continue ;
 		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
 		// printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
-		instr = &_opcode[this->_RAM[this->regs.PC]];
+		instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
 		# ifdef DEBUG
 			char c[2];
 			_timer_status = false;
@@ -271,7 +271,8 @@ int Emulateur::create_tima_thread(void *ptr)
 void Emulateur::emu_init()
 {
 	bzero(_RAM, sizeof(_RAM));
-	_external_ram = new uint8_t[_header.get_ram_size()];
+	printf("allocated %zu RAM\n", _header.get_ram_size());
+	_external_ram = (_header.get_ram_size() > 0) ? new uint8_t[_header.get_ram_size()] : _RAM + 0xa000;
 	_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000);
 	_ram_bank = _external_ram;
 

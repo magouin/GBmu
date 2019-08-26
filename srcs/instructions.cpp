@@ -507,7 +507,7 @@ void	Emulateur::op203()
 {
 	const struct s_instruction_params	*instr;
 
-	instr = &_op203[*reinterpret_cast<uint8_t*>(_RAM + regs.PC)];
+	instr = &_op203[mem_read(_RAM + regs.PC, 1)];
 	regs.PC += 1 + instr->nb_params;
 	instr->f();
 }
