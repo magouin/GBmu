@@ -199,11 +199,13 @@ class Emulateur {
 
 		uint16_t	mem_read(void *addr, int8_t size);
 		void		mem_write(void *addr, uint16_t value, int8_t size);
-		void		*is_cpu_regs(void *addr);
+		void		*cpu_regs(void *addr);
 		void		*read_gb_regs(uint8_t *addr);
 		void		*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
 		void		*read_ROM_RAM_regs(uint8_t *addr);
 		bool		write_ROM_regs(uint8_t *addr, uint8_t value, int8_t sizek);
+		bool		write_RAM_regs(uint8_t *addr, uint8_t value, int8_t size);
+		void		*gb_mem(void *addr);
 
 		void		sdl_init();
 

@@ -73,7 +73,6 @@ struct s_regs {
 	uint8_t	ROM_BANK;
 	uint8_t	ROM_RAM_BANK;
 	uint8_t	ROM_RAM_SELECT;
-
 };
 
 struct user_input
