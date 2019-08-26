@@ -12,6 +12,10 @@ const string Header::cartridge_types[] = {"ROM ONLY","MBC1","MBC1+RAM","MBC1+RAM
 										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
 										  "POCKET CAMERA","BANDAI TAMA5","HuC3","HuC1+RAM+BATTERY"};
 
+Header::Header()
+{
+}
+
 Header::Header(const string & file) : _file(file)
 {
 	const char	*str;
@@ -20,7 +24,7 @@ Header::Header(const string & file) : _file(file)
 	str = file.c_str();
 	head = str + 0x100;
 
-	this->_header = *reinterpret_cast<const struct s_header*>(head);
+	_header = *reinterpret_cast<const struct s_header*>(head);
 
 	// cout << "Title: " << this->_header.title << endl;
 	// cout << "Cartdrige type: " << cartridge_types[(int)this->_header.cartridge] << endl;
@@ -47,4 +51,22 @@ Header &	Header::operator=(const Header & cp)
 {
 	(void)cp;
 	return (*this);
+}
+
+size_t		Header::get_ram_size() const
+{
+	if (_header.ram_size == 0)
+		return (0);
+	else if (_header.ram_size == 1)
+		return (2 * 1024);
+	else if (_header.ram_size == 2)
+		return (8 * 1024);
+	else if (_header.ram_size == 3)
+		return (32 * 1024);
+	else if (_header.ram_size == 4)
+		return (128 * 1024);
+	else if (_header.ram_size == 5)
+		return (64 * 1024);
+	printf("Error: Invalid ram_size in header\n");
+	return (0);
 }
