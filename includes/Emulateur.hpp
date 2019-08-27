@@ -204,7 +204,6 @@ class Emulateur {
 		void	di();
 		void	ei();
 		void	ccf();
-		void	op203();
 		void	get_param(struct s_param *p);
 
 		Emulateur(const Emulateur & cp);
