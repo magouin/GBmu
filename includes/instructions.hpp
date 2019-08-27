@@ -54,15 +54,22 @@ struct s_flags {
 
 typedef std::function<void(void)> t_instr;
 
-struct s_instruction_params {
+struct s_instr_params {
 	uint8_t				opcode;
 	const std::string	mnemonic;
 	uint8_t				nb_params;
 	struct s_flags		flags;
-
+	uint8_t				cycle_nb;
 	t_instr f;
 };
 
+struct s_cv_instr {
+	uint8_t				opcode;
+	const std::string	mnemonic;
+	uint8_t				cycle_true;
+	uint8_t				cycle_false;
+	enum e_cond			condition;
+};
 
 
 #endif

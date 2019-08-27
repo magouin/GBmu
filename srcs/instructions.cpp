@@ -2,21 +2,19 @@
 #include <iostream>
 #include <Emulateur.hpp>
 
-void	Emulateur::nop(int cycle)
+void	Emulateur::nop()
 {
-	_cycle += cycle;
 }
 
-void	Emulateur::ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size, int cycle)
+void	Emulateur::ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size)
 {
 	get_param(p1);
 	get_param(p2);
 	regs.HL += inc;
 	mem_write(p1->val, mem_read(p2->val, size), size);
-	_cycle += cycle;
 }
 
-void	Emulateur::inc(struct s_param *p, int cycle)
+void	Emulateur::inc(struct s_param *p)
 {
 	uint16_t val;
 
@@ -29,10 +27,9 @@ void	Emulateur::inc(struct s_param *p, int cycle)
 		regs.Z = (val == 0xff);
 	}
 	mem_write(p->val, val + 1, p->size);
-	_cycle += cycle;
 }
 
-void	Emulateur::dec(struct s_param *p, int cycle)
+void	Emulateur::dec(struct s_param *p)
 {
 	uint16_t val;
 
@@ -45,10 +42,9 @@ void	Emulateur::dec(struct s_param *p, int cycle)
 		regs.Z = (val == 1);
 	}
 	mem_write(p->val, val - 1, p->size);
-	_cycle += cycle;
 }
 
-void	Emulateur::rlca(int cycle)
+void	Emulateur::rlca()
 {
 	uint8_t				*m;
 
@@ -56,10 +52,9 @@ void	Emulateur::rlca(int cycle)
 	regs.F = 0;
 	regs.CY = (*m & 0x80);
 	*m = (*m << 1) | (*m >> 7);
-	_cycle += cycle;
 }
 
-void	Emulateur::rrca(int cycle)
+void	Emulateur::rrca()
 {
 	uint8_t				*m;
 
@@ -67,10 +62,9 @@ void	Emulateur::rrca(int cycle)
 	regs.F = 0;
 	regs.CY = (*m & 1);
 	*m = (*m >> 1) | (*m << 7);
-	_cycle += cycle;
 }
 
-void	Emulateur::rla(int cycle)
+void	Emulateur::rla()
 {
 	uint8_t				*m;
 	bool				tmp;
@@ -80,10 +74,9 @@ void	Emulateur::rla(int cycle)
 	regs.F = 0;
 	regs.CY = *m & 0x80;
 	*m = (*m << 1) | tmp;
-	_cycle += cycle;
 }
 
-void	Emulateur::rra(int cycle)
+void	Emulateur::rra()
 {
 	uint8_t				*m;
 	bool				tmp;
@@ -93,10 +86,9 @@ void	Emulateur::rra(int cycle)
 	regs.F = 0;
 	regs.CY = *m & 1;
 	*m = (*m >> 1) | (tmp << 7);
-	_cycle += cycle;
 }
 
-void	Emulateur::daa(int cycle)
+void	Emulateur::daa()
 {
 	uint8_t convert_bcd = 0;
 
@@ -111,58 +103,51 @@ void	Emulateur::daa(int cycle)
 	regs.A += (regs.F & FLAG_N) ? (-convert_bcd) : convert_bcd;
 	regs.HC = false;
 	regs.Z = (regs.A == 0);
-	_cycle += cycle;
 }
 
-void	Emulateur::cpl(int cycle)
+void	Emulateur::cpl()
 {
 	regs.A = ~(regs.A);
 	regs.HC = true;
 	regs.N = true;
-	_cycle += cycle;
 }
 
-void	Emulateur::stop(int cycle) // TODO
+void	Emulateur::stop() // TODO
 {
 	while ((_input.p14 & 0xf) != 0xf || (_input.p15 & 0xf) != 0xf) ;
 	_stop_status = true;
-	_cycle += cycle;
 }
 
-void	Emulateur::halt(int cycle) // TODO
+void	Emulateur::halt() // TODO
 {
 	_halt_status = true;
 	// printf("Entering halt status\n");
 	// printf("ime: %d, ie : %02x, if: %02x\n", regs.IME, _RAM[REG_IE], _RAM[REG_IF]);
-	_cycle += cycle;
 }
 
-void	Emulateur::_and(struct s_param *p, int cycle)
+void	Emulateur::_and(struct s_param *p)
 {
 	get_param(p);
 	regs.A = regs.A & mem_read(p->val, 1);
 	regs.F = FLAG_H;
 	regs.Z = regs.A ? false : true;
-	_cycle += cycle;
 }
 
-void	Emulateur::_or(struct s_param *p, int cycle)
+void	Emulateur::_or(struct s_param *p)
 {
 	get_param(p);
 	regs.A = regs.A | mem_read(p->val, 1);
 	regs.F = regs.A ? 0 : FLAG_Z;
-	_cycle += cycle;
 }
 
-void	Emulateur::_xor(struct s_param *p, int cycle)
+void	Emulateur::_xor(struct s_param *p)
 {
 	get_param(p);
 	regs.A = regs.A ^ mem_read(p->val, 1);
 	regs.F = regs.A ? 0 : FLAG_Z;
-	_cycle += cycle;
 }
 
-void	Emulateur::cp(struct s_param *p, int cycle)
+void	Emulateur::cp(struct s_param *p)
 {
 	uint8_t v;
 
@@ -172,10 +157,9 @@ void	Emulateur::cp(struct s_param *p, int cycle)
 	regs.Z = (regs.A == v);
 	regs.CY = (regs.A < v);
 	regs.HC = ((regs.A & 0xf) > (v & 0xf));
-	_cycle += cycle;
 }
 
-void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size, int cycle)
+void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size)
 {
 	uint16_t	v1;
 	uint16_t	v2;
@@ -196,10 +180,9 @@ void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size, int cycle)
 	regs.CY = (val > CY_val);
 	regs.HC = ((v1 & H_val) + (v2 & H_val) > H_val);
 	mem_write(p1->val, val, size);
-	_cycle += cycle;
 }
 
-void	Emulateur::adc(struct s_param *p, int cycle)
+void	Emulateur::adc(struct s_param *p)
 {
 	uint8_t v1;
 	uint8_t v2;
@@ -215,11 +198,10 @@ void	Emulateur::adc(struct s_param *p, int cycle)
 	regs.CY = (v1 + v2 + carry > 0xff);
 	regs.HC = ((v1 & 0x0f) + (v2 & 0x0f) + carry > 0x0f);
 	mem_write(&regs.A, val, 1);
-	_cycle += cycle;
 }
 
  
-void	Emulateur::sub(struct s_param *p, int cycle)
+void	Emulateur::sub(struct s_param *p)
 {
 	uint8_t v1;
 	uint8_t v2;
@@ -232,10 +214,9 @@ void	Emulateur::sub(struct s_param *p, int cycle)
 	regs.HC = ((v1 & 0x0f) < (v2 & 0x0f));
 	regs.Z = (v1 == v2);
 	mem_write(&regs.A, v1 - v2, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::sbc(struct s_param *p, int cycle)
+void	Emulateur::sbc(struct s_param *p)
 {
 	uint8_t v1;
 	uint8_t v2;
@@ -252,7 +233,6 @@ void	Emulateur::sbc(struct s_param *p, int cycle)
 	regs.CY = v1 < v2 + carry;
 	regs.HC = (v1 & 0x0f) < (v2 & 0x0f) + carry;
 	mem_write(&regs.A, val, 1);
-	_cycle += cycle;
 }
 
 bool	Emulateur::check_rules(enum e_cond cond)
@@ -267,40 +247,30 @@ bool	Emulateur::check_rules(enum e_cond cond)
 
 void	Emulateur::jr(struct s_param *p, enum e_cond cond)
 {
-	_cycle += 2;
-	if (!check_rules(cond))
-		return ;
 	get_param(p);
 	regs.PC += *(int8_t *)p->val;
-	_cycle += 1;
 }
 
 void	Emulateur::ret(enum e_cond cond)
 {
-	_cycle += 2;
-	if (!check_rules(cond))
-		return ;
 	if (cond == EMPTY)
 		_cycle -= 1;
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
-	_cycle += 3;
 }
 
-void	Emulateur::reti(int cycle)
+void	Emulateur::reti()
 {
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
 	regs.IME = true;
-	_cycle += cycle;
 }
 
-void	Emulateur::pop(struct s_param *p, int cycle)
+void	Emulateur::pop(struct s_param *p)
 {
 	get_param(p);
 	mem_write(p->val, mem_read(_RAM + regs.SP, 2), 2);
 	regs.SP += 2;
-	_cycle += cycle;
 }
 
 void	Emulateur::get_param(struct s_param *p)
@@ -317,43 +287,33 @@ void	Emulateur::get_param(struct s_param *p)
 
 void	Emulateur::jp(struct s_param *p, enum e_cond cond)
 {
-	_cycle += 3;
-	if (!check_rules(cond))
-		return ;
 	get_param(p);
 	regs.PC = mem_read(p->val, 2);
-	_cycle += 1;
 }
 
 void	Emulateur::call(struct s_param *p, enum e_cond cond)
 {
-	_cycle += 3;
-	if (!check_rules(cond))
-		return ;
 	get_param(p);
 	*(uint16_t *)(_RAM + regs.SP - 2) = regs.PC;
 	regs.PC = mem_read(p->val, 2);
 	regs.SP -= 2;
-	_cycle += 3;
 }
 
-void	Emulateur::push(struct s_param *p, int cycle)
+void	Emulateur::push(struct s_param *p)
 {
 	get_param(p);
 	regs.SP -= 2;
 	mem_write(_RAM + regs.SP, mem_read(p->val, 2), 2);
-	_cycle += cycle;
 }
 
-void	Emulateur::rst(uint8_t nb, int cycle)
+void	Emulateur::rst(uint8_t nb)
 {
 	regs.SP -= 2;
 	mem_write(_RAM + regs.SP, regs.PC, 2);
 	regs.PC = nb * 8;
-	_cycle += cycle;
 }
 
-void	Emulateur::ldhl(struct s_param *p, int cycle)
+void	Emulateur::ldhl(struct s_param *p)
 {
 	int8_t e;
 
@@ -364,10 +324,9 @@ void	Emulateur::ldhl(struct s_param *p, int cycle)
 	regs.HL = regs.SP + e;
 	regs.CY = (regs.SP + e > 0xffff);
 	regs.HC = ((regs.SP & 0x0fff) + e > 0x0fff);
-	_cycle += cycle;
 }
 
-void	Emulateur::rlc(struct s_param *p, int cycle)
+void	Emulateur::rlc(struct s_param *p)
 {
 	bool	tmp;
 	uint8_t	val;
@@ -379,10 +338,9 @@ void	Emulateur::rlc(struct s_param *p, int cycle)
 	regs.F = 0;
 	regs.Z = !val;
 	regs.CY = tmp;
-	_cycle += cycle;
 }
 
-void	Emulateur::rrc(struct s_param *p, int cycle)
+void	Emulateur::rrc(struct s_param *p)
 {
 	bool	tmp;
 	uint8_t	val;
@@ -394,10 +352,9 @@ void	Emulateur::rrc(struct s_param *p, int cycle)
 	regs.F = 0;
 	regs.Z = !val;
 	regs.CY = tmp;
-	_cycle += cycle;
 }
 
-void	Emulateur::rl(struct s_param *p, int cycle)
+void	Emulateur::rl(struct s_param *p)
 {
 	uint8_t				val;
 	bool				tmp;
@@ -410,10 +367,9 @@ void	Emulateur::rl(struct s_param *p, int cycle)
 	val = (val << 1) | tmp;
 	regs.Z = !val;
 	mem_write(p->val, val, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::rr(struct s_param *p, int cycle)
+void	Emulateur::rr(struct s_param *p)
 {
 	uint8_t				val;
 	bool				tmp;
@@ -426,10 +382,9 @@ void	Emulateur::rr(struct s_param *p, int cycle)
 	val = (val >> 1) | (tmp << 7);
 	regs.Z = !val;
 	mem_write(p->val, val, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::sla(struct s_param *p, int cycle)
+void	Emulateur::sla(struct s_param *p)
 {
 	uint8_t				val;
 
@@ -439,10 +394,9 @@ void	Emulateur::sla(struct s_param *p, int cycle)
 	regs.Z = val << 1;
 	regs.CY = val & 0x80;
 	mem_write(p->val, val << 1, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::sra(struct s_param *p, int cycle)
+void	Emulateur::sra(struct s_param *p)
 {
 	uint8_t				val;
 
@@ -452,10 +406,9 @@ void	Emulateur::sra(struct s_param *p, int cycle)
 	regs.Z = val >> 1;
 	regs.CY = val & 1;
 	mem_write(p->val, val >> 1 | (val & 0x80), 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::srl(struct s_param *p, int cycle)
+void	Emulateur::srl(struct s_param *p)
 {
 	uint8_t				val;
 
@@ -465,10 +418,9 @@ void	Emulateur::srl(struct s_param *p, int cycle)
 	regs.Z = val >> 1;
 	regs.CY = val & 1;
 	mem_write(p->val, val >> 1, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::_swap(struct s_param *p, int cycle)
+void	Emulateur::_swap(struct s_param *p)
 {
 	uint8_t				val;
 
@@ -477,54 +429,48 @@ void	Emulateur::_swap(struct s_param *p, int cycle)
 	regs.F = 0;
 	regs.Z = !val;
 	mem_write(p->val, val << 4 | val >> 4, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::bit(struct s_param *p, uint8_t bit, int cycle)
+void	Emulateur::bit(struct s_param *p, uint8_t bit)
 {
 	get_param(p);
 	regs.HC = true;
 	regs.N = false;
 	regs.Z = (mem_read(p->val, 1) & (1 << bit)) ? 0 : 1;
-	_cycle += cycle;
 }
 
-void	Emulateur::res(struct s_param *p, uint8_t bit, int cycle)
+void	Emulateur::res(struct s_param *p, uint8_t bit)
 {
 	get_param(p);
 	mem_write(p->val, mem_read(p->val, 1) & ~(1 << bit), 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::set(struct s_param *p, uint8_t bit, int cycle)
+void	Emulateur::set(struct s_param *p, uint8_t bit)
 {
 	get_param(p);
 	mem_write(p->val, mem_read(p->val, 1) | (1 << bit), 1);
-	_cycle += cycle;
 }
 
 void	Emulateur::op203()
 {
-	const struct s_instruction_params	*instr;
+	const struct s_instr_params	*instr;
 
 	instr = &_op203[mem_read(_RAM + regs.PC, 1)];
 	regs.PC += 1 + instr->nb_params;
 	instr->f();
 }
 
-void	Emulateur::di(int cycle)
+void	Emulateur::di()
 {
 	regs.IME = false;
-	_cycle += cycle;
 }
 
-void	Emulateur::ei(int cycle)
+void	Emulateur::ei()
 {
 	regs.IME = true;
 	mem_write(_RAM + 0xffff, 0x1f, 1);
-	_cycle += cycle;
 }
 
-void	Emulateur::ccf(int cycle)
+void	Emulateur::ccf()
 {
 }
