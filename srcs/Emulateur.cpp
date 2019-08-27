@@ -70,9 +70,9 @@ void	Emulateur::init_registers(void)
 
 
 	_RAM[REG_P1] = 0x00; // P1
-	_RAM[0xff05] = 0x00; // TIMA
+	_RAM[REG_DIV] = 0x00; // TIMA
 	_RAM[0xff06] = 0x00; // TMA 
-	_RAM[0xff07] = 0x00; // TAC
+	_RAM[REG_TAC] = 0x00; // TAC
 	_RAM[0xff10] = 0x80; // NR10
 	_RAM[0xff11] = 0xbf; // NR11
 	_RAM[0xff12] = 0xf3; // NR12
@@ -104,41 +104,35 @@ void	Emulateur::init_registers(void)
 	_RAM[REG_IE] = 0x00; // IE
 }
 
-uint32_t	Emulateur::get_time_from_frequency(uint8_t	freq)
-{
-	const uint8_t				num_to_byte[4] = {10, 4, 6, 8};
+// bool	Emulateur::get_time_from_frequency(uint8_t	freq)
+// {
+// 	const uint8_t	num_to_byte[4] = {10, 4, 6, 8};
 
-	if (num_to_byte[freq] < 8)
-		return ((_timer + (_RAM[0xFF04] << 8)) >> num_to_byte[freq]);
-	return (_RAM[0xFF04] >> ((num_to_byte[freq]) - 8));
-}
+// 	if (freq == 0)
+// 		return (_RAM[REG_DIV] >> 1);
+// 	return ((_timer + (_RAM[REG_DIV] << 8)) >> num_to_byte[freq]);
+// }
 
 int			Emulateur::tima_thread(void *data)
 {
-	static bool			start = false;
-	static uint32_t		last_time;
-	uint32_t			tmp_time;
-	const uint8_t		num_to_byte[4] = {10, 4, 6, 8};
+	static uint32_t	last_time;
+	uint32_t		tmp_time;
+	const uint8_t	num_to_byte[4] = {10, 4, 6, 8};
+	uint64_t		start;
+	uint8_t			nb_tick;
 
-	while (true)
+	while (_RAM[REG_TAC] & 0x4)
 	{
-		if (start != _RAM[0xFF07])
+		start = _timer_counter * 256 + _timer;
+		nb_tick = (1 << num_to_byte[_RAM[REG_TAC] & 0x3]);
+		while ((_timer_counter * 256 + _timer - start) < nb_tick) ;
+		if (_RAM[REG_TIMA] == 0xff)
 		{
-			start = !start;
-			last_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
+			_RAM[REG_TIMA] = _RAM[0xFF06];
+			_RAM[REG_IF] |= 2;
 		}
-		else if (start)
-		{
-			tmp_time = get_time_from_frequency(_RAM[0xFF07] & 0x3);
-			if (tmp_time < last_time)
-				tmp_time += -1u >> num_to_byte[_RAM[0xFF07] & 0x3];
-			if (_RAM[0xFF05] + (uint8_t)(tmp_time - last_time) > 255)
-			{
-				_RAM[0xFF05] = _RAM[0xFF06];
-				_RAM[REG_IF] |= 2;
-			}
-			_RAM[0xFF05] += (uint8_t)(tmp_time - last_time);
-		}
+		else
+			_RAM[REG_TIMA]++;
 	}
 	return (0);
 }
@@ -170,7 +164,7 @@ int			Emulateur::timer_thread(void *data)
 		{
 			_timer = 0;
 			_timer_counter++;
-			_RAM[0xFF04]++;
+			_RAM[REG_DIV]++;
 		}
 	}
 }
@@ -204,8 +198,8 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0040, 1);
 	else
 		return ;
-	if (_halt_status == true)
-		printf("Leaving _halt_status\n");
+	// if (_halt_status == true)
+	// 	printf("Leaving _halt_status\n");
 	_halt_status = false;
 }
 
@@ -306,11 +300,12 @@ void	Emulateur::emu_start()
 	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
 
-	while (true)
-	{
-		if (!update())
-			break ;
-	}
+	// while (true)
+	// {
+	// 	if (!update())
+	// 		break ;
+	// }
+	update();
 	SDL_Quit();
 	exit(1);
 }

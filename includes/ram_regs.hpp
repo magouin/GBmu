@@ -4,10 +4,10 @@
 /* 0xFF01 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF02 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF03 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF04 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_div}, \
-/* 0xFF05 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
+/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_div}, \
+/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF06 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF07 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
+/* REG_TAC */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_tac}, \
 /* 0xFF08 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF09 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF0A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \

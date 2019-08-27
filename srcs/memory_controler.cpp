@@ -2,18 +2,19 @@
 
 void			Emulateur::write_div(uint8_t value)
 {
-	_RAM[0xff04] = 0;
+	_RAM[REG_DIV] = 0;
 }
 
 void			Emulateur::write_lcdc(uint8_t value)
 {
+	_RAM[REG_LCDC] = value;
 	if ((_RAM[REG_LCDC] & 128) && (!(value & 128)))
 		_RAM[REG_LY] = 0;
 }
 
 void			Emulateur::write_stat(uint8_t value)
 {
-	_RAM[REG_STAT] = (_RAM[REG_STAT] & 3) + (value & 120);
+	_RAM[REG_STAT] = (_RAM[REG_STAT] & 3) | (value & 124);
 }
 
 void			Emulateur::write_scy(uint8_t value)
@@ -72,6 +73,19 @@ void			Emulateur::write_dma(uint8_t value)
 	_RAM[0xff46] = value;
 	while ((_RAM[REG_STAT] & 3) != 2) ;
 	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
+}
+
+void			Emulateur::write_tac(uint8_t value)
+{
+	if (_RAM[REG_TAC] & 0x4)
+		_RAM[REG_TAC] = value;
+	else
+	{
+		_RAM[REG_TAC] = value;
+		if (value & 0x4)
+			_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+	}
+
 }
 
 void			Emulateur::read_p1()
@@ -218,6 +232,8 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
 	void	*write_addr;
 
+	if ((uint8_t*)addr - _RAM == REG_LCDC)
+		printf("writing %#02x to LCDC, which address is %04x\n", (uint8_t)value, (uint8_t*)addr - _RAM);
 	if ((write_addr = cpu_regs(addr))) ;
 	else if (write_ROM_regs((uint8_t*)addr, value, size))
 		return ;
