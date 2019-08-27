@@ -7,7 +7,7 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _header(rom), _ROM(rom)
+Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom)
 {
 }
 
@@ -205,7 +205,7 @@ void	Emulateur::interrupt(void)
 
 int		Emulateur::cpu_thread(void *data)
 {
-	const struct s_instruction_params	*instr;
+	const struct s_instr_params	*instr;
 
 	while (true)
 	{
@@ -288,23 +288,94 @@ void Emulateur::emu_init()
 	_timer = 0; 
 	_timer_counter = 0; 
 	_timer_status = true;
+}
 
+const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
+{
+	size_t										i;
+	const struct s_cv_instr	*ret;
+
+	i = 0;
+	while (i < _cv_instrs.size())
+	{
+		ret = &_cv_instrs[i];
+		if (ret->opcode == opcode)
+			return (ret);
+		i++;
+	}
+	printf("ERROR : instr info not found c'est pas normal du tout -- opcode : 0x%X\n", opcode);
+	return (NULL);
+}
+
+void Emulateur::exec_instr()
+{
+	const struct s_instr_params			*instr;
+	const struct s_cv_instr	*cvi;
+
+	if (_halt_status)
+		return ;
+	instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
+	// # ifdef DEBUG
+	// 	char c[2];
+	// 	_timer_status = false;
+
+	// 	print_regs();
+	// 	if (!read(0, &c, 2)) // to change
+	// 		exit(0);
+	// 	_timer_status = true;
+	// # endif
+
+	if (_current_instr_cycle == 0)
+	{
+		if (instr->cycle_nb == 0)
+		{
+			if (instr->opcode == 203)
+			{
+				instr = &_opcode[mem_read(_RAM + regs.PC + 1, 1)];
+				_current_instr_cycle = instr->cycle_nb;
+			}
+			else
+			{
+				cvi = get_cv_infos(instr->opcode);
+				if (!check_rules(cvi->condition))
+				{
+					_current_instr_cycle = cvi->cycle_false;
+					_exec_current_instr = false;
+				}
+				else
+					_current_instr_cycle = cvi->cycle_true;
+			}
+		}
+		else
+			_current_instr_cycle = instr->cycle_nb;
+	}
+	_current_instr_cycle--;
+	if (_current_instr_cycle == 0)
+	{
+		regs.PC += 1 + instr->nb_params * 1;
+		if (_exec_current_instr)
+			instr->f();
+		_exec_current_instr = true;
+	}
 }
 
 void	Emulateur::emu_start()
 {
 	emu_init();
 
-	_cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
-	_lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
-	_timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
-	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+	// _cpu_thread = SDL_CreateThread(&Emulateur::create_cpu_thread, "cpu_thread", (void*)this);
+	// _lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
+	// _timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
+	// _tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
 
-	// while (true)
-	// {
-	// 	if (!update())
-	// 		break ;
-	// }
+	while (true)
+	{
+		// update_timer();
+		// update_lcd();
+		// interrupt();
+		exec_instr();
+		_cycle += 4;
+	}
 	update();
 	SDL_Quit();
 	exit(1);
