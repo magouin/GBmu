@@ -106,8 +106,9 @@ bool	Emulateur::update()
 {
 	SDL_Event	e;
 
-	while (SDL_PollEvent(&e))
+	while (true)
 	{
+		SDL_WaitEvent(&e);
 		switch (e.type)
 		{
 			case SDL_KEYDOWN:

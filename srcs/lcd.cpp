@@ -4,9 +4,15 @@
 #include <op203.hpp>
 
 
-uint8_t		Emulateur::bit_to_gray(uint8_t b)
+uint8_t		Emulateur::bit_to_gray(uint8_t b, enum e_tile_type t)
 {
-	b = (_RAM[0xff47] >> (b * 2)) & 3;
+	uint16_t pal;
+
+	if (t == BG)
+		pal = 0xff47;
+	else
+		pal = 0xff48; // or 0xff49
+	b = (_RAM[pal] >> (b * 2)) & 3;
 	if (b == 0)
 		return (COLOR_DMG_00);
 	if (b == 2)
@@ -21,7 +27,7 @@ uint32_t	graytopixel(uint8_t g)
 	return ((((((0xff << 8) | g) << 8) | g) << 8) | g);
 }
 
-void	Emulateur::print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size)
+void	Emulateur::print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size, enum e_tile_type t)
 {
 	int h, w;
 	uint8_t p;
@@ -32,15 +38,16 @@ void	Emulateur::print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip
 		w = 0;
 		while (w < 8)
 		{
-			p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
-			set_pixel(graytopixel(p), x + (v_flip ? w : (7 - w)), y + (h_flip ? ((size - 1) - h) : h));
+			p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1), t);
+			if (t != OBJ || p != 0xff)
+				set_pixel(graytopixel(p), x + (v_flip ? w : (7 - w)), y + (h_flip ? ((size - 1) - h) : h));
 			w++;
 		}
 		h++;
 	}
 }
 
-void	Emulateur::print_tile_line(uint8_t *tile, int x, int y, int h, bool flip)
+void	Emulateur::print_tile_line(uint8_t *tile, int x, int y, int h, bool flip, enum e_tile_type t)
 {
 	int		w;
 	uint8_t	p;
@@ -48,8 +55,9 @@ void	Emulateur::print_tile_line(uint8_t *tile, int x, int y, int h, bool flip)
 	w = 0;
 	while (w < 8)
 	{
-		p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1));
-		set_pixel(graytopixel(p), x + (flip ? w : (7 - w)), y + h);
+		p = bit_to_gray((((tile[h * 2] >> w) << 1) & 2) | ((tile[h * 2 + 1] >> w) & 1), t);
+		if (t != OBJ || p != 0xff)
+			set_pixel(graytopixel(p), x + (flip ? w : (7 - w)), y + h);
 		w++;
 	}
 }
@@ -75,7 +83,7 @@ void	Emulateur::print_all_tiles()
 	x = 0;
 	while (x < 256)
 	{
-		print_tile(_RAM + 0x8000 + (x * 16), (x % 20) * 8, (x / 20) * 8, false, false, 8);
+		print_tile(_RAM + 0x8000 + (x * 16), (x % 20) * 8, (x / 20) * 8, false, false, 8, BG);
 		x++;
 	}
 }
@@ -103,7 +111,7 @@ void	Emulateur::print_bg()
 			data = b_data + (code * 16);
 			if (data >= _RAM + 0x9800)
 				data -= 0x1000;
-			print_tile(data, x * 8, y * 8, false, false, 8);
+			print_tile(data, x * 8, y * 8, false, false, 8, BG);
 			x++;
 		}
 		y++;
@@ -120,7 +128,7 @@ void	Emulateur::print_obj_line(struct s_oam_obj	*obj, uint64_t ly)
 	h = (ly - (obj->y - 16));
 	if (obj->h_flip)
 		h = ((_RAM[REG_LCDC] & 4 ? 15 : 7) - h);
-	print_tile_line(tile, obj->x - 8, obj->y - 16, h, obj->v_flip);
+	print_tile_line(tile, obj->x - 8, obj->y - 16, h, obj->v_flip, OBJ);
 }
 
 void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
@@ -195,7 +203,7 @@ void	Emulateur::print_obj(struct s_oam_obj *obj)
 
 	obj->chrcode &= (_RAM[REG_LCDC] & 4 ? ~1 : ~0);
 	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
-	print_tile(tile, obj->x - 8, obj->y - 16, obj->h_flip, obj->v_flip, (_RAM[REG_LCDC] & 4 ? 16 : 8));
+	print_tile(tile, obj->x - 8, obj->y - 16, obj->h_flip, obj->v_flip, (_RAM[REG_LCDC] & 4 ? 16 : 8), OBJ);
 }
 
 void	Emulateur::print_objs(struct s_oam_obj	**objs)
@@ -217,18 +225,16 @@ int		Emulateur::lcd_thread(void *data)
 	const uint64_t		line_time = 252;
 	const uint64_t		scanline_time = 456;
 	struct s_oam_obj	*objs[40];
-	int x;
+	bool				obj_status;
 
-	x = 0;
 	while (true)
 	{
 		start = _timer_counter * 256 + _timer;
 		_RAM[REG_LY] = 0;
-		print_bg();
+		if (_RAM[REG_LCDC] & 1)
+			print_bg();
 		sort_objs(objs);
-		// print_objs(objs);
-		x++;
-		// print_all_tiles();
+		obj_status = _RAM[REG_LCDC] & 2;
 		ly = 0;
 		while (ly < 154)
 		{
@@ -237,7 +243,8 @@ int		Emulateur::lcd_thread(void *data)
 				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
 				if (_RAM[REG_STAT] & (1 << 5))
 					_RAM[REG_IF] |= (1 << 1);
-				print_line(ly, start, objs);
+				if (obj_status)
+					print_line(ly, start, objs);
 				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
 				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 				if (_RAM[REG_STAT] & (1 << 3))

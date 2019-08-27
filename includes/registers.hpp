@@ -19,6 +19,10 @@
 
 # define REG_P1		0xff00
 
+# define REG_DIV	0xff04
+# define REG_TIMA	0xff05
+# define REG_TAC	0xff07
+
 # define REG_IF		0xff0f
 # define REG_IE		0xffff
 
