@@ -451,15 +451,6 @@ void	Emulateur::set(struct s_param *p, uint8_t bit)
 	mem_write(p->val, mem_read(p->val, 1) | (1 << bit), 1);
 }
 
-void	Emulateur::op203()
-{
-	const struct s_instr_params	*instr;
-
-	instr = &_op203[mem_read(_RAM + regs.PC, 1)];
-	regs.PC += 1 + instr->nb_params;
-	instr->f();
-}
-
 void	Emulateur::di()
 {
 	regs.IME = false;
