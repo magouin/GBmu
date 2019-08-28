@@ -249,7 +249,9 @@ void	Emulateur::update_lcd()
 			print_objs(objs);
 	}
 	if (line_cycle == 452)
+	{
 		mem_write(&_RAM[REG_LY], (ly + 1) % 154, 1);
+	}
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
@@ -276,7 +278,7 @@ void	Emulateur::update_lcd()
 			// printf(	"line_cycle: %d\n", line_cycle);
 		// }
 	}
-	else if (ly  == 144 && line_cycle == 0)
+	if (ly  == 143 && line_cycle == 452)
 	{
 		// printf("Mode 1\n");
 		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
