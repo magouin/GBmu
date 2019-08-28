@@ -105,6 +105,7 @@ class Emulateur {
 		SDL_Renderer*	_renderer;
 		SDL_Surface*	_surface;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
+		uint64_t		_lcd_missed_cycles;
 
 		SDL_Thread		*_cpu_thread;
 		SDL_Thread		*_main_thread;
@@ -149,6 +150,17 @@ class Emulateur {
 		struct s_param	p_nn_D1 = {DIR, NULL, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_nn_D2 = {DIR, NULL, NULL, UNSIGN, true, 2, 2};
 
+
+		std::chrono::time_point<std::chrono::system_clock> _last_time;
+
+
+
+
+
+
+
+
+
 		Emulateur();
 
 		void	emu_init();
@@ -156,6 +168,8 @@ class Emulateur {
 		const struct s_cv_instr *get_cv_infos(uint8_t opcode) const;
 		void exec_instr();
 		void update_lcd();
+		void update_tima();
+		void cadence();
 
 		void	set_rom(std::string rom);
 		void	print_regs(void);
@@ -232,11 +246,6 @@ class Emulateur {
 		void		print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs);
 		uint32_t	get_time_from_frequency(uint8_t freq);
 
-		int			cpu_thread(void *data);
-		int			lcd_thread(void *data);
-		int			tima_thread(void *data);
-		int			timer_thread(void *data);
-
 		bool		update();
 		void		render();
 
@@ -279,10 +288,6 @@ class Emulateur {
 
 	public:
 		static int create_main_thread(void *ptr);
-		static int create_cpu_thread(void *ptr);
-		static int create_lcd_thread(void *ptr);
-		static int create_timer_thread(void *ptr);
-		static int create_tima_thread(void *ptr);
 
 		class InvalidRead : public std::exception
 		{

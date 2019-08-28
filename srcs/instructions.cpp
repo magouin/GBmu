@@ -156,7 +156,7 @@ void	Emulateur::cp(struct s_param *p)
 	v = mem_read(p->val, 1);
 	regs.Z = (regs.A == v);
 	regs.CY = (regs.A < v);
-	regs.HC = ((regs.A & 0xf) > (v & 0xf));
+	regs.HC = ((regs.A & 0xf) < (v & 0xf));
 }
 
 void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size)

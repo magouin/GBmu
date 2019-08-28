@@ -107,20 +107,20 @@ bool	Emulateur::update()
 	SDL_Event	e;
 
 	SDL_WaitEvent(&e);
-	// switch (e.type)
-	// {
-	// 	case SDL_KEYDOWN:
-	// 		fill_input_from_key(e.key.keysym.sym, SDL_KEYDOWN);
-	// 		break;
-	// 	case SDL_KEYUP:
-	// 		fill_input_from_key(e.key.keysym.sym, SDL_KEYUP);
-	// 		break;
-	// 	case SDL_QUIT:
-	// 		printf("Event SDL_QUIT\n");
-	// 		exit(1); // TODO PEUTETRE UN TRUC
-	// 	default:
-	// 		break;
-	// }
+	switch (e.type)
+	{
+		case SDL_KEYDOWN:
+			fill_input_from_key(e.key.keysym.sym, SDL_KEYDOWN);
+			break;
+		case SDL_KEYUP:
+			fill_input_from_key(e.key.keysym.sym, SDL_KEYUP);
+			break;
+		case SDL_QUIT:
+			printf("Event SDL_QUIT\n");
+			exit(1); // TODO PEUTETRE UN TRUC
+		default:
+			break;
+	}
 	return (true);
 }
 

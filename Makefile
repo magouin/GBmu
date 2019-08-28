@@ -15,9 +15,9 @@ CC = /usr/bin/clang++
 
 #CFLAGS = -Wall -Werror -Wextra -g
 CFLAGS =  -std=c++11 -Wall -Wextra
-DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -DDEBUG #-fsanitize=address
-# DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter # -fsanitize=address
-
+# DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -DDEBUG #-fsanitize=address
+DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter -fsanitize=address
+# 
 ROOT = ${CURDIR}
 
 LIB_PATH = $(ROOT)/libs
@@ -45,7 +45,7 @@ $(SDL2):
 	curl 'https://www.libsdl.org/release/SDL2-2.0.10.tar.gz' -o $(LIB_PATH)/$(SDL2_ARCHIVE)
 	tar -C $(LIB_PATH) -xf $(LIB_PATH)/$(SDL2_ARCHIVE)
 	cp -rf $(SDL2_PATH)/include $(INC_PATH)/SDL2
-	cd $(SDL2_PATH) && ./configure --prefix=`pwd` && make && make install
+	cd $(SDL2_PATH) && ./configure --prefix=`pwd` && make -j8 && make install
 	rm -rf $(LIB_PATH)/$(SDL2_ARCHIVE)
 
 $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
