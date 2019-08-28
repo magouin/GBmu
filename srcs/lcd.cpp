@@ -248,8 +248,8 @@ void	Emulateur::update_lcd()
 		if (_RAM[REG_LCDC] & 2)
 			print_objs(objs);
 	}
-	if (line_cycle == 0)
-		mem_write(&_RAM[REG_LY], ly, 1);
+	if (line_cycle == 452)
+		mem_write(&_RAM[REG_LY], (ly + 1) % 154, 1);
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
