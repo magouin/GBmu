@@ -218,6 +218,59 @@ void	Emulateur::print_objs(struct s_oam_obj	**objs)
 	}
 }
 
+void	Emulateur::update_lcd()
+{
+	uint32_t	frame_cycle;
+	uint8_t		line_cycle;
+	uint8_t		line;
+	struct s_oam_obj	*objs[40];
+
+	frame_cycle = _cycle % 70224;
+	line_cycle = frame_cycle % 456;
+	line = frame_cycle / 456;
+
+	// printf("_cycle : %d, frame_cycle: %d, line_cycle: %d, line: %d\n", _cycle, frame_cycle, line_cycle, line);
+
+	if (frame_cycle == 0)
+	{
+		// printf("New frame !\n");
+		render();
+		sort_objs(objs);
+		if (_RAM[REG_LCDC] & 1)
+			print_bg();
+		if (_RAM[REG_LCDC] & 2)
+			print_objs(objs);
+		_RAM[REG_LY] = 0;
+	}
+
+	if (line < 144)
+	{
+		if (line_cycle == 0)
+		{
+			// printf("New line\n");
+			line == 0 ? 0 : _RAM[REG_LY]++;
+			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
+			if (_RAM[REG_STAT] & (1 << 5))
+					_RAM[REG_IF] |= (1 << 1);
+		}
+		else if (line_cycle == 172)
+			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 3;
+		else if (line_cycle == 252)
+		{
+			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
+			if (_RAM[REG_STAT] & (1 << 3))
+				_RAM[REG_IF] |= (1 << 1);
+		}
+	}
+	else if (line  == 144 && line_cycle == 0)
+	{
+		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
+		if (_RAM[REG_STAT] & (1 << 4))
+			_RAM[REG_IF] |= (1 << 1);
+		_RAM[REG_IF] |= 1;
+	}
+}
+
 int		Emulateur::lcd_thread(void *data)
 {
 	uint64_t			start;
@@ -255,7 +308,7 @@ int		Emulateur::lcd_thread(void *data)
 				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
 				if (_RAM[REG_STAT] & (1 << 4))
 					_RAM[REG_IF] |= (1 << 1);
-				_RAM[0xff0f] |= 1;
+				_RAM[REG_IF] |= 1;
 			}
 			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
 			_RAM[REG_LY]++;
