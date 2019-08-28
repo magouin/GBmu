@@ -221,15 +221,22 @@ void	Emulateur::print_objs(struct s_oam_obj	**objs)
 void	Emulateur::update_lcd()
 {
 	uint32_t	frame_cycle;
-	uint8_t		line_cycle;
-	uint8_t		line;
+	uint64_t		line_cycle;
+	uint8_t		ly;
 	struct s_oam_obj	*objs[40];
 
-	frame_cycle = _cycle % 70224;
-	line_cycle = frame_cycle % 456;
-	line = frame_cycle / 456;
 
-	// printf("_cycle : %d, frame_cycle: %d, line_cycle: %d, line: %d\n", _cycle, frame_cycle, line_cycle, line);
+	if (!(_RAM[REG_LCDC] & 0x80))
+	{
+		_lcd_missed_cycles += 4;
+		return ;
+	}
+
+	frame_cycle = (_cycle - _lcd_missed_cycles) % 70224;
+	line_cycle = frame_cycle % 456;
+	ly = frame_cycle / 456;
+
+	// printf("_cycle : %d, frame_cycle: %d, line_cycle: %d, ly: %d\n", _cycle, frame_cycle, line_cycle, ly);
 
 	if (frame_cycle == 0)
 	{
@@ -240,81 +247,41 @@ void	Emulateur::update_lcd()
 			print_bg();
 		if (_RAM[REG_LCDC] & 2)
 			print_objs(objs);
-		_RAM[REG_LY] = 0;
 	}
-
-	if (line < 144)
+	if (line_cycle == 0)
+		mem_write(&_RAM[REG_LY], ly, 1);
+	if (ly < 144)
 	{
 		if (line_cycle == 0)
 		{
-			// printf("New line\n");
-			line == 0 ? 0 : _RAM[REG_LY]++;
+			// printf("Mode 2\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
 			if (_RAM[REG_STAT] & (1 << 5))
 					_RAM[REG_IF] |= (1 << 1);
 		}
 		else if (line_cycle == 172)
+		{
+			// printf("Mode 3\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 3;
+		}
 		else if (line_cycle == 252)
 		{
+			// printf("Mode 0\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 			if (_RAM[REG_STAT] & (1 << 3))
 				_RAM[REG_IF] |= (1 << 1);
 		}
+		// else if (line_cycle > 252)
+		// {
+			// printf(	"line_cycle: %d\n", line_cycle);
+		// }
 	}
-	else if (line  == 144 && line_cycle == 0)
+	else if (ly  == 144 && line_cycle == 0)
 	{
+		// printf("Mode 1\n");
 		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
 		if (_RAM[REG_STAT] & (1 << 4))
 			_RAM[REG_IF] |= (1 << 1);
 		_RAM[REG_IF] |= 1;
-	}
-}
-
-int		Emulateur::lcd_thread(void *data)
-{
-	uint64_t			start;
-	uint64_t			ly;
-	const uint64_t		line_time = 252;
-	const uint64_t		scanline_time = 456;
-	struct s_oam_obj	*objs[40];
-	bool				obj_status;
-
-	while (true)
-	{
-		start = _timer_counter * 256 + _timer;
-		_RAM[REG_LY] = 0;
-		if (_RAM[REG_LCDC] & 1)
-			print_bg();
-		sort_objs(objs);
-		obj_status = _RAM[REG_LCDC] & 2;
-		ly = 0;
-		while (ly < 154)
-		{
-			if (ly < 144)
-			{
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
-				if (_RAM[REG_STAT] & (1 << 5))
-					_RAM[REG_IF] |= (1 << 1);
-				if (obj_status)
-					print_line(ly, start, objs);
-				while (start + ly * scanline_time + line_time > _timer_counter * 256 + _timer) ;
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
-				if (_RAM[REG_STAT] & (1 << 3))
-					_RAM[REG_IF] |= (1 << 1);
-			}
-			else if (ly == 144)
-			{
-				_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
-				if (_RAM[REG_STAT] & (1 << 4))
-					_RAM[REG_IF] |= (1 << 1);
-				_RAM[REG_IF] |= 1;
-			}
-			while (start + (ly + 1) * scanline_time > _timer_counter * 256 + _timer) ;
-			_RAM[REG_LY]++;
-				ly++;
-		}
-		// printf("IPS = %f\n", 1.0 / (((_timer_counter * 256 + _timer) - start) * 238.0 / 1000.0 / 1000.0 / 1000.0));
-		render();
 	}
 }

@@ -7,9 +7,9 @@ void			Emulateur::write_div(uint8_t value)
 
 void			Emulateur::write_lcdc(uint8_t value)
 {
-	_RAM[REG_LCDC] = value;
-	if ((_RAM[REG_LCDC] & 128) && (!(value & 128)))
+	if ((_RAM[REG_LCDC] & 0x80) && (!(value & 0x80)))
 		_RAM[REG_LY] = 0;
+	_RAM[REG_LCDC] = value;
 }
 
 void			Emulateur::write_stat(uint8_t value)
@@ -39,11 +39,12 @@ void			Emulateur::write_ly(uint8_t value)
 	if (_RAM[REG_LY] == _RAM[REG_LYC])
 	{
 		_RAM[REG_STAT] |= 4;
-		if (_RAM[REG_STAT] | (1 << 6))
+		if (_RAM[REG_STAT] & (1 << 6))
 				_RAM[REG_IF] |= (1 << 1);
 	}
 	else
 		_RAM[REG_STAT] &= ~4;
+	// printf("Writing value %x in ly\n", value);
 }
 
 void			Emulateur::write_lyc(uint8_t value)
@@ -52,7 +53,7 @@ void			Emulateur::write_lyc(uint8_t value)
 	if (_RAM[REG_LY] == _RAM[REG_LYC])
 	{
 		_RAM[REG_STAT] |= 4;
-		if (_RAM[REG_STAT] | (1 << 6))
+		if (_RAM[REG_STAT] & (1 << 6))
 				_RAM[REG_IF] |= (1 << 1);
 	}
 	else
@@ -61,9 +62,9 @@ void			Emulateur::write_lyc(uint8_t value)
 
 void			Emulateur::write_dma(uint8_t value)
 {
-	uint64_t	t;
+	// uint64_t	t;
 
-	t = _timer_counter * 256 + _timer;
+	// t = _timer_counter * 256 + _timer;
 
 	if (value < 0x80 || value > 0xdf)
 	{
@@ -71,7 +72,8 @@ void			Emulateur::write_dma(uint8_t value)
 		throw InvalidWrite((value));
 	}
 	_RAM[0xff46] = value;
-	while ((_RAM[REG_STAT] & 3) != 2) ;
+	// if ((_RAM[REG_STAT] & 3) != 2)
+	// 	return ;
 	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
 }
 
@@ -82,8 +84,8 @@ void			Emulateur::write_tac(uint8_t value)
 	else
 	{
 		_RAM[REG_TAC] = value;
-		if (value & 0x4)
-			_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+		// if (value & 0x4)
+		// 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
 	}
 
 }
@@ -232,8 +234,8 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
 	void	*write_addr;
 
-	if ((uint8_t*)addr - _RAM == REG_LCDC)
-		printf("writing %#02x to LCDC, which address is %04x\n", (uint8_t)value, (uint8_t*)addr - _RAM);
+	// if ((uint8_t*)addr - _RAM == REG_LCDC)
+	// 	printf("writing %#02x to LCDC, which address is %04x\n", (uint8_t)value, (uint8_t*)addr - _RAM);
 	if ((write_addr = cpu_regs(addr))) ;
 	else if (write_ROM_regs((uint8_t*)addr, value, size))
 		return ;
