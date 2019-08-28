@@ -23,7 +23,7 @@ void	Emulateur::inc(struct s_param *p)
 	if (p->size == 1)
 	{
 		regs.N = false;
-		regs.HC = (val == 0xf);
+		regs.HC = ((val & 0xf) == 0xf);
 		regs.Z = (val == 0xff);
 	}
 	mem_write(p->val, val + 1, p->size);
@@ -38,7 +38,7 @@ void	Emulateur::dec(struct s_param *p)
 	if (p->size == 1)
 	{
 		regs.N = true;
-		regs.HC = (val == 0x10);
+		regs.HC = ((val & 0xf) == 0x00);
 		regs.Z = (val == 1);
 	}
 	mem_write(p->val, val - 1, p->size);
@@ -286,7 +286,7 @@ void	Emulateur::get_param(struct s_param *p)
 void	Emulateur::jp(struct s_param *p)
 {
 	get_param(p);
-	printf("in jump - jumping to 0x%X\n", mem_read(p->val, 2));
+	// printf("in jump - jumping to 0x%X\n", mem_read(p->val, 2));
 	regs.PC = mem_read(p->val, 2);
 }
 

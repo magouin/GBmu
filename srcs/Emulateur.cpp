@@ -347,9 +347,9 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
-		printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
-		// print_regs();
+		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+		// printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
+		// // print_regs();
 		# ifdef DEBUG
 			char c[2];
 			_timer_status = false;
