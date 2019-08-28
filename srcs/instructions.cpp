@@ -245,16 +245,14 @@ bool	Emulateur::check_rules(enum e_cond cond)
 	return (true);
 }
 
-void	Emulateur::jr(struct s_param *p, enum e_cond cond)
+void	Emulateur::jr(struct s_param *p)
 {
 	get_param(p);
 	regs.PC += *(int8_t *)p->val;
 }
 
-void	Emulateur::ret(enum e_cond cond)
+void	Emulateur::ret()
 {
-	if (cond == EMPTY)
-		_cycle -= 1;
 	regs.PC = mem_read(_RAM + regs.SP, 2);
 	regs.SP += 2;
 }
@@ -285,13 +283,14 @@ void	Emulateur::get_param(struct s_param *p)
 		p->val = _RAM + mem_read(p->val, 2);
 }
 
-void	Emulateur::jp(struct s_param *p, enum e_cond cond)
+void	Emulateur::jp(struct s_param *p)
 {
 	get_param(p);
+	printf("in jump - jumping to 0x%X\n", mem_read(p->val, 2));
 	regs.PC = mem_read(p->val, 2);
 }
 
-void	Emulateur::call(struct s_param *p, enum e_cond cond)
+void	Emulateur::call(struct s_param *p)
 {
 	get_param(p);
 	*(uint16_t *)(_RAM + regs.SP - 2) = regs.PC;
@@ -449,6 +448,14 @@ void	Emulateur::set(struct s_param *p, uint8_t bit)
 {
 	get_param(p);
 	mem_write(p->val, mem_read(p->val, 1) | (1 << bit), 1);
+}
+
+void	Emulateur::op203()
+{
+	const struct s_instr_params	*instr;
+
+	instr = &_op203[mem_read(_RAM + regs.PC - 1, 1)];
+	instr->f();
 }
 
 void	Emulateur::di()

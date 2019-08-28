@@ -169,40 +169,6 @@ int			Emulateur::timer_thread(void *data)
 	}
 }
 
-void	Emulateur::interrupt_func(short addr, uint8_t iflag)
-{
-	regs.IME = false;
-	_RAM[REG_IF] &= ~iflag;
-	this->regs.SP -= 2;
-	*(uint16_t *)(this->_RAM + this->regs.SP) = this->regs.PC;
-	regs.PC = addr;
-}
-
-void	Emulateur::interrupt(void)
-{
-	if (!regs.IME)
-	{
-		// printf("Leaving _halt_status because ime disabled\n");
-		_halt_status = false;
-		return ;
-	}
-	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
-		interrupt_func(0x0060, 16);
-	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
-		interrupt_func(0x0058, 8);
-	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
-		interrupt_func(0x0050, 4);
-	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
-		interrupt_func(0x0048, 2);
-	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
-		interrupt_func(0x0040, 1);
-	else
-		return ;
-	// if (_halt_status == true)
-	// 	printf("Leaving _halt_status\n");
-	_halt_status = false;
-}
-
 int		Emulateur::cpu_thread(void *data)
 {
 	const struct s_instr_params	*instr;
@@ -290,9 +256,46 @@ void Emulateur::emu_init()
 	_timer_status = true;
 }
 
+
+void	Emulateur::interrupt_func(short addr, uint8_t iflag)
+{
+	printf("Interrupt : %d\n", iflag);
+	regs.IME = false;
+	_RAM[REG_IF] &= ~iflag;
+	regs.SP -= 2;
+	*(uint16_t *)(_RAM + regs.SP) = regs.PC;
+	printf("Return address will be %X -- write at %x\n", regs.PC, regs.SP);
+	regs.PC = addr;
+}
+
+void	Emulateur::interrupt(void)
+{
+	if (!regs.IME)
+	{
+		// printf("Leaving _halt_status because ime disabled\n");
+		_halt_status = false;
+		return ;
+	}
+	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
+		interrupt_func(0x0060, 16);
+	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
+		interrupt_func(0x0058, 8);
+	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
+		interrupt_func(0x0050, 4);
+	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
+		interrupt_func(0x0048, 2);
+	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
+		interrupt_func(0x0040, 1);
+	else
+		return ;
+	// if (_halt_status == true)
+	// 	printf("Leaving _halt_status\n");
+	_halt_status = false;
+}
+
 const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
 {
-	size_t										i;
+	size_t					i;
 	const struct s_cv_instr	*ret;
 
 	i = 0;
@@ -315,15 +318,7 @@ void Emulateur::exec_instr()
 	if (_halt_status)
 		return ;
 	instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
-	// # ifdef DEBUG
-	// 	char c[2];
-	// 	_timer_status = false;
 
-	// 	print_regs();
-	// 	if (!read(0, &c, 2)) // to change
-	// 		exit(0);
-	// 	_timer_status = true;
-	// # endif
 
 	if (_current_instr_cycle == 0)
 	{
@@ -331,7 +326,7 @@ void Emulateur::exec_instr()
 		{
 			if (instr->opcode == 203)
 			{
-				instr = &_opcode[mem_read(_RAM + regs.PC + 1, 1)];
+				instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
 				_current_instr_cycle = instr->cycle_nb;
 			}
 			else
@@ -352,11 +347,46 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		regs.PC += 1 + instr->nb_params * 1;
+		printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
+		printf("mnemonic = %s, PC = %hx\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC);
+		// print_regs();
+		# ifdef DEBUG
+			char c[2];
+			_timer_status = false;
+
+			print_regs();
+			if (!read(0, &c, 2)) // to change
+				exit(0);
+			_timer_status = true;
+		# endif
+		regs.PC += 1 + instr->nb_params;
 		if (_exec_current_instr)
 			instr->f();
 		_exec_current_instr = true;
 	}
+}
+
+int		Emulateur::main_thread()
+{
+	while (true)
+	{
+		// update_timer();
+		if (_current_instr_cycle == 0)
+			interrupt();
+		update_lcd();
+		exec_instr();
+		_cycle += 4;
+		if (_cycle % 256 == 0)
+			_RAM[REG_DIV]++;
+	}
+}
+
+int Emulateur::create_main_thread(void *ptr)
+{
+	Emulateur *p;
+
+	p = (Emulateur*)ptr;
+		return p->main_thread();
 }
 
 void	Emulateur::emu_start()
@@ -367,16 +397,10 @@ void	Emulateur::emu_start()
 	// _lcd_thread = SDL_CreateThread(&Emulateur::create_lcd_thread, "lcd_thread", (void*)this);
 	// _timer_thread = SDL_CreateThread(&Emulateur::create_timer_thread, "timer_thread", (void *)this);
 	// _tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
+	_main_thread = SDL_CreateThread(&Emulateur::create_main_thread, "main_thread", (void *)this);
 
 	while (true)
-	{
-		// update_timer();
-		// update_lcd();
-		// interrupt();
-		exec_instr();
-		_cycle += 4;
-	}
-	update();
+		update();
 	SDL_Quit();
 	exit(1);
 }

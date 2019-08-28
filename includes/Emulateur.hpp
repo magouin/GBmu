@@ -107,6 +107,7 @@ class Emulateur {
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
 
 		SDL_Thread		*_cpu_thread;
+		SDL_Thread		*_main_thread;
 		SDL_Thread		*_lcd_thread;
 		SDL_Thread		*_timer_thread;
 		SDL_Thread		*_tima_thread;
@@ -154,6 +155,7 @@ class Emulateur {
 
 		const struct s_cv_instr *get_cv_infos(uint8_t opcode) const;
 		void exec_instr();
+		void update_lcd();
 
 		void	set_rom(std::string rom);
 		void	print_regs(void);
@@ -181,12 +183,12 @@ class Emulateur {
 		void	adc(struct s_param *p);
 		void	sub(struct s_param *p);
 		void	sbc(struct s_param *p);
-		void	jr(struct s_param *p, enum e_cond cond);
-		void	ret(enum e_cond cond);
+		void	jr(struct s_param *p);
+		void	ret();
 		void	reti();
 		void	pop(struct s_param *p);
-		void	jp(struct s_param *p, enum e_cond cond);
-		void	call(struct s_param *p, enum e_cond cond);
+		void	jp(struct s_param *p);
+		void	call(struct s_param *p);
 		void	push(struct s_param *p);
 		void	rst(uint8_t nb);
 		void	ldhl(struct s_param *p);
@@ -205,6 +207,7 @@ class Emulateur {
 		void	ei();
 		void	ccf();
 		void	get_param(struct s_param *p);
+		void	op203();
 
 		Emulateur(const Emulateur & cp);
 		void		init_registers(void);
@@ -265,6 +268,7 @@ class Emulateur {
 		uint8_t		bit_to_gray(uint8_t b, enum e_tile_type t);
 
 		// static void	timer_thread(uint8_t *_RAM);
+		int	main_thread();
 
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
@@ -274,6 +278,7 @@ class Emulateur {
 
 
 	public:
+		static int create_main_thread(void *ptr);
 		static int create_cpu_thread(void *ptr);
 		static int create_lcd_thread(void *ptr);
 		static int create_timer_thread(void *ptr);
