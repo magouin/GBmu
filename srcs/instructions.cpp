@@ -121,6 +121,8 @@ void	Emulateur::stop() // TODO
 void	Emulateur::halt() // TODO
 {
 	_halt_status = true;
+	printf("Halte qui va la ?\n");
+	exit(0);
 	// printf("Entering halt status\n");
 	// printf("ime: %d, ie : %02x, if: %02x\n", regs.IME, _RAM[REG_IE], _RAM[REG_IF]);
 }
@@ -466,7 +468,6 @@ void	Emulateur::di()
 void	Emulateur::ei()
 {
 	regs.IME = true;
-	mem_write(_RAM + 0xffff, 0x1f, 1);
 }
 
 void	Emulateur::ccf()
