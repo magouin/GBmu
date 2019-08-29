@@ -6,13 +6,32 @@ using namespace std::placeholders;
 
 int main(int ac, const char **av)
 {
-	if (ac != 2)
+	const char	*file_name;
+	bool		debug;
+
+	if (ac < 2 || ac > 3)
 	{
-		cerr << "Usage : " << av[0] << " rom.gb" << endl;
+		cerr << "Usage : " << av[0] << " [-d] rom.gb" << endl;
 		return (1);
 	}
 
-	ifstream rom_file(av[1], ios_base::in | ios::binary);
+	if (ac == 3 && strcmp(av[1], "-d") == 0)
+	{
+		file_name = av[2];
+		debug = 1;
+	}
+	else if (ac == 3)
+	{
+		cerr << "Usage : " << av[0] << " [-d] rom.gb" << endl;
+		return (1);
+	}
+	else
+	{
+		file_name = av[1];
+		debug = false;
+	}
+	ifstream rom_file(file_name, ios_base::in | ios::binary);
+
 	if (rom_file.fail())
 	{
 		perror("Open error");
@@ -26,7 +45,7 @@ int main(int ac, const char **av)
 
 	Header r(rom);
 
-	Emulateur emu(rom);
+	Emulateur emu(rom, debug);
 
 	try {
 		emu.emu_start();

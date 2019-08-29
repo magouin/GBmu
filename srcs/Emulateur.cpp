@@ -7,7 +7,7 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string rom): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom)
+Emulateur::Emulateur(std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _debug(debug)
 {
 }
 
@@ -106,15 +106,6 @@ void	Emulateur::init_registers(void)
 	_RAM[REG_IE] = 0x00; // IE
 }
 
-// bool	Emulateur::get_time_from_frequency(uint8_t	freq)
-// {
-// 	const uint8_t	num_to_byte[4] = {10, 4, 6, 8};
-
-// 	if (freq == 0)
-// 		return (_RAM[REG_DIV] >> 1);
-// 	return ((_timer + (_RAM[REG_DIV] << 8)) >> num_to_byte[freq]);
-// }
-
 void Emulateur::emu_init()
 {
 	bzero(_RAM, sizeof(_RAM));
@@ -133,16 +124,14 @@ void Emulateur::emu_init()
 	sdl_init();
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	_frequency = 4194300; // Need to change if it is a CGB
-	# ifdef DEBUG
-		_frequency = 41943; // Need to change if it is a CGB
-	# endif
 	init_registers();
 
 	_timer = 0; 
 	_timer_counter = 0; 
 	_timer_status = true;
 
-	_lcd_missed_cycles = 0;
+	_lcd_cycle = 0;
+	_interrupt_cycle = 0;
 
 	_last_time = std::chrono::system_clock::now();
 }
@@ -151,11 +140,18 @@ void Emulateur::emu_init()
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
 	// printf("Interruption %d\n", iflag);
-	regs.IME = false;
-	_RAM[REG_IF] &= ~iflag;
-	regs.SP -= 2;
-	*(uint16_t *)(_RAM + regs.SP) = regs.PC;
-	regs.PC = addr;
+	if (_interrupt_cycle == 0)
+		_interrupt_cycle = 5;
+	_interrupt_cycle--;
+	if (_interrupt_cycle == 0)
+	{
+		_current_instr_cycle = 0;
+		regs.IME = false;
+		_RAM[REG_IF] &= ~iflag;
+		regs.SP -= 2;
+		*(uint16_t *)(_RAM + regs.SP) = regs.PC;
+		regs.PC = addr;
+	}
 }
 
 void	Emulateur::interrupt(void)
@@ -203,7 +199,7 @@ const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
 void	Emulateur::update_tima()
 {
 	const uint8_t			num_to_byte[4] = {10, 4, 6, 8};
-	static uint8_t			nb_tick = 0;
+	static uint64_t			nb_tick = 0;
 	// static uint64_t			last_cycle = 0;
 
 	// if (last_cycle == 0)
@@ -222,7 +218,7 @@ void	Emulateur::update_tima()
 			else
 			{	
 				_RAM[REG_TIMA] = _RAM[0xFF06];
-				_RAM[REG_IF] |= 2;
+				_RAM[REG_IF] |= 4;
 			}
 		}
 	}
@@ -265,13 +261,8 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		// printf("_opcode[%d]\n", this->_RAM[this->regs.PC]);
-		// if (regs.PC < 0x2700 && regs.PC > 0x2600)
-		// {
-		// 	print_regs();
-		// }
-		// printf("mnemonic = %s, PC = %hx - cycle : %lld\n", _opcode[this->_RAM[this->regs.PC]].mnemonic.c_str(), regs.PC, _cycle);
-		# ifdef DEBUG
+		if (_debug)
+		{
 			char c[2];
 			_timer_status = false;
 
@@ -279,7 +270,7 @@ void Emulateur::exec_instr()
 			if (!read(0, &c, 2)) // to change
 				exit(0);
 			_timer_status = true;
-		# endif
+		}
 		regs.PC += 1 + instr->nb_params;
 		if (_exec_current_instr)
 			instr->f();
@@ -307,15 +298,14 @@ void	Emulateur::cadence()
 
 int		Emulateur::main_thread()
 {
-	uint64_t old_cycle;
 	while (true)
 	{
-		old_cycle = _cycle;
 		update_tima();
+		update_lcd();
 		if (_current_instr_cycle == 0)
 			interrupt();
-		update_lcd();
-		exec_instr();
+		if (_interrupt_cycle == 0)
+			exec_instr();
 		_cycle += 4;
 
 		cadence();

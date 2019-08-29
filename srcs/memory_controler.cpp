@@ -79,15 +79,7 @@ void			Emulateur::write_dma(uint8_t value)
 
 void			Emulateur::write_tac(uint8_t value)
 {
-	if (_RAM[REG_TAC] & 0x4)
-		_RAM[REG_TAC] = value;
-	else
-	{
-		_RAM[REG_TAC] = value;
-		// if (value & 0x4)
-		// 	_tima_thread = SDL_CreateThread(&Emulateur::create_tima_thread, "tima_thread", (void *)this);
-	}
-
+	_RAM[REG_TAC] = value;
 }
 
 void			Emulateur::read_p1()

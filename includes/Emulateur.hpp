@@ -89,8 +89,11 @@ class Emulateur {
 		std::string	_ROM;
 
 		uint64_t	_cycle;
+		uint32_t	_lcd_cycle;
 		uint8_t		_current_instr_cycle;
+		uint8_t		_interrupt_cycle;
 		bool		_exec_current_instr;
+		bool		_debug;
 
 		uint8_t		_RAM[0x10000];
 
@@ -105,7 +108,6 @@ class Emulateur {
 		SDL_Renderer*	_renderer;
 		SDL_Surface*	_surface;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
-		uint64_t		_lcd_missed_cycles;
 
 		SDL_Thread		*_cpu_thread;
 		SDL_Thread		*_main_thread;
@@ -316,7 +318,7 @@ class Emulateur {
 			}
 		};
 
-		Emulateur(std::string rom);
+		Emulateur(std::string rom, bool debug=false);
 		~Emulateur(/* args */);
 		Emulateur & operator=(const Emulateur & cp);
 

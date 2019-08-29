@@ -220,25 +220,22 @@ void	Emulateur::print_objs(struct s_oam_obj	**objs)
 
 void	Emulateur::update_lcd()
 {
-	uint32_t	frame_cycle;
-	uint64_t		line_cycle;
-	uint8_t		ly;
+	uint64_t			line_cycle;
+	uint8_t				ly;
 	struct s_oam_obj	*objs[40];
-
 
 	if (!(_RAM[REG_LCDC] & 0x80))
 	{
-		_lcd_missed_cycles += 4;
+		_lcd_cycle = 0;
 		return ;
 	}
 
-	frame_cycle = (_cycle - _lcd_missed_cycles) % 70224;
-	line_cycle = frame_cycle % 456;
-	ly = frame_cycle / 456;
+	line_cycle = _lcd_cycle % 456;
+	ly = _lcd_cycle / 456;
 
-	// printf("_cycle : %d, frame_cycle: %d, line_cycle: %d, ly: %d\n", _cycle, frame_cycle, line_cycle, ly);
+	// printf("_cycle : %d, _lcd_cycle: %d, line_cycle: %d, ly: %d\n", _cycle, _lcd_cycle, line_cycle, ly);
 
-	if (frame_cycle == 0)
+	if (_lcd_cycle == 0)
 	{
 		// printf("New frame !\n");
 		render();
@@ -249,9 +246,7 @@ void	Emulateur::update_lcd()
 			print_objs(objs);
 	}
 	if (line_cycle == 452)
-	{
 		mem_write(&_RAM[REG_LY], (ly + 1) % 154, 1);
-	}
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
@@ -279,6 +274,7 @@ void	Emulateur::update_lcd()
 		// }
 	}
 	if (ly  == 143 && line_cycle == 452)
+	// if (ly  == 144)
 	{
 		// printf("Mode 1\n");
 		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
@@ -286,4 +282,5 @@ void	Emulateur::update_lcd()
 			_RAM[REG_IF] |= (1 << 1);
 		_RAM[REG_IF] |= 1;
 	}
+	_lcd_cycle = (_lcd_cycle + 4) % 70224;
 }
