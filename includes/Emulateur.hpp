@@ -88,8 +88,12 @@ class Emulateur {
 		const Header		_header;
 		std::string	_ROM;
 
+
+
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
+
+		const s_instr_params	*_instr;
 		uint8_t		_current_instr_cycle;
 		uint8_t		_interrupt_cycle;
 		bool		_exec_current_instr;
@@ -178,6 +182,8 @@ class Emulateur {
 
 		struct s_regs regs;
 
+		void	get_instr();
+		void	debug_mode();
 
 		void	nop();
 		void	ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size);
