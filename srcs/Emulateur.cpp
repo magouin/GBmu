@@ -224,57 +224,58 @@ void	Emulateur::update_tima()
 	}
 }
 
-void Emulateur::exec_instr()
+void	Emulateur::get_instr()
 {
-	const struct s_instr_params			*instr;
 	const struct s_cv_instr	*cvi;
 
-	if (_halt_status)
-		return ;
-	instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
-
-
-	if (_current_instr_cycle == 0)
+	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
+	if (_instr->opcode == 203)
+		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
+	if (_debug)
+		debug_mode();
+	if (_instr->cycle_nb == 0)
 	{
-		if (instr->cycle_nb == 0)
+		cvi = get_cv_infos(_instr->opcode);
+		if (!check_rules(cvi->condition))
 		{
-			if (instr->opcode == 203)
-			{
-				instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
-				_current_instr_cycle = instr->cycle_nb;
-			}
-			else
-			{
-				cvi = get_cv_infos(instr->opcode);
-				if (!check_rules(cvi->condition))
-				{
-					_current_instr_cycle = cvi->cycle_false;
-					_exec_current_instr = false;
-				}
-				else
-					_current_instr_cycle = cvi->cycle_true;
-			}
+			_current_instr_cycle = cvi->cycle_false;
+			_exec_current_instr = false;
 		}
 		else
-			_current_instr_cycle = instr->cycle_nb;
+			_current_instr_cycle = cvi->cycle_true;
 	}
+	else
+		_current_instr_cycle = _instr->cycle_nb;
+}
+
+void	Emulateur::debug_mode()
+{
+	char c[2];
+	_timer_status = false;
+
+	print_regs();
+	if (!read(0, &c, 2)) // to change
+		exit(0);
+	_timer_status = true;
+}
+
+
+void Emulateur::exec_instr()
+{
+	if (_halt_status)
+		return ;
+
+	if (_current_instr_cycle == 0)
+		get_instr();
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		if (_debug)
-		{
-			char c[2];
-			_timer_status = false;
-
-			print_regs();
-			if (!read(0, &c, 2)) // to change
-				exit(0);
-			_timer_status = true;
-		}
-		regs.PC += 1 + instr->nb_params;
+		regs.PC += 1 + _instr->nb_params;
 		if (_exec_current_instr)
-			instr->f();
+			_instr->f();
 		_exec_current_instr = true;
+
+
 	}
 }
 

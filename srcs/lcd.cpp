@@ -163,37 +163,37 @@ void	Emulateur::print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs)
 
 }
 
-void	Emulateur::sort_objs(struct s_oam_obj **objs)
+void	Emulateur::sort_objs(struct s_oam_obj **out)
 {
-	int					x;
-	int					y;
-	struct s_oam_obj	*obj;
+	int					i_in;
+	int					i_out;
+	struct s_oam_obj	*in;
 	bool				used[40] = {false};
-	bool				init;
+	bool				initialized;
 
-	y = 0;
-	obj = (struct s_oam_obj *)(_RAM + 0xfe00);
-	while (y < 40)
+	i_out = 0;
+	in = (struct s_oam_obj *)(_RAM + 0xfe00);
+	while (i_out < 40)
 	{
-		x = 0;
-		init = false;
-		while (x < 40)
+		i_in = 0;
+		initialized = false;
+		while (i_in < 40)
 		{
-			if (!used[x] && !init)
+			if (!used[i_in] && !initialized)
 			{
-				init = true;
-				objs[y] = &obj[x];
-				used[x] = true;
+				initialized = true;
+				out[i_out] = &in[i_in];
+				used[i_in] = true;
 			}
-			else if (!used[x] && objs[y]->x > obj[x].x)
+			else if (!used[i_in] && out[i_out]->x > in[i_in].x)
 			{
-				used[x] = true;
-				used[(uint32_t)((uint8_t *)objs[y] - (uint8_t *)_RAM - 0xfe00) / 4] = false;
-				objs[y] = &obj[x];
+				used[i_in] = true;
+				used[((uint8_t *)out[i_out] - (uint8_t *)_RAM - 0xfe00) / 4] = false;
+				out[i_out] = &in[i_in];
 			}
-			x++;
+			i_in++;
 		}
-		y++;
+		i_out++;
 	}
 }
 
@@ -210,11 +210,11 @@ void	Emulateur::print_objs(struct s_oam_obj	**objs)
 {
 	int x;
 
-	x = 0;
-	while (x < 40)
+	x = 39;
+	while (x >= 0)
 	{
 		print_obj(objs[x]);
-		x++;
+		x--;
 	}
 }
 
@@ -233,11 +233,8 @@ void	Emulateur::update_lcd()
 	line_cycle = _lcd_cycle % 456;
 	ly = _lcd_cycle / 456;
 
-	// printf("_cycle : %d, _lcd_cycle: %d, line_cycle: %d, ly: %d\n", _cycle, _lcd_cycle, line_cycle, ly);
-
 	if (_lcd_cycle == 0)
 	{
-		// printf("New frame !\n");
 		render();
 		sort_objs(objs);
 		if (_RAM[REG_LCDC] & 1)
@@ -251,32 +248,25 @@ void	Emulateur::update_lcd()
 	{
 		if (line_cycle == 0)
 		{
-			// printf("Mode 2\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 2;
 			if (_RAM[REG_STAT] & (1 << 5))
 					_RAM[REG_IF] |= (1 << 1);
 		}
 		else if (line_cycle == 172)
 		{
-			// printf("Mode 3\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 3;
 		}
 		else if (line_cycle == 252)
 		{
-			// printf("Mode 0\n");
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 			if (_RAM[REG_STAT] & (1 << 3))
 				_RAM[REG_IF] |= (1 << 1);
 		}
-		// else if (line_cycle > 252)
-		// {
-			// printf(	"line_cycle: %d\n", line_cycle);
-		// }
 	}
-	if (ly  == 143 && line_cycle == 452)
-	// if (ly  == 144)
+	if (ly  == 144 && line_cycle == 0)
 	{
-		// printf("Mode 1\n");
+		// printf("Interrupt !\n");
+		// printf("ly = %d and line_cycle = %d\n", 	)
 		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
 		if (_RAM[REG_STAT] & (1 << 4))
 			_RAM[REG_IF] |= (1 << 1);
