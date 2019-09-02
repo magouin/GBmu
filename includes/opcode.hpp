@@ -24,7 +24,7 @@
 {0b00010101, "DEC D", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_D)}, \
 {0b00010110, "LD D, n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_D, &p_n, 0, 1)}, \
 {0b00010111, "RLA", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rla, this)}, \
-{0b00011000, "JR e", 1, {_, _, _, _}, 2, std::bind(&Emulateur::jr, this, &p_e)}, \
+{0b00011000, "JR e", 1, {_, _, _, _}, 3, std::bind(&Emulateur::jr, this, &p_e)}, \
 {0b00011001, "ADD HL, DE", 0, {SET, SET, SET_0, _}, 2, std::bind(&Emulateur::add, this, &p_HL, &p_DE, 2)}, \
 {0b00011010, "LD A, (DE)", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_DE_D1, 0, 1)}, \
 {0b00011011, "DEC DE", 0, {_, _, _, _}, 2, std::bind(&Emulateur::dec, this, &p_DE)}, \
@@ -55,7 +55,7 @@
 {0b00110100, "INC (HL)", 0, {_, SET, SET_0, SET}, 3, std::bind(&Emulateur::inc, this, &p_HL_D1)}, \
 {0b00110101, "DEC (HL)", 0, {_, SET, SET_1, SET}, 3, std::bind(&Emulateur::dec, this, &p_HL_D1)}, \
 {0b00110110, "LD (HL), n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_HL_D1, &p_n, 0, 1)}, \
-{0b00110111, "SCF", 0, {_, _, _, _}, 0}, \
+{0b00110111, "SCF", 0, {_, _, _, _}, 1, std::bind(&Emulateur::scf, this)}, \
 {0b00111000, "JR C, e", 1, {_, _, _, _}, 0, std::bind(&Emulateur::jr, this, &p_e)}, \
 {0b00111001, "ADD HL, SP", 0, {SET, SET, SET_0, _}, 2, std::bind(&Emulateur::add, this, &p_HL, &p_SP, 2)}, \
 {0b00111010, "LD A, (HLD)", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_HL_D1, -1, 1)}, \
@@ -203,7 +203,7 @@
 {0b11001000, "RET Z", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11001001, "RET", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, this)}, \
 {0b11001010, "JP Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
-{0b11001011, "op203", 1, {SET, SET, SET, SET}, 0, std::bind(&Emulateur::op203, this)}, \
+{0b11001011, "op203", 0, {SET, SET, SET, SET}, 1, std::bind(&Emulateur::op203, this)}, \
 {0b11001100, "CALL Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001101, "CALL nn", 2, {_, _, _, _}, 6, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001110, "ADC A, n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, this, &p_n)}, \
@@ -257,7 +257,8 @@
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, 2, std::bind(&Emulateur::cp, this, &p_n)}, \
 {0b11111111, "RST 7", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 7)}
 
-#define CYCLE_VARIABLE_OPCODE {0b00100000, "JR NZ, e", 3, 2, NZ}, \
+#define CYCLE_VARIABLE_OPCODE \
+{0b00100000, "JR NZ, e", 3, 2, NZ}, \
 {0b00101000, "JR Z, e", 3, 2, Z}, \
 {0b00110000, "JR NC, e", 3, 2, NC}, \
 {0b00111000, "JR C, e", 3, 2, C}, \

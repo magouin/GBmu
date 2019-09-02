@@ -97,6 +97,7 @@ class Emulateur {
 		uint8_t		_current_instr_cycle;
 		uint8_t		_interrupt_cycle;
 		bool		_exec_current_instr;
+		bool		_exec_op203;
 		bool		_debug;
 
 		uint8_t		_RAM[0x10000];
@@ -228,6 +229,7 @@ class Emulateur {
 		void	di();
 		void	ei();
 		void	ccf();
+		void	scf();
 		void	get_param(struct s_param *p);
 		void	op203();
 

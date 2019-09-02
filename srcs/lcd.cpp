@@ -229,7 +229,6 @@ void	Emulateur::update_lcd()
 		_lcd_cycle = 0;
 		return ;
 	}
-
 	line_cycle = _lcd_cycle % 456;
 	ly = _lcd_cycle / 456;
 
@@ -242,8 +241,10 @@ void	Emulateur::update_lcd()
 		if (_RAM[REG_LCDC] & 2)
 			print_objs(objs);
 	}
-	if (line_cycle == 452)
-		mem_write(&_RAM[REG_LY], (ly + 1) % 154, 1);
+	if (line_cycle == 0)
+		mem_write(&_RAM[REG_LY], ly % 154, 1);
+	if (line_cycle > 8 && ly == 153) // CHELOU
+		mem_write(&_RAM[REG_LY], 0, 1);
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
