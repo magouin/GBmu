@@ -9,8 +9,7 @@ void			Emulateur::write_lcdc(uint8_t value)
 {
 	if ((_RAM[REG_LCDC] & 0x80) && (!(value & 0x80)))
 		_RAM[REG_LY] = 0;
-	_RAM[REG_LCDC] = value;
-}
+	_RAM[REG_LCDC] = value;}
 
 void			Emulateur::write_stat(uint8_t value)
 {
@@ -20,7 +19,7 @@ void			Emulateur::write_stat(uint8_t value)
 void			Emulateur::write_scy(uint8_t value)
 {
 	if (abs(value - _RAM[0xff42]) > 1)
-		printf("SHOULDNT HAPPEN SCY -> value [%hhx] | _RAM[0xff42] [%hhx]\n", value, _RAM[0xff42]);
+		// printf("SHOULDNT HAPPEN SCY -> value [%hhx] | _RAM[0xff42] [%hhx]\n", value, _RAM[0xff42]);
 		// throw InvalidWrite((value));
 	_RAM[0xff42] = value;
 }

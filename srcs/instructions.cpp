@@ -90,19 +90,42 @@ void	Emulateur::rra()
 
 void	Emulateur::daa()
 {
-	uint8_t convert_bcd = 0;
+	int x;
+	uint8_t deb[13][9] = {
+	//  {FLAG_N, FLAG_CY, BIT4/7, FLAG_H, BIT0/3, ADD_VAL, FLAG_CY_AFTER}
+		{false, false, 0x0, 0x9, false, 0x0, 0x9, 0x00, false},
+		{false, false, 0x0, 0x8, false, 0xa, 0xf, 0x06, false},
+		{false, false, 0x0, 0x9, true, 0x0, 0x3, 0x06, false},
+		{false, false, 0xa, 0xf, false, 0x0, 0x9, 0x60, true},
+		{false, false, 0x9, 0xf, false, 0xa, 0xf, 0x66, true},
+		{false, false, 0xa, 0xf, true, 0x0, 0x3, 0x66, true},
+		{false, true, 0x0, 0x2, false, 0x0, 0x9, 0x60, true},
+		{false, true, 0x0, 0x2, false, 0xa, 0xf, 0x66, true},
+		{false, true, 0x0, 0x3, true, 0x0, 0x3, 0x66, true},
+		{true, false, 0x0, 0x9, false, 0x0, 0x9, 0x00, false},
+		{true, false, 0x0, 0x8, true, 0x6, 0xf, 0xfa, false},
+		{true, true, 0x7, 0xf, false, 0x0, 0x9, 0xa0, true},
+		{true, true, 0x6, 0xf, true, 0x6, 0xf, 0x9a, true}
+	};
 
-	regs.CY = false;
-	if ((regs.F & FLAG_H) || (!(regs.F & FLAG_N) && (regs.A & 0x0f) > 9))
-		convert_bcd |= 0x06;
-	if ((regs.F & FLAG_CY) || (!(regs.F & FLAG_N) && (regs.A >> 4) > 9))
+	x = 0;
+	while (x < 13)
 	{
-		convert_bcd |= 0x60;
-		regs.CY = true;
+		if (regs.N == deb[x][0]
+			&& (regs.A >> 4) >= deb[x][2] && (regs.A >> 4) <= deb[x][3]
+			&& (regs.A & 0x0f) >= deb[x][5] && (regs.A & 0x0f) <= deb[x][6]
+			&& deb[x][1] == regs.CY && deb[x][4] == regs.HC)
+		{
+			regs.CY = deb[x][8];
+			regs.A += deb[x][7];
+			break ;
+		}
+		x++;
 	}
-	regs.A += (regs.F & FLAG_N) ? (-convert_bcd) : convert_bcd;
-	regs.HC = false;
-	regs.Z = (regs.A == 0);
+	if (x == 13)
+		printf("C'est du caca debug | regs.PC [%hx] | AF = 0x%04hx\n", regs.PC, regs.AF);
+	regs.Z = !regs.A;
+	regs.HC = 0;
 }
 
 void	Emulateur::cpl()
@@ -177,7 +200,7 @@ void	Emulateur::add(struct s_param *p1, struct s_param *p2, int size)
 	H_val = (size == 2 ? 0xfff : 0xf);
 	CY_val = (size == 2 ? 0xffff : 0xff);
 	regs.N = false;
-	regs.Z = (size == 1) ? !val : regs.Z;
+	regs.Z = (size == 1) ? !(uint8_t)val : regs.Z;
 	regs.Z = (p2->t == SIGN) ? false : regs.Z;
 	regs.CY = (val > CY_val);
 	regs.HC = ((v1 & H_val) + (v2 & H_val) > H_val);
@@ -239,10 +262,10 @@ void	Emulateur::sbc(struct s_param *p)
 
 bool	Emulateur::check_rules(enum e_cond cond)
 {
-	if ((cond == NZ && ((regs.F & FLAG_Z) != 0)) ||
-		(cond == Z && ((regs.F & FLAG_Z) == 0)) ||
-		(cond == NC && ((regs.F & FLAG_CY) != 0)) ||
-		(cond == C && ((regs.F & FLAG_CY) == 0)))
+	if ((cond == NZ && (regs.Z != false)) ||
+		(cond == Z && (regs.Z == false)) ||
+		(cond == NC && (regs.CY != false)) ||
+		(cond == C && (regs.CY == false)))
 		return (false);
 	return (true);
 }
@@ -392,7 +415,7 @@ void	Emulateur::sla(struct s_param *p)
 	get_param(p);
 	val = mem_read(p->val, 1);
 	regs.F = 0;
-	regs.Z = val << 1;
+	regs.Z = !(val << 1);
 	regs.CY = val & 0x80;
 	mem_write(p->val, val << 1, 1);
 }
@@ -404,7 +427,7 @@ void	Emulateur::sra(struct s_param *p)
 	get_param(p);
 	val = mem_read(p->val, 1);
 	regs.F = 0;
-	regs.Z = val >> 1;
+	regs.Z = !(val >> 1);
 	regs.CY = val & 1;
 	mem_write(p->val, val >> 1 | (val & 0x80), 1);
 }
@@ -416,7 +439,7 @@ void	Emulateur::srl(struct s_param *p)
 	get_param(p);
 	val = mem_read(p->val, 1);
 	regs.F = 0;
-	regs.Z = val >> 1;
+	regs.Z = !(val >> 1);
 	regs.CY = val & 1;
 	mem_write(p->val, val >> 1, 1);
 }
@@ -454,10 +477,7 @@ void	Emulateur::set(struct s_param *p, uint8_t bit)
 
 void	Emulateur::op203()
 {
-	const struct s_instr_params	*instr;
-
-	instr = &_op203[mem_read(_RAM + regs.PC - 1, 1)];
-	instr->f();
+	_exec_op203 = true;
 }
 
 void	Emulateur::di()
@@ -472,4 +492,14 @@ void	Emulateur::ei()
 
 void	Emulateur::ccf()
 {
+	regs.CY = !regs.CY;
+	regs.HC = false;
+	regs.N = false;
+}
+
+void	Emulateur::scf()
+{
+	regs.CY = true;
+	regs.HC = false;
+	regs.N = false;
 }

@@ -37,7 +37,7 @@ void	Emulateur::print_regs(void)
 	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.B, this->regs.C, this->regs.BC);
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.D, this->regs.E, this->regs.DE);
 	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.H, this->regs.L, this->regs.HL);
-	printf("PC: %04hX  SP: %04X\n", this->regs.PC, this->regs.SP);
+	printf("PC: %04hX  SP: %04X\n", (uint16_t)(_exec_op203 ? this->regs.PC - 1 : this->regs.PC), this->regs.SP);
 	printf("ROM: 01  RAM: 00  WRAM: %02X  VRAM: %02X\n", (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
 	printf("F: [");
 	this->regs.F & FLAG_Z ? printf("Z") : printf("-");
@@ -45,8 +45,8 @@ void	Emulateur::print_regs(void)
 	this->regs.F & FLAG_H ? printf("H") : printf("-");
 	this->regs.F & FLAG_CY ? printf("C") : printf("-");
 	printf("]\n");
-
-
+	if (regs.PC == 0xD821)
+		printf("INSTR = %s ||| A = %hhx ||| B = %hhx\n", _opcode[_RAM[regs.PC - 1]].mnemonic.c_str(), regs.A, regs.B);
 }
 
 void	Emulateur::init_registers(void)
@@ -56,10 +56,10 @@ void	Emulateur::init_registers(void)
 	regs.DE = 0x00d8;	
 	regs.HL = 0x014d;
 
-	// regs.AF = 0x1180; // cpu_instr
-	// regs.BC = 0x0000;
-	// regs.DE = 0x0008;
-	// regs.HL = 0x007c;
+	regs.AF = 0x1180; // cpu_instr
+	regs.BC = 0x0000;
+	regs.DE = 0x0008;
+	regs.HL = 0x007c;
 	regs.SP = 0xfffe;
 	regs.PC = 0x100;
 	regs.IME = false;
@@ -95,7 +95,7 @@ void	Emulateur::init_registers(void)
 	_RAM[0xff42] = 0x00; // SCY
 	_RAM[0xff43] = 0x00; // SCX
 
-	_RAM[REG_LY] = 0x5; // LY
+	_RAM[REG_LY] = 0x00; // LY
 
 	_RAM[REG_LYC] = 0x00; // LYC
 	_RAM[0xff47] = 0xfc; // BGP
@@ -207,11 +207,6 @@ void	Emulateur::update_tima()
 	if (_RAM[REG_TAC] & 0x4)
 	{
 		if (nb_tick == 0)
-			nb_tick = (1 << (num_to_byte[_RAM[REG_TAC] & 0x3]));
-		// nb_tick -= (_cycle - last_cycle);
-		nb_tick -= 4;
-		// last_cycle = _cycle;
-		if (nb_tick == 0)
 		{
 			if (_RAM[REG_TIMA] != 0xff)
 				_RAM[REG_TIMA]++;
@@ -221,6 +216,12 @@ void	Emulateur::update_tima()
 				_RAM[REG_IF] |= 4;
 			}
 		}
+
+		if (nb_tick == 0)
+			nb_tick = (1 << (num_to_byte[_RAM[REG_TAC] & 0x3]));
+		// nb_tick -= (_cycle - last_cycle);
+		nb_tick -= 4;
+		// last_cycle = _cycle;
 	}
 }
 
@@ -228,11 +229,9 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
-	if (_instr->opcode == 203)
-		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
-	if (_debug)
-		debug_mode();
+	_instr = &(_exec_op203 ? _op203 : _opcode)[mem_read(_RAM + regs.PC, 1)];
+	_exec_op203 = false;
+	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
 	{
 		cvi = get_cv_infos(_instr->opcode);
@@ -250,13 +249,13 @@ void	Emulateur::get_instr()
 
 void	Emulateur::debug_mode()
 {
-	char c[2];
-	_timer_status = false;
+	char c[11];
 
 	print_regs();
 	if (!read(0, &c, 2)) // to change
 		exit(0);
-	_timer_status = true;
+	// read(0, c, 11);
+	// printf(" 0x%02hhX\n", _RAM[REG_LY]);
 }
 
 
@@ -270,12 +269,15 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		regs.PC += 1 + _instr->nb_params;
+		// if (regs.PC == 0xC441)
+			// printf("mnemonic = \"%s\", nb_param = %d\n", _instr->mnemonic.c_str(), _instr->nb_params);
+		// if (regs.PC == 0xC06A)
+		// 	printf("PC = %x\n", regs.PC);
 		if (_exec_current_instr)
 			_instr->f();
+		if (_debug && (_RAM[regs.PC] != 203 || _exec_op203))
+			debug_mode();
 		_exec_current_instr = true;
-
-
 	}
 }
 
@@ -299,16 +301,17 @@ void	Emulateur::cadence()
 
 int		Emulateur::main_thread()
 {
+	print_regs();
+	_lcd_cycle = 12;
 	while (true)
 	{
-		update_tima();
-		update_lcd();
-		if (_current_instr_cycle == 0)
-			interrupt();
 		if (_interrupt_cycle == 0)
 			exec_instr();
+		update_tima();
+		if (_current_instr_cycle == 0)
+			interrupt();
+		update_lcd();
 		_cycle += 4;
-
 		cadence();
 		if (_cycle % 256 == 0)
 			_RAM[REG_DIV]++;
