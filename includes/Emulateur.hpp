@@ -97,7 +97,6 @@ class Emulateur {
 		uint8_t		_current_instr_cycle;
 		uint8_t		_interrupt_cycle;
 		bool		_exec_current_instr;
-		bool		_exec_op203;
 		bool		_debug;
 
 		uint8_t		_RAM[0x10000];
@@ -157,16 +156,7 @@ class Emulateur {
 		struct s_param	p_nn_D1 = {DIR, NULL, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_nn_D2 = {DIR, NULL, NULL, UNSIGN, true, 2, 2};
 
-
-		std::chrono::time_point<std::chrono::system_clock> _last_time;
-
-
-
-
-
-
-
-
+		std::chrono::time_point<std::chrono::system_clock> _start_time;
 
 		Emulateur();
 
@@ -279,12 +269,12 @@ class Emulateur {
 		void		write_tac(uint8_t value);
 
 		void		print_bg();
-		void		print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size, enum e_tile_type t);
+		void		print_tile(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size, uint16_t pal_addr);
 		// void		print_tile(uint8_t *tile, int x, int y);
 		void		print_all_tiles();
 		void		dump_data_tiles();
 		void		fill_input_from_key(SDL_Keycode sym, SDL_EventType t);
-		uint8_t		bit_to_gray(uint8_t b, enum e_tile_type t);
+		uint32_t	bit_to_gray(uint8_t b, uint16_t pal_addr);
 
 		// static void	timer_thread(uint8_t *_RAM);
 		int	main_thread();
@@ -293,7 +283,7 @@ class Emulateur {
 		void		print_objs(struct s_oam_obj **objs);
 		void		print_obj(struct s_oam_obj *objs);
 		void		print_obj_line(struct s_oam_obj	*obj, uint64_t ly);
-		void		print_tile_line(uint8_t *tile, int x, int y, int ly, bool flip, enum e_tile_type t);
+		void		print_tile_line(uint8_t *tile, int x, int y, int ly, bool flip, uint16_t pal_addr);
 
 
 	public:

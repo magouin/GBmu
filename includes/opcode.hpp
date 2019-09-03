@@ -203,7 +203,7 @@
 {0b11001000, "RET Z", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11001001, "RET", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, this)}, \
 {0b11001010, "JP Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
-{0b11001011, "op203", 0, {SET, SET, SET, SET}, 1, std::bind(&Emulateur::op203, this)}, \
+{0b11001011, "op203", 0, {SET, SET, SET, SET}, 0}, \
 {0b11001100, "CALL Z, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001101, "CALL nn", 2, {_, _, _, _}, 6, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001110, "ADC A, n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, this, &p_n)}, \
@@ -211,7 +211,7 @@
 {0b11010000, "RET NC", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11010001, "POP DE", 0, {_, _, _, _}, 3, std::bind(&Emulateur::pop, this, &p_DE)}, \
 {0b11010010, "JP NC, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
-{0b11010011, "NOT AN INSTRUCTION (0b11010011)", 0, {_, _, _, _}, 0}, \
+{0b11010011, "NOT AN INSTRUCTION (0b11010011)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11010100, "CALL NC, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11010101, "PUSH DE", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_DE)}, \
 {0b11010110, "SUB n", 1, {SET, SET, SET_1, SET}, 2, std::bind(&Emulateur::sub, this, &p_n)}, \
@@ -219,32 +219,32 @@
 {0b11011000, "RET C", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11011001, "RETI", 0, {_, _, _, _}, 4, std::bind(&Emulateur::reti, this)}, \
 {0b11011010, "JP C, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
-{0b11011011, "NOT AN INSTRUCTION (0b11011011)", 0, {_, _, _, _}, 0}, \
+{0b11011011, "NOT AN INSTRUCTION (0b11011011)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11011100, "CALL C, nn", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
-{0b11011101, "NOT AN INSTRUCTION (0b11011101)", 0, {_, _, _, _}, 0}, \
+{0b11011101, "NOT AN INSTRUCTION (0b11011101)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11011110, "SBC n", 1, {SET, SET, SET_1, SET}, 2, std::bind(&Emulateur::sbc, this, &p_n)}, \
 {0b11011111, "RST 3", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 3)}, \
 {0b11100000, "LD (n), A", 1, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_n_D, &p_A, 0, 1)}, \
 {0b11100001, "POP HL", 0, {_, _, _, _}, 3, std::bind(&Emulateur::pop, this, &p_HL)}, \
 {0b11100010, "LD (C), A", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_C_D, &p_A, 0, 1)}, \
-{0b11100011, "NOT AN INSTRUCTION (0b11100011)", 0, {_, _, _, _}, 0}, \
-{0b11100100, "NOT AN INSTRUCTION (0b11100100)", 0, {_, _, _, _}, 0}, \
+{0b11100011, "NOT AN INSTRUCTION (0b11100011)", 0, {_, _, _, _}, 1, NULL}, \
+{0b11100100, "NOT AN INSTRUCTION (0b11100100)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11100101, "PUSH HL", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_HL)}, \
 {0b11100110, "AND n", 1, {SET_0, SET_1, SET_0, SET}, 2, std::bind(&Emulateur::_and, this, &p_n)}, \
 {0b11100111, "RST 4", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 4)}, \
 {0b11101000, "ADD SP, e", 1, {SET, SET, SET_0, SET_0}, 4, std::bind(&Emulateur::add, this, &p_SP, &p_e, 2)}, \
 {0b11101001, "JP HL", 0, {_, _, _, _}, 1, std::bind(&Emulateur::jp, this, &p_HL)}, \
 {0b11101010, "LD (nn), A", 2, {_, _, _, _}, 4, std::bind(&Emulateur::ld, this, &p_nn_D1, &p_A, 0, 1)}, \
-{0b11101011, "NOT AN INSTRUCTION (0b11101011)", 0, {_, _, _, _}, 0}, \
-{0b11101100, "NOT AN INSTRUCTION (0b11101100)", 0, {_, _, _, _}, 0}, \
-{0b11101101, "NOT AN INSTRUCTION (0b11101101)", 0, {_, _, _, _}, 0}, \
+{0b11101011, "NOT AN INSTRUCTION (0b11101011)", 0, {_, _, _, _}, 1, NULL}, \
+{0b11101100, "NOT AN INSTRUCTION (0b11101100)", 0, {_, _, _, _}, 1, NULL}, \
+{0b11101101, "NOT AN INSTRUCTION (0b11101101)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11101110, "XOR n", 1, {SET_0, SET_0, SET_0, SET}, 2, std::bind(&Emulateur::_xor, this, &p_n)}, \
 {0b11101111, "RST 5", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 5)}, \
 {0b11110000, "LD A, (n)", 1, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_A, &p_n_D, 0, 1)}, \
 {0b11110001, "POP AF", 0, {_, _, _, _}, 3, std::bind(&Emulateur::pop, this, &p_AF)}, \
 {0b11110010, "LD A, (C)", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_C_D, 0, 1)}, \
 {0b11110011, "DI", 0, {_, _, _, _}, 1, std::bind(&Emulateur::di, this)}, \
-{0b11110100, "NOT AN INSTRUCTION (0b11110100)", 0, {_, _, _, _}, 0}, \
+{0b11110100, "NOT AN INSTRUCTION (0b11110100)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11110101, "PUSH AF", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_AF)}, \
 {0b11110110, "OR n", 1, {SET_0, SET_0, SET_0, SET}, 2, std::bind(&Emulateur::_or, this, &p_n)}, \
 {0b11110111, "RST 6", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 6)}, \
@@ -252,8 +252,8 @@
 {0b11111001, "LD SP, HL", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_SP, &p_HL, 0, 2)}, \
 {0b11111010, "LD A, (nn)", 2, {_, _, _, _}, 4, std::bind(&Emulateur::ld, this, &p_A, &p_nn_D1, 0, 1)}, \
 {0b11111011, "EI", 0, {_, _, _, _}, 1, std::bind(&Emulateur::ei, this)}, \
-{0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}, 0}, \
-{0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}, 0}, \
+{0b11111100, "NOT AN INSTRUCTION (0b11111100)", 0, {_, _, _, _}, 1, NULL}, \
+{0b11111101, "NOT AN INSTRUCTION (0b11111101)", 0, {_, _, _, _}, 1, NULL}, \
 {0b11111110, "CP n", 1, {SET, SET, SET_1, SET}, 2, std::bind(&Emulateur::cp, this, &p_n)}, \
 {0b11111111, "RST 7", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 7)}
 

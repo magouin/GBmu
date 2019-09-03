@@ -144,8 +144,8 @@ void	Emulateur::stop() // TODO
 void	Emulateur::halt() // TODO
 {
 	_halt_status = true;
-	printf("Halte qui va la ?\n");
-	exit(0);
+	// printf("Halte qui va la ?\n");
+	// exit(0);
 	// printf("Entering halt status\n");
 	// printf("ime: %d, ie : %02x, if: %02x\n", regs.IME, _RAM[REG_IE], _RAM[REG_IF]);
 }
@@ -273,7 +273,7 @@ bool	Emulateur::check_rules(enum e_cond cond)
 void	Emulateur::jr(struct s_param *p)
 {
 	get_param(p);
-	regs.PC += *(int8_t *)p->val;
+	regs.PC += (int8_t)mem_read(p->val, 1);
 }
 
 void	Emulateur::ret()
@@ -318,7 +318,7 @@ void	Emulateur::jp(struct s_param *p)
 void	Emulateur::call(struct s_param *p)
 {
 	get_param(p);
-	*(uint16_t *)(_RAM + regs.SP - 2) = regs.PC;
+	mem_write(_RAM + regs.SP - 2, regs.PC, 2);
 	regs.PC = mem_read(p->val, 2);
 	regs.SP -= 2;
 }
@@ -344,7 +344,7 @@ void	Emulateur::ldhl(struct s_param *p)
 	get_param(p);
 	regs.F = 0;
 	mem_read(p->val, 1);
-	e = *(int8_t *)p->val;
+	e = mem_read(p->val, 1);
 	regs.HL = regs.SP + e;
 	regs.CY = (regs.SP + e > 0xffff);
 	regs.HC = ((regs.SP & 0x0fff) + e > 0x0fff);
@@ -477,7 +477,6 @@ void	Emulateur::set(struct s_param *p, uint8_t bit)
 
 void	Emulateur::op203()
 {
-	_exec_op203 = true;
 }
 
 void	Emulateur::di()

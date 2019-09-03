@@ -37,8 +37,8 @@ void	Emulateur::print_regs(void)
 	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.B, this->regs.C, this->regs.BC);
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.D, this->regs.E, this->regs.DE);
 	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", this->regs.H, this->regs.L, this->regs.HL);
-	printf("PC: %04hX  SP: %04X\n", (uint16_t)(_exec_op203 ? this->regs.PC - 1 : this->regs.PC), this->regs.SP);
-	printf("ROM: 01  RAM: 00  WRAM: %02X  VRAM: %02X\n", (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
+	printf("PC: %04hX  SP: %04X\n", this->regs.PC, this->regs.SP);
+	printf("ROM: %02x  RAM: %02x  WRAM: %02X  VRAM: %02X\n", (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000), (uint8_t)(((uint8_t *)_ram_bank - (uint8_t *)_external_ram) / 0x2000), (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
 	printf("F: [");
 	this->regs.F & FLAG_Z ? printf("Z") : printf("-");
 	this->regs.F & FLAG_N ? printf("N") : printf("-");
@@ -56,10 +56,10 @@ void	Emulateur::init_registers(void)
 	regs.DE = 0x00d8;	
 	regs.HL = 0x014d;
 
-	regs.AF = 0x1180; // cpu_instr
-	regs.BC = 0x0000;
-	regs.DE = 0x0008;
-	regs.HL = 0x007c;
+	// regs.AF = 0x1180; // cpu_instr
+	// regs.BC = 0x0000;
+	// regs.DE = 0x0008;
+	// regs.HL = 0x007c;
 	regs.SP = 0xfffe;
 	regs.PC = 0x100;
 	regs.IME = false;
@@ -133,7 +133,7 @@ void Emulateur::emu_init()
 	_lcd_cycle = 0;
 	_interrupt_cycle = 0;
 
-	_last_time = std::chrono::system_clock::now();
+	_start_time = std::chrono::system_clock::now();
 }
 
 
@@ -151,6 +151,8 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 		regs.SP -= 2;
 		*(uint16_t *)(_RAM + regs.SP) = regs.PC;
 		regs.PC = addr;
+		if (_debug)
+			debug_mode();
 	}
 }
 
@@ -162,16 +164,16 @@ void	Emulateur::interrupt(void)
 		_halt_status = false;
 		return ;
 	}
-	if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
-		interrupt_func(0x0060, 16);
-	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
-		interrupt_func(0x0058, 8);
-	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
-		interrupt_func(0x0050, 4);
+	if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
+		interrupt_func(0x0040, 1);
 	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
 		interrupt_func(0x0048, 2);
-	else if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
-		interrupt_func(0x0040, 1);
+	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
+		interrupt_func(0x0050, 4);
+	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
+		interrupt_func(0x0058, 8);
+	else if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
+		interrupt_func(0x0060, 16);
 	else
 		return ;
 	// if (_halt_status == true)
@@ -207,6 +209,11 @@ void	Emulateur::update_tima()
 	if (_RAM[REG_TAC] & 0x4)
 	{
 		if (nb_tick == 0)
+			nb_tick = (1 << (num_to_byte[_RAM[REG_TAC] & 0x3]));
+		// nb_tick -= (_cycle - last_cycle);
+		nb_tick -= 4;
+		// last_cycle = _cycle;
+		if (nb_tick == 0)
 		{
 			if (_RAM[REG_TIMA] != 0xff)
 				_RAM[REG_TIMA]++;
@@ -216,12 +223,6 @@ void	Emulateur::update_tima()
 				_RAM[REG_IF] |= 4;
 			}
 		}
-
-		if (nb_tick == 0)
-			nb_tick = (1 << (num_to_byte[_RAM[REG_TAC] & 0x3]));
-		// nb_tick -= (_cycle - last_cycle);
-		nb_tick -= 4;
-		// last_cycle = _cycle;
 	}
 }
 
@@ -229,8 +230,11 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	_instr = &(_exec_op203 ? _op203 : _opcode)[mem_read(_RAM + regs.PC, 1)];
-	_exec_op203 = false;
+	if (regs.PC >= 0x8000 && regs.PC <= 0xff80)
+		exit(0);
+	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
+	if (_instr->opcode == 203)
+		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
 	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
 	{
@@ -273,9 +277,14 @@ void Emulateur::exec_instr()
 			// printf("mnemonic = \"%s\", nb_param = %d\n", _instr->mnemonic.c_str(), _instr->nb_params);
 		// if (regs.PC == 0xC06A)
 		// 	printf("PC = %x\n", regs.PC);
+		if (!_instr->f)
+		{
+			printf("Bad instruction 0x%02x\n", _instr->opcode);
+			exit(1);
+		}
 		if (_exec_current_instr)
 			_instr->f();
-		if (_debug && (_RAM[regs.PC] != 203 || _exec_op203))
+		if (_debug)
 			debug_mode();
 		_exec_current_instr = true;
 	}
@@ -283,29 +292,20 @@ void Emulateur::exec_instr()
 
 void	Emulateur::cadence()
 {
-	// Temps - temps_gb >= 1ms
-	double	time_gb;
-	double	microseconds;
 	auto now = std::chrono::system_clock::now();
-	auto tp = (now - _last_time).count();
 
-	time_gb = (1.0 / _frequency) * 1000.0 * 1000.0;
-	microseconds = tp;
-	if (microseconds > 10000)
-	{
-		SDL_Delay(10);
-		_last_time = std::chrono::system_clock::now();
-	}
-	// printf("microseconds: %llf\n", microseconds);
+	if (_cycle * (1.0 / _frequency) * 1000.0 * 1000.0 > (now - _start_time).count())
+		SDL_Delay(1);
 }
 
 int		Emulateur::main_thread()
 {
-	print_regs();
+	if (_debug)
+		print_regs();
 	_lcd_cycle = 12;
 	while (true)
 	{
-		if (_interrupt_cycle == 0)
+		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
 		update_tima();
 		if (_current_instr_cycle == 0)
@@ -330,9 +330,7 @@ void	Emulateur::emu_start()
 {
 	emu_init();
 	setvbuf(stdout, NULL, _IONBF, 0);
-
 	_main_thread = SDL_CreateThread(&Emulateur::create_main_thread, "main_thread", (void *)this);
-
 	while (true)
 		update();
 	SDL_Quit();
