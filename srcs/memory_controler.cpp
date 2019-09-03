@@ -13,7 +13,7 @@ void			Emulateur::write_lcdc(uint8_t value)
 
 void			Emulateur::write_stat(uint8_t value)
 {
-	_RAM[REG_STAT] = (_RAM[REG_STAT] & 3) | (value & 124);
+	_RAM[REG_STAT] = (_RAM[REG_STAT] & 3) | (value & 120);
 }
 
 void			Emulateur::write_scy(uint8_t value)
