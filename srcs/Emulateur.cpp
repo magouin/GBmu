@@ -7,8 +7,12 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _debug(debug)
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _debug(debug), _file_name(file)
 {
+	std::cout << file << std::endl;
+	std::cout << file.find_last_of('.') << std::endl;
+	_save_name = file.substr(0, file.find_last_of('.')) + ".sav";
+	// std::cout << _save_file << std::endl;
 }
 
 Emulateur::Emulateur(const Emulateur & cp)
@@ -101,19 +105,24 @@ void	Emulateur::init_registers(void)
 	_RAM[0xff47] = 0xfc; // BGP
 	_RAM[0xff48] = 0xff; // OBPO
 	_RAM[0xff49] = 0xff; // OBP1
-	_RAM[0xff4a] = 0x00; // WY
-	_RAM[0xff4b] = 0x00; // WX
+	_RAM[REG_WY] = 0x00; // WY
+	_RAM[REG_WX] = 0x00; // WX
 	_RAM[REG_IE] = 0x00; // IE
 }
 
 void Emulateur::emu_init()
 {
-	bzero(_RAM, sizeof(_RAM));
-	// printf("allocated %zu RAM\n", _header.get_ram_size());
+	std::ifstream fs;
+
 	_external_ram = (_header.get_ram_size() > 0) ? new uint8_t[_header.get_ram_size()] : _RAM + 0xa000;
+	fs.open (_save_name, std::fstream::in | ios::binary);
+	if (fs.is_open())
+	{
+		fs.read((char *)_external_ram, _header.get_ram_size());
+		fs.close();
+	}
 	_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000);
 	_ram_bank = _external_ram;
-
 	_cycle = 0;
 	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
@@ -230,8 +239,6 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	if (regs.PC >= 0x8000 && regs.PC <= 0xff80)
-		exit(0);
 	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];

@@ -19,6 +19,7 @@ using namespace std;
 # include <vector>
 # include <SDL2/SDL.h>
 # include <csignal>
+# include <sys/stat.h>
 
 # include <time.h>
 # include <sys/time.h> 
@@ -87,6 +88,8 @@ class Emulateur {
 
 		const Header		_header;
 		std::string	_ROM;
+		std::string	_file_name;
+		std::string	_save_name;
 
 
 
@@ -277,13 +280,17 @@ class Emulateur {
 		uint32_t	bit_to_gray(uint8_t b, uint16_t pal_addr);
 
 		// static void	timer_thread(uint8_t *_RAM);
-		int	main_thread();
+		int			main_thread();
+		void		save();
 
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
 		void		print_obj(struct s_oam_obj *objs);
 		void		print_obj_line(struct s_oam_obj	*obj, uint64_t ly);
-		void		print_tile_line(uint8_t *tile, int x, int y, int ly, bool flip, uint16_t pal_addr);
+		void		print_tile_line(uint8_t *tile, int x, int y, bool h_flip, bool v_flip, uint8_t size, uint16_t pal_addr, int h);
+		void		print_bg_line(int y);
+		void		print_obj_line(struct s_oam_obj *obj, int off);
+		void		print_objs_line(struct s_oam_obj **objs, int y);
 
 
 	public:
@@ -316,7 +323,7 @@ class Emulateur {
 			}
 		};
 
-		Emulateur(std::string rom, bool debug=false);
+		Emulateur(std::string file, std::string rom, bool debug=false);
 		~Emulateur(/* args */);
 		Emulateur & operator=(const Emulateur & cp);
 

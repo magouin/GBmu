@@ -32,6 +32,9 @@
 # define REG_LY		0xff44
 # define REG_LYC	0xff45
 
+# define REG_WY		0xff4a
+# define REG_WX		0xff4b
+
 struct s_regs {
 	union {
 		struct {
