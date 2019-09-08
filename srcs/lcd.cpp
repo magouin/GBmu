@@ -44,28 +44,35 @@ void	Emulateur::print_bg_line(int y)
 	uint8_t	code;
 	uint32_t	cy;
 	uint8_t		x;
-	int8_t	scx;
-	int8_t	scy;
+	uint8_t	scx;
+	uint8_t	scy;
+	uint32_t	id_line;
+	uint32_t	offset_line;
 
 	b_code = _RAM + ((_RAM[REG_LCDC] & (1 << 3)) ? 0x9c00 : 0x9800);
 	b_data = _RAM + (_RAM[REG_LCDC] & (1 << 4) ? 0x8000 : 0x9000);
 	scx = _RAM[0xff43];
 	scy = _RAM[0xff42];
-	cy = (scy + y) >> 3;
+	cy = (scy + y) % 256;
+
+
 	// pour 15, 15
 	// 
 	x = 0;
-	printf("last param = %x et ly = %d et scy = %d et cy = %d\n", y - (cy * 8 - (scy & 7)), y, scy, cy);
+	// printf("last param = %x et ly = %d et scy = %d et cy = %d\n", y - (cy * 8 - (scy & 7)), y, scy, cy);
 	// if (y - (cy / 32 * 8 - (_RAM[0xff42] & 7)) >= 8)
 		// exit(0);
 	while (x < 21)
 	{
-		code = b_code[(cy * 32) % 1024 + ((scx >> 3) + x) % 32];
-		// code = b_code[((y + _RAM[0xff42]) >> 3) * 32 + (scx + x) % 32];
+		id_line = cy / 8;
+		offset_line = cy % 8; 
+		// printf("id_line : %d and offset_line = %d\n", id_line, offset_line);
+
+		code = b_code[(id_line * 32) + (((scx >> 3) + x) % 32)];
 		data = b_data + (code * 16);
 		if (data >= _RAM + 0x9800)
 			data -= 0x1000;
-		print_tile_line(data, x * 8 - (_RAM[0xff43] & 7), cy * 8 - (_RAM[0xff42] & 7), false, false, 8, 0xff47, y - (cy * 8 - (_RAM[0xff42] & 7)));
+		print_tile_line(data, x * 8 - (_RAM[0xff43] & 7), y - offset_line, false, false, 8, 0xff47, offset_line);
 		x++;
 	}
 }
