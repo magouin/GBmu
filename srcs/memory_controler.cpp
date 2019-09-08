@@ -18,17 +18,11 @@ void			Emulateur::write_stat(uint8_t value)
 
 void			Emulateur::write_scy(uint8_t value)
 {
-	if (abs(value - _RAM[0xff42]) > 1)
-		// printf("SHOULDNT HAPPEN SCY -> value [%hhx] | _RAM[0xff42] [%hhx]\n", value, _RAM[0xff42]);
-		// throw InvalidWrite((value));
 	_RAM[0xff42] = value;
 }
 
 void			Emulateur::write_scx(uint8_t value)
 {
-	if (abs(value - _RAM[0xff43]) > 1)
-		printf("SHOULDNT HAPPEN 1 [%hhx]\n", value);
-		// throw InvalidWrite((value));
 	_RAM[0xff43] = value;
 }
 
@@ -225,6 +219,10 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
 	void	*write_addr;
 
+	if (addr == &_RAM[REG_WX])
+		printf("value writen to WX = [%hhx]\n", (uint8_t)value);
+	else if (addr == &_RAM[REG_WY])
+		printf("value writen to WY = [%hhx]\n", (uint8_t)value);
 	// if ((uint8_t*)addr - _RAM == REG_LCDC)
 	// 	printf("writing %#02x to LCDC, which address is %04x\n", (uint8_t)value, (uint8_t*)addr - _RAM);
 	if ((write_addr = cpu_regs(addr))) ;

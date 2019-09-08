@@ -45,7 +45,7 @@ int main(int ac, const char **av)
 
 	Header r(rom);
 
-	Emulateur emu(rom, debug);
+	Emulateur emu(file_name, rom, debug);
 
 	try {
 		emu.emu_start();
