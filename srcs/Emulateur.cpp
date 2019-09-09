@@ -7,7 +7,7 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _debug(debug), _file_name(file)
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _file_name(file), _debug(debug)
 {
 	std::cout << file << std::endl;
 	std::cout << file.find_last_of('.') << std::endl;
@@ -96,8 +96,8 @@ void	Emulateur::init_registers(void)
 	_RAM[0xff25] = 0xf3; // NR51
 	_RAM[0xff26] = 0xf1; // NR52
 	_RAM[REG_LCDC] = 0x91; // LCDC
-	_RAM[0xff42] = 0x00; // SCY
-	_RAM[0xff43] = 0x00; // SCX
+	_RAM[REG_SCY] = 0x00; // SCY
+	_RAM[REG_SCX] = 0x00; // SCX
 
 	_RAM[REG_LY] = 0x00; // LY
 
@@ -291,6 +291,7 @@ void Emulateur::exec_instr()
 		}
 		if (_exec_current_instr)
 			_instr->f();
+		regs.F &= 0xf0;
 		if (_debug)
 			debug_mode();
 		_exec_current_instr = true;

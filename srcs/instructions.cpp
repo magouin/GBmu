@@ -412,12 +412,19 @@ void	Emulateur::sla(struct s_param *p)
 {
 	uint8_t				val;
 
+	if (p != &p_A)
+	{
+		printf("---------------\n");
+		print_regs();
+	}
 	get_param(p);
 	val = mem_read(p->val, 1);
 	regs.F = 0;
 	regs.Z = !(val << 1);
 	regs.CY = val & 0x80;
-	mem_write(p->val, val << 1, 1);
+	mem_write(p->val, (val << 1), 1);
+	if (p != &p_A)
+		print_regs();
 }
 
 void	Emulateur::sra(struct s_param *p)

@@ -29,6 +29,9 @@
 # define REG_LCDC	0xff40
 # define REG_STAT	0xff41
 
+# define REG_SCY	0xff42
+# define REG_SCX	0xff43
+
 # define REG_LY		0xff44
 # define REG_LYC	0xff45
 
