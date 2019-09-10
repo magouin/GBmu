@@ -148,7 +148,6 @@ void Emulateur::emu_init()
 
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
-	// printf("Interruption %d\n", iflag);
 	if (_interrupt_cycle == 0)
 		_interrupt_cycle = 5;
 	_interrupt_cycle--;
@@ -169,7 +168,6 @@ void	Emulateur::interrupt(void)
 {
 	if (!regs.IME)
 	{
-		// printf("Leaving _halt_status because ime disabled\n");
 		_halt_status = false;
 		return ;
 	}
@@ -185,8 +183,6 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0060, 16);
 	else
 		return ;
-	// if (_halt_status == true)
-	// 	printf("Leaving _halt_status\n");
 	_halt_status = false;
 }
 
@@ -211,17 +207,12 @@ void	Emulateur::update_tima()
 {
 	const uint8_t			num_to_byte[4] = {10, 4, 6, 8};
 	static uint64_t			nb_tick = 0;
-	// static uint64_t			last_cycle = 0;
 
-	// if (last_cycle == 0)
-	// 	last_cycle = _cycle;
 	if (_RAM[REG_TAC] & 0x4)
 	{
 		if (nb_tick == 0)
-			nb_tick = (1 << (num_to_byte[_RAM[REG_TAC] & 0x3]));
-		// nb_tick -= (_cycle - last_cycle);
+			nb_tick = (1l << (num_to_byte[_RAM[REG_TAC] & 0x3]));
 		nb_tick -= 4;
-		// last_cycle = _cycle;
 		if (nb_tick == 0)
 		{
 			if (_RAM[REG_TIMA] != 0xff)
@@ -263,10 +254,8 @@ void	Emulateur::debug_mode()
 	char c[11];
 
 	print_regs();
-	if (!read(0, &c, 2)) // to change
+	if (!read(0, &c, 2))
 		exit(0);
-	// read(0, c, 11);
-	// printf(" 0x%02hhX\n", _RAM[REG_LY]);
 }
 
 
@@ -280,10 +269,6 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
-		// if (regs.PC == 0xC441)
-			// printf("mnemonic = \"%s\", nb_param = %d\n", _instr->mnemonic.c_str(), _instr->nb_params);
-		// if (regs.PC == 0xC06A)
-		// 	printf("PC = %x\n", regs.PC);
 		if (!_instr->f)
 		{
 			printf("Bad instruction 0x%02x\n", _instr->opcode);
@@ -313,9 +298,9 @@ int		Emulateur::main_thread()
 	_lcd_cycle = 12;
 	while (true)
 	{
+		update_tima();
 		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
-		update_tima();
 		if (_current_instr_cycle == 0)
 			interrupt();
 		update_lcd();
