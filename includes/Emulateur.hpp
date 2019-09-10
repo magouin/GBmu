@@ -150,7 +150,6 @@ class Emulateur {
 		struct s_param	p_AF_D1 = {REG, &regs.AF, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_DE_D1 = {REG, &regs.DE, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_HL_D1 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 1};
-		struct s_param	p_SP_D1 = {REG, &regs.SP, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_HL_D2 = {REG, &regs.HL, NULL, UNSIGN, true, 2, 2};
 		struct s_param	p_n = {DIR, NULL, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_nn = {DIR, NULL, NULL, UNSIGN, false, 2, 2};
