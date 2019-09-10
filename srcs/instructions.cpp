@@ -125,13 +125,9 @@ void	Emulateur::stop() // TODO
 	_stop_status = true;
 }
 
-void	Emulateur::halt() // TODO
+void	Emulateur::halt()
 {
 	_halt_status = true;
-	// printf("Halte qui va la ?\n");
-	// exit(0);
-	// printf("Entering halt status\n");
-	// printf("ime: %d, ie : %02x, if: %02x\n", regs.IME, _RAM[REG_IE], _RAM[REG_IF]);
 }
 
 void	Emulateur::_and(struct s_param *p)
@@ -295,7 +291,6 @@ void	Emulateur::get_param(struct s_param *p)
 void	Emulateur::jp(struct s_param *p)
 {
 	get_param(p);
-	// printf("in jump - jumping to 0x%X\n", mem_read(p->val, 2));
 	regs.PC = mem_read(p->val, 2);
 }
 

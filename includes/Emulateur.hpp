@@ -293,6 +293,7 @@ class Emulateur {
 
 
 		void		print_bg_line(int y);
+		void		print_window_line(int y);
 		void		print_obj_line(struct s_oam_obj *obj, int off);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
 
