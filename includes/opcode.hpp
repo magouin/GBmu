@@ -232,7 +232,7 @@
 {0b11100101, "PUSH HL", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_HL)}, \
 {0b11100110, "AND n", 1, {SET_0, SET_1, SET_0, SET}, 2, std::bind(&Emulateur::_and, this, &p_n)}, \
 {0b11100111, "RST 4", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 4)}, \
-{0b11101000, "ADD SP, e", 1, {SET, SET, SET_0, SET_0}, 4, std::bind(&Emulateur::add, this, &p_SP, &p_e, 2)}, \
+{0b11101000, "ADD SP, e", 1, {SET, SET, SET_0, SET_0}, 4, std::bind(&Emulateur::add, this, &p_SP, &p_e, 1)}, \
 {0b11101001, "JP HL", 0, {_, _, _, _}, 1, std::bind(&Emulateur::jp, this, &p_HL)}, \
 {0b11101010, "LD (nn), A", 2, {_, _, _, _}, 4, std::bind(&Emulateur::ld, this, &p_nn_D1, &p_A, 0, 1)}, \
 {0b11101011, "NOT AN INSTRUCTION (0b11101011)", 0, {_, _, _, _}, 1, NULL}, \
