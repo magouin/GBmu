@@ -107,6 +107,28 @@ void	Emulateur::print_bg_line(int y)
 	}
 }
 
+void	Emulateur::print_window_line(int y)
+{
+	uint8_t	*b_code;
+	uint8_t	*b_data;
+	uint8_t	*data;
+	uint8_t	code;
+	uint8_t		x;
+
+	b_code = _RAM + ((_RAM[REG_LCDC] & (1 << 6)) ? 0x9c00 : 0x9800);
+	b_data = _RAM + (_RAM[REG_LCDC] & (1 << 4) ? 0x8000 : 0x9000);
+	x = 0;
+	while (x < 21)
+	{
+		code = b_code[(((y - _RAM[REG_WY]) / 8) * 32) + x];
+		data = b_data + (code * 16);
+		if (data >= _RAM + 0x9800)
+			data -= 0x1000;
+		print_bg_tile_line(data, x * 8 + _RAM[REG_WX] - 7, _RAM[REG_WY] + ((y - _RAM[REG_WY]) & ~7), (y - _RAM[REG_WY]) & 7);
+		x++;
+	}
+}
+
 uint8_t	Emulateur::search_bg_pix(int x, int y)
 {
 	uint32_t	color;
@@ -208,6 +230,8 @@ void	Emulateur::update_lcd()
 		else if (line_cycle == 252)
 		{
 			print_bg_line(ly);
+			if ((_RAM[REG_LCDC] & (1 << 5)) && ly >= _RAM[REG_WY])
+				print_window_line(ly);
 			if (_RAM[REG_LCDC] & 2)
 				print_objs_line(objs, ly);
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;

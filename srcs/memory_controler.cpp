@@ -7,9 +7,12 @@ void			Emulateur::write_div(uint8_t value)
 
 void			Emulateur::write_lcdc(uint8_t value)
 {
+	if (!(_RAM[REG_LCDC] & (1 << 5)) && (value & (1 << 5)))
+		printf("Windowing on flag activated : %x %x\n", _RAM[REG_WX], _RAM[REG_WY]);
 	if ((_RAM[REG_LCDC] & 0x80) && (!(value & 0x80)))
 		_RAM[REG_LY] = 0;
-	_RAM[REG_LCDC] = value;}
+	_RAM[REG_LCDC] = value;
+}
 
 void			Emulateur::write_stat(uint8_t value)
 {
@@ -115,8 +118,8 @@ bool		Emulateur::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
 		regs.RAM_ENABLE = ((value & 0xf) == 0xa ? true : false);
 	else if (addr - _RAM < 0x4000)
 	{
-		if (value < 1 || value > 0x1f)
-			printf("ERROR: This value should be between 1 and 1f\n");
+		if (value < 1 || value > 0x1f) ;
+			// printf("ERROR: This value should be between 1 and 1f\n");
 		else
 			regs.ROM_BANK = value;
 	}
