@@ -59,6 +59,12 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 {
 	if (t == SDL_KEYDOWN)
 	{
+		if (sym == SDLK_t)
+			_test++;
+		else if (sym == SDLK_h)
+			_frequency <<= 1;
+		else if (sym == SDLK_j)
+			_frequency >>= 1;
 		if (sym == SDLK_UP)
 			_input.p14 &= ~IO_UP;
 		else if (sym == SDLK_DOWN)
