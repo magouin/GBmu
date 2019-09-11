@@ -131,6 +131,8 @@ class Emulateur {
 		bool		_halt_status;
 		bool		_stop_status;
 
+		int			_test;
+
 		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_B = {REG, &regs.B, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_C = {REG, &regs.C, NULL, UNSIGN, false, 1, 1};
@@ -287,14 +289,13 @@ class Emulateur {
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
 		void		print_obj(struct s_oam_obj *objs);
-		void		print_obj_line(struct s_oam_obj	*obj, uint64_t ly);
 		void		print_bg_tile_line(uint8_t *tile, int x, int y, int h);
 		void		print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h);
 
 
 		void		print_bg_line(int y);
 		void		print_window_line(int y);
-		void		print_obj_line(struct s_oam_obj *obj, int off);
+		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
 
 

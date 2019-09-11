@@ -58,23 +58,29 @@ void	Emulateur::print_bg_tile_line(uint8_t *tile, int x, int y, int h)
 	}
 }
 
-void	Emulateur::print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h)
+void	Emulateur::print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int off)
 {
 	int w;
+	int h;
 	uint32_t p;
 	uint16_t cx, cy;
 	uint16_t	pal_addr;
 
 	pal_addr = 0xff48 + obj->mono_pal;
 	w = 0;
+	h = obj->v_flip ? (size - 1 - off) : off;
 	while (w < 8)
 	{
 		p = bit_to_gray((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), pal_addr);
 		cx = obj->x - 8 + (obj->h_flip ? (7 - w) : w);
-		cy = obj->y - 16 + (obj->v_flip ? ((size - 1) - h) : h);
-
+		cy = obj->y - 16 + off;
+		// cy = obj->y - 16 + (h & ~7) + );
 		if (p != 0 && (obj->prio == 0 || search_bg_pix(cx, cy) == 0))
 			set_pixel(p, cx, cy);
+		// else {
+		// 	if (obj->v_flip && p != 0)
+		// 		printf("Can't display this offset -> %d\n", h);
+		// }
 		w++;
 	}
 }
@@ -142,6 +148,7 @@ void	Emulateur::sort_objs(struct s_oam_obj **out)
 {
 	int					i_in;
 	int					i_out;
+	int					i_tmp;
 	struct s_oam_obj	*in;
 	bool				used[40] = {false};
 	bool				initialized;
@@ -159,11 +166,13 @@ void	Emulateur::sort_objs(struct s_oam_obj **out)
 				initialized = true;
 				out[i_out] = &in[i_in];
 				used[i_in] = true;
+				i_tmp = i_in;
 			}
 			else if (!used[i_in] && out[i_out]->x > in[i_in].x)
 			{
 				used[i_in] = true;
-				used[((uint8_t *)out[i_out] - (uint8_t *)_RAM - 0xfe00) / 4] = false;
+				used[i_tmp] = false;
+				i_tmp = i_in;
 				out[i_out] = &in[i_in];
 			}
 			i_in++;
@@ -172,24 +181,26 @@ void	Emulateur::sort_objs(struct s_oam_obj **out)
 	}
 }
 
-void	Emulateur::print_obj_line(struct s_oam_obj *obj, int off)
+void	Emulateur::print_obj_line(struct s_oam_obj *obj, int off, int size)
 {
 	uint8_t	*tile;
 
 	obj->chrcode &= (_RAM[REG_LCDC] & 4 ? ~1 : ~0);
 	tile = _RAM + 0x8000 + (obj->chrcode * 0x10);
-	print_obj_tile_line(tile, obj, (_RAM[REG_LCDC] & 4 ? 16 : 8), off);
+	print_obj_tile_line(tile, obj, size, off);
 }
 
 void	Emulateur::print_objs_line(struct s_oam_obj **objs, int y)
 {
 	int x;
+	int max;
 
 	x = 39;
+	max = ((_RAM[REG_LCDC] & (1 << 2)) ? 16 : 8);
 	while (x >= 0)
 	{
-		if (y >= objs[x]->y - 16 && y < (objs[x]->y - 16 + ((_RAM[REG_LCDC] & (1 << 2)) ? 16 : 8)))
-			print_obj_line(objs[x], y + 16 - objs[x]->y);
+		if (y >= objs[x]->y - 16 && y < (objs[x]->y - 16 + max))
+			print_obj_line(objs[x], y + 16 - objs[x]->y, max);
 		x--;
 	}
 }
@@ -242,11 +253,12 @@ void	Emulateur::update_lcd()
 	if (ly == 144 && line_cycle == 0)
 	{
 		render();
-		sort_objs(objs);
 		_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 1;
 		if (_RAM[REG_STAT] & (1 << 4))
 			_RAM[REG_IF] |= (1 << 1);
 		_RAM[REG_IF] |= 1;
 	}
+	if (ly == 153 && line_cycle == 0)
+		sort_objs(objs);
 	_lcd_cycle = (_lcd_cycle + 4) % 70224;
 }
