@@ -142,7 +142,8 @@ void Emulateur::emu_init()
 	_lcd_cycle = 0;
 	_interrupt_cycle = 0;
 
-	_start_time = std::chrono::system_clock::now();
+	_test = 0;
+
 }
 
 
@@ -304,7 +305,9 @@ int		Emulateur::main_thread()
 		if (_current_instr_cycle == 0)
 			interrupt();
 		update_lcd();
-		_cycle += 4;
+		if (!(_cycle % 70224))
+			_start_time = std::chrono::system_clock::now();
+		_cycle = (_cycle + 4) % 70224;
 		cadence();
 		if (_cycle % 256 == 0)
 			_RAM[REG_DIV]++;
