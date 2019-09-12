@@ -65,7 +65,7 @@ void			Emulateur::write_dma(uint8_t value)
 	if (value < 0x80 || value > 0xdf)
 	{
 		printf("SHOULDNT HAPPEN 2 [%hhx]\n", value);
-		throw InvalidWrite((value));
+		// throw InvalidWrite((value));
 	}
 	_RAM[0xff46] = value;
 	// if ((_RAM[REG_STAT] & 3) != 2)
@@ -155,7 +155,7 @@ bool		Emulateur::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
 	return (true);
 }
 
-bool		Emulateur::write_RAM_regs(uint8_t *addr, uint8_t value, int8_t size)
+bool		Emulateur::write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size)
 {
 	if (addr - _RAM  >= 0xA000 && addr - _RAM  < 0xC000)
 	{
