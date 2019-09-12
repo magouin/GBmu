@@ -74,13 +74,8 @@ void	Emulateur::print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_
 		p = bit_to_gray((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), pal_addr);
 		cx = obj->x - 8 + (obj->h_flip ? (7 - w) : w);
 		cy = obj->y - 16 + off;
-		// cy = obj->y - 16 + (h & ~7) + );
 		if (p != 0 && (obj->prio == 0 || search_bg_pix(cx, cy) == 0))
 			set_pixel(p, cx, cy);
-		// else {
-		// 	if (obj->v_flip && p != 0)
-		// 		printf("Can't display this offset -> %d\n", h);
-		// }
 		w++;
 	}
 }
@@ -139,6 +134,8 @@ uint8_t	Emulateur::search_bg_pix(int x, int y)
 {
 	uint32_t	color;
 
+	if (x < 0 || x >= GB_WINDOW_SIZE_X || y < 0 || y >= GB_WINDOW_SIZE_Y)
+		return (0);
 	color = _pixels_map[x + y * GB_WINDOW_SIZE_X];
 	return (gray_to_bit(color, 0xff47));
 }
@@ -194,13 +191,22 @@ void	Emulateur::print_objs_line(struct s_oam_obj **objs, int y)
 {
 	int x;
 	int max;
+	int nb;
+	struct s_oam_obj *obj;
 
 	x = 39;
+	nb = 0;
 	max = ((_RAM[REG_LCDC] & (1 << 2)) ? 16 : 8);
+	obj = (struct s_oam_obj *)(_RAM + 0xfe00);
 	while (x >= 0)
 	{
-		if (y >= objs[x]->y - 16 && y < (objs[x]->y - 16 + max))
-			print_obj_line(objs[x], y + 16 - objs[x]->y, max);
+		if (y >= obj[x].y - 16 && y < (obj[x].y - 16 + max))
+		{
+			print_obj_line(&obj[x], y + 16 - obj[x].y, max);
+			nb++;
+		}
+		if (nb == 10)
+			return ;
 		x--;
 	}
 }
@@ -210,7 +216,7 @@ void	Emulateur::update_lcd()
 	uint64_t				line_cycle;
 	uint8_t					ly;
 	static struct s_oam_obj	*objs[40];
-	static bool				init = false;
+	// static bool				init = false;
 
 	if (!(_RAM[REG_LCDC] & 0x80))
 	{
@@ -221,11 +227,11 @@ void	Emulateur::update_lcd()
 	ly = _lcd_cycle / 456;
 	if (line_cycle == 0)
 		mem_write(&_RAM[REG_LY], ly % 154, 1);
-	if (!init)
-	{
-		init = true;
-		sort_objs(objs);
-	}
+	// if (!init)
+	// {
+	// 	init = true;
+	// 	sort_objs(objs);
+	// }
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
@@ -258,7 +264,7 @@ void	Emulateur::update_lcd()
 			_RAM[REG_IF] |= (1 << 1);
 		_RAM[REG_IF] |= 1;
 	}
-	if (ly == 153 && line_cycle == 0)
-		sort_objs(objs);
+	// if (ly == 153 && line_cycle == 0)
+	// 	sort_objs(objs);
 	_lcd_cycle = (_lcd_cycle + 4) % 70224;
 }

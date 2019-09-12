@@ -2,6 +2,9 @@
 #include <ram_regs.hpp>
 #include <opcode.hpp>
 #include <op203.hpp>
+#include <dmg_bios.hpp>
+
+const uint8_t Emulateur::_bios[] = DMG_BIOS;
 
 Emulateur::Emulateur()
 {
@@ -55,17 +58,18 @@ void	Emulateur::print_regs(void)
 
 void	Emulateur::init_registers(void)
 {
-	regs.AF = 0x01B0; // Il faudra faire gaffe a A
-	regs.BC = 0x0013;
-	regs.DE = 0x00d8;	
-	regs.HL = 0x014d;
+	// regs.AF = 0x01B0; // Il faudra faire gaffe a A
+	// regs.BC = 0x0013;
+	// regs.DE = 0x00d8;	
+	// regs.HL = 0x014d;
 
-	// regs.AF = 0x1180; // cpu_instr
-	// regs.BC = 0x0000;
-	// regs.DE = 0x0008;
-	// regs.HL = 0x007c;
+	regs.AF = 0x1180; // cpu_instr
+	regs.BC = 0x0000;
+	regs.DE = 0x0008;
+	regs.HL = 0x007c;
 	regs.SP = 0xfffe;
-	regs.PC = 0x100;
+	regs.PC = 0x0100;
+	// regs.PC = 0x0000;
 	regs.IME = false;
 	regs.RAM_ENABLE = false;
 	regs.ROM_BANK = 1;
@@ -132,6 +136,7 @@ void Emulateur::emu_init()
 	_stop_status = false;
 	sdl_init();
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
+	// memcpy(_RAM, _bios, 0x100);
 	_frequency = 4194300; // Need to change if it is a CGB
 	init_registers();
 
@@ -143,12 +148,15 @@ void Emulateur::emu_init()
 	_interrupt_cycle = 0;
 
 	_test = 0;
-
+	_tima_delay_interrupt = false;
 }
 
 
 void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 {
+	_halt_status = false;
+	if (!regs.IME)
+		return ;
 	if (_interrupt_cycle == 0)
 		_interrupt_cycle = 5;
 	_interrupt_cycle--;
@@ -167,11 +175,6 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 
 void	Emulateur::interrupt(void)
 {
-	if (!regs.IME)
-	{
-		_halt_status = false;
-		return ;
-	}
 	if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
 		interrupt_func(0x0040, 1);
 	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
@@ -182,9 +185,6 @@ void	Emulateur::interrupt(void)
 		interrupt_func(0x0058, 8);
 	else if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
 		interrupt_func(0x0060, 16);
-	else
-		return ;
-	_halt_status = false;
 }
 
 const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
@@ -211,18 +211,22 @@ void	Emulateur::update_tima()
 
 	if (_RAM[REG_TAC] & 0x4)
 	{
+		if (_tima_delay_interrupt)
+		{
+			_tima_delay_interrupt = false;
+			_RAM[REG_TIMA] = _RAM[0xFF06];
+			_RAM[REG_IF] |= 4;
+			return ;
+		}
 		if (nb_tick == 0)
 			nb_tick = (1l << (num_to_byte[_RAM[REG_TAC] & 0x3]));
 		nb_tick -= 4;
 		if (nb_tick == 0)
 		{
-			if (_RAM[REG_TIMA] != 0xff)
-				_RAM[REG_TIMA]++;
-			else
-			{	
-				_RAM[REG_TIMA] = _RAM[0xFF06];
-				_RAM[REG_IF] |= 4;
-			}
+			printf("inc TIMA ! _cycle = %lld -- TAC = %x\n", _cycle, _RAM[REG_TAC] & 3);
+			if (_RAM[REG_TIMA] == 0xff)
+				_tima_delay_interrupt = true;
+			_RAM[REG_TIMA]++;
 		}
 	}
 }
