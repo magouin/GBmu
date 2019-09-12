@@ -90,7 +90,7 @@ class Emulateur {
 		std::string	_ROM;
 		std::string	_file_name;
 		std::string	_save_name;
-
+		static const uint8_t	_bios[];
 
 
 		uint64_t	_cycle;
@@ -127,10 +127,10 @@ class Emulateur {
 		uint16_t	_timer;
 		uint64_t	_timer_counter;
 		bool		_timer_status;
+		bool		_tima_delay_interrupt;
 
 		bool		_halt_status;
 		bool		_stop_status;
-
 		int			_test;
 
 		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
@@ -238,7 +238,7 @@ class Emulateur {
 		void		*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
 		void		*read_ROM_RAM_regs(uint8_t *addr);
 		bool		write_ROM_regs(uint8_t *addr, uint8_t value, int8_t sizek);
-		bool		write_RAM_regs(uint8_t *addr, uint8_t value, int8_t size);
+		bool		write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
 		void		*gb_mem(void *addr);
 
 		void		sdl_init();
