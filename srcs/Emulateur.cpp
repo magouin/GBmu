@@ -58,15 +58,15 @@ void	Emulateur::print_regs(void)
 
 void	Emulateur::init_registers(void)
 {
-	// regs.AF = 0x01B0; // Il faudra faire gaffe a A
-	// regs.BC = 0x0013;
-	// regs.DE = 0x00d8;	
-	// regs.HL = 0x014d;
+	regs.AF = 0x01B0; // Il faudra faire gaffe a A
+	regs.BC = 0x0013;
+	regs.DE = 0x00d8;	
+	regs.HL = 0x014d;
 
-	regs.AF = 0x1180; // cpu_instr
-	regs.BC = 0x0000;
-	regs.DE = 0x0008;
-	regs.HL = 0x007c;
+	// regs.AF = 0x1180; // cpu_instr
+	// regs.BC = 0x0000;
+	// regs.DE = 0x0008;
+	// regs.HL = 0x007c;
 	regs.SP = 0xfffe;
 	regs.PC = 0x0100;
 	// regs.PC = 0x0000;
@@ -166,7 +166,7 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 		regs.IME = false;
 		_RAM[REG_IF] &= ~iflag;
 		regs.SP -= 2;
-		*(uint16_t *)(_RAM + regs.SP) = regs.PC;
+		mem_write(_RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
 		if (_debug)
 			debug_mode();
@@ -175,15 +175,15 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 
 void	Emulateur::interrupt(void)
 {
-	if(_RAM[REG_IF] & 1 && _RAM[REG_IE] & 1) // V-Blank
+	if(_RAM[REG_IF] & _RAM[REG_IE] & 1) // V-Blank
 		interrupt_func(0x0040, 1);
-	else if(_RAM[REG_IF] & 2 && _RAM[REG_IE] & 2) // LCD STAT
+	else if(_RAM[REG_IF] & _RAM[REG_IE] & 2) // LCD STAT
 		interrupt_func(0x0048, 2);
-	else if(_RAM[REG_IF] & 4 && _RAM[REG_IE] & 4) // Timer
+	else if(_RAM[REG_IF] & _RAM[REG_IE] & 4) // Timer
 		interrupt_func(0x0050, 4);
-	else if(_RAM[REG_IF] & 8 && _RAM[REG_IE] & 8) // Serial
+	else if(_RAM[REG_IF] & _RAM[REG_IE] & 8) // Serial
 		interrupt_func(0x0058, 8);
-	else if(_RAM[REG_IF] & 16 && _RAM[REG_IE] & 16) // Joypad
+	else if(_RAM[REG_IF] & _RAM[REG_IE] & 16) // Joypad
 		interrupt_func(0x0060, 16);
 }
 
@@ -206,10 +206,12 @@ const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
 
 void	Emulateur::update_tima()
 {
-	const uint8_t			num_to_byte[4] = {10, 4, 6, 8};
-	static uint64_t			nb_tick = 0;
+	const uint16_t			num_to_byte[4] = {1024, 16, 64, 256};
+	static bool				last = 0;
+	bool					now;
 
-	if (_RAM[REG_TAC] & 0x4)
+	now = ((_RAM[REG_DIV] * 256) + (_cycle % 256)) % num_to_byte[_RAM[REG_TAC] & 0x3] && (_RAM[REG_TAC] & 0x4);
+	if (!now && last)
 	{
 		if (_tima_delay_interrupt)
 		{
@@ -218,17 +220,11 @@ void	Emulateur::update_tima()
 			_RAM[REG_IF] |= 4;
 			return ;
 		}
-		if (nb_tick == 0)
-			nb_tick = (1l << (num_to_byte[_RAM[REG_TAC] & 0x3]));
-		nb_tick -= 4;
-		if (nb_tick == 0)
-		{
-			printf("inc TIMA ! _cycle = %lld -- TAC = %x\n", _cycle, _RAM[REG_TAC] & 3);
-			if (_RAM[REG_TIMA] == 0xff)
-				_tima_delay_interrupt = true;
-			_RAM[REG_TIMA]++;
-		}
+		if (_RAM[REG_TIMA] == 0xff)
+			_tima_delay_interrupt = true;
+		_RAM[REG_TIMA]++;
 	}
+	last = now;
 }
 
 void	Emulateur::get_instr()
