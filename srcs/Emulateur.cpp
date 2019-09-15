@@ -1,4 +1,5 @@
 #include <Emulateur.hpp>
+#include <debugger.hpp>
 #include <ram_regs.hpp>
 #include <opcode.hpp>
 #include <op203.hpp>
@@ -10,7 +11,7 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _file_name(file), _debug(debug)
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom), _ROM(rom), _file_name(file), _debug(debug)
 {
 	std::cout << file << std::endl;
 	std::cout << file.find_last_of('.') << std::endl;
@@ -33,13 +34,21 @@ Emulateur &	Emulateur::operator=(const Emulateur & cp)
 	return (*this);
 }
 
-
+void	Emulateur::print_instr(void)
+{
+	if (_instr->nb_params == 0)
+		printf(_instr->mnemonic, NULL);
+	else if (_instr->nb_params == 1)
+		printf(_instr->mnemonic, mem_read(_RAM + regs.PC + 1, 1));
+	else if (_instr->nb_params == 2)
+		printf(_instr->mnemonic, mem_read(_RAM + regs.PC + 1, 2));
+}
 
 void	Emulateur::print_regs(void)
 {
 	int i;
 
-	i = 0;
+	i = -1;
 	printf("A: %02hhX  F: %02hhX  (AF: %04hX)\n", this->regs.A, this->regs.F, this->regs.AF);
 	printf("B: %02hhX  C: %02hhX  (BC: %04hX)\n", this->regs.B, this->regs.C, this->regs.BC);
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", this->regs.D, this->regs.E, this->regs.DE);
@@ -52,8 +61,10 @@ void	Emulateur::print_regs(void)
 	this->regs.F & FLAG_H ? printf("H") : printf("-");
 	this->regs.F & FLAG_CY ? printf("C") : printf("-");
 	printf("]\n");
-	if (regs.PC == 0xD821)
-		printf("INSTR = %s ||| A = %hhx ||| B = %hhx\n", _opcode[_RAM[regs.PC - 1]].mnemonic.c_str(), regs.A, regs.B);
+	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
+	while (++i < _instr->nb_params) printf("%02X", mem_read(_RAM + regs.PC + i, 1));
+	printf("%02X\t", mem_read(_RAM + regs.PC + i, 1));
+	print_instr();
 }
 
 void	Emulateur::init_registers(void)
@@ -149,6 +160,8 @@ void Emulateur::emu_init()
 
 	_test = 0;
 	_tima_delay_interrupt = false;
+
+	_isatty = isatty(0);
 }
 
 
@@ -234,6 +247,8 @@ void	Emulateur::get_instr()
 	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
+	if (_debug)
+		debug_mode();
 	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
 	{
@@ -252,11 +267,31 @@ void	Emulateur::get_instr()
 
 void	Emulateur::debug_mode()
 {
-	char c[11];
+	string			cmd;
+	vector<string>	param;
+	size_t			i;
 
 	print_regs();
-	if (!read(0, &c, 2))
+	if (_isatty)
+		printf("> ");
+	if (!std::getline (std::cin, cmd))
 		exit(0);
+	if (cmd.empty())
+		return ;
+	std::istringstream iss(cmd);
+	std::copy(std::istream_iterator<std::string>(iss),
+	std::istream_iterator<std::string>(),
+	std::back_inserter(param));
+	i = 0;
+	cout << param[0];
+	while (i < _deb_cmd.size() && _deb_cmd[i].cmd != param[0]) i++;
+	if (i == _deb_cmd.size())
+	{
+		printf("Command not found\n");
+		return ;
+	}
+	printf("EXEC\n");
+	_deb_cmd[i].f();
 }
 
 
@@ -278,8 +313,6 @@ void Emulateur::exec_instr()
 		if (_exec_current_instr)
 			_instr->f();
 		regs.F &= 0xf0;
-		if (_debug)
-			debug_mode();
 		_exec_current_instr = true;
 	}
 }
@@ -294,8 +327,6 @@ void	Emulateur::cadence()
 
 int		Emulateur::main_thread()
 {
-	if (_debug)
-		print_regs();
 	_lcd_cycle = 12;
 	while (true)
 	{

@@ -56,7 +56,7 @@ typedef std::function<void(void)> t_instr;
 
 struct s_instr_params {
 	uint8_t				opcode;
-	const std::string	mnemonic;
+	const char			*mnemonic;
 	uint8_t				nb_params;
 	struct s_flags		flags;
 	uint8_t				cycle_nb;
@@ -65,7 +65,7 @@ struct s_instr_params {
 
 struct s_cv_instr {
 	uint8_t				opcode;
-	const std::string	mnemonic;
+	const char			*mnemonic;
 	uint8_t				cycle_true;
 	uint8_t				cycle_false;
 	enum e_cond			condition;
