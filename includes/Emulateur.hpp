@@ -10,13 +10,12 @@ using namespace std;
 
 # include <strings.h>
 # include <string.h>
-# include <string>
-# include <iostream>
 # include <instructions.hpp>
 # include <Header.hpp>
 # include <thread>
 # include <sdl.hpp>
 # include <vector>
+# include <list>
 # include <SDL2/SDL.h>
 # include <csignal>
 # include <sys/stat.h>
@@ -27,11 +26,11 @@ using namespace std;
 # include <sys/uio.h>
 # include <unistd.h>
 # include <stdio.h>
-# include <string.h>
+
+#include <algorithm>
+#include <iterator>
 
 # include <registers.hpp>
-
-# include <Header.hpp>
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
@@ -71,6 +70,12 @@ enum e_tile_type
 	OBJ
 };
 
+enum e_nb_param {
+	ONE = 1,
+	TWO = 2,
+	THREE = 4
+};
+
 class Emulateur;
 
 struct s_ram_regs {
@@ -79,12 +84,25 @@ struct s_ram_regs {
 	void			(Emulateur::*write)(uint8_t value);
 };
 
+struct s_deb_cmd {
+	string			cmd;
+	uint8_t			nb_param;
+	void			(*f)();
+};
+
+struct s_break {
+	uint32_t		id;
+	uint16_t		addr;
+	bool			persist;
+};
+
 class Emulateur {
 	private:
 		const vector<struct s_ram_regs> _ram_regs;
 		const vector<struct s_instr_params> _op203;
 		const vector<struct s_instr_params> _opcode;
 		const vector<struct s_cv_instr> _cv_instrs;
+		const vector<struct s_deb_cmd> _deb_cmd;
 
 		const Header		_header;
 		std::string	_ROM;
@@ -92,6 +110,7 @@ class Emulateur {
 		std::string	_save_name;
 		static const uint8_t	_bios[];
 
+		list<struct s_break> breakpoints;
 
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
@@ -131,6 +150,7 @@ class Emulateur {
 
 		bool		_halt_status;
 		bool		_stop_status;
+		bool		_isatty;
 		int			_test;
 
 		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
@@ -179,6 +199,7 @@ class Emulateur {
 
 		void	get_instr();
 		void	debug_mode();
+		void	print_instr(void);
 
 		void	nop();
 		void	ld(struct s_param *p1, struct s_param *p2, int8_t inc, int size);
