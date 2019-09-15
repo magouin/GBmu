@@ -70,7 +70,10 @@ void			Emulateur::write_dma(uint8_t value)
 	_RAM[0xff46] = value;
 	// if ((_RAM[REG_STAT] & 3) != 2)
 	// 	return ;
-	memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
+	if (value < 0xa0 || value >= 0xc0)
+		memcpy(_RAM + 0xfe00, _RAM + value * 256, 40 * 4);
+	else
+		memcpy(_RAM + 0xfe00, _ram_bank + (value - 0xa0) * 256, 40 * 4);
 }
 
 void			Emulateur::write_tac(uint8_t value)
