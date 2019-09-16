@@ -4,7 +4,9 @@ SRC_NAME =	main.cpp \
 			Emulateur.cpp \
 			sdl.cpp \
 			lcd.cpp \
-			memory_controler.cpp
+			memory_controler.cpp \
+			init.cpp \
+			debugger.cpp
 
 INC_PATH = ./includes/
 OBJ_PATH = ./obj/

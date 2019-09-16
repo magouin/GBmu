@@ -87,13 +87,12 @@ struct s_ram_regs {
 struct s_deb_cmd {
 	string			cmd;
 	uint8_t			nb_param;
-	void			(*f)();
+	void			(Emulateur::*f)(vector<string> param);
 };
 
 struct s_break {
 	uint32_t		id;
 	uint16_t		addr;
-	bool			persist;
 };
 
 class Emulateur {
@@ -104,26 +103,26 @@ class Emulateur {
 		const vector<struct s_cv_instr> _cv_instrs;
 		const vector<struct s_deb_cmd> _deb_cmd;
 
-		const Header		_header;
-		std::string	_ROM;
-		std::string	_file_name;
-		std::string	_save_name;
+		const Header			_header;
+		std::string				_ROM;
+		std::string				_file_name;
+		std::string				_save_name;
 		static const uint8_t	_bios[];
 
-		list<struct s_break> breakpoints;
+		list<struct s_break>	_breakpoints;
+		uint32_t				_id_break;
+		bool					_step_by_step;
 
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
 
 		const s_instr_params	*_instr;
-		uint8_t		_current_instr_cycle;
-		uint8_t		_interrupt_cycle;
-		bool		_exec_current_instr;
-		bool		_debug;
+		uint8_t					_current_instr_cycle;
+		uint8_t					_interrupt_cycle;
+		bool					_exec_current_instr;
 
-		uint8_t		_RAM[0x10000];
-
-		uint8_t		*_external_ram;
+		uint8_t	_RAM[0x10000];
+		uint8_t	*_external_ram;
 
 		const uint8_t	*_rom_bank;
 		uint8_t			*_ram_bank;
@@ -318,6 +317,10 @@ class Emulateur {
 		void		print_window_line(int y);
 		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
+
+		bool		check_breakpoint();
+		void		cmd_breakpoint(vector<string> param);
+		void		cmd_continue(vector<string> param);
 
 
 	public:
