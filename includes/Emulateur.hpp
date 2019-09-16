@@ -29,6 +29,7 @@ using namespace std;
 
 #include <algorithm>
 #include <iterator>
+#include <regex>
 
 # include <registers.hpp>
 
@@ -112,6 +113,7 @@ class Emulateur {
 		list<struct s_break>	_breakpoints;
 		uint32_t				_id_break;
 		bool					_step_by_step;
+		bool					_debug_mode;
 
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
@@ -305,6 +307,7 @@ class Emulateur {
 		// static void	timer_thread(uint8_t *_RAM);
 		int			main_thread();
 		void		save();
+		void		quit();
 
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
@@ -319,9 +322,12 @@ class Emulateur {
 		void		print_objs_line(struct s_oam_obj **objs, int y);
 
 		bool		check_breakpoint();
+		bool		get_number(string param, uint16_t &addr);
 		void		cmd_breakpoint(vector<string> param);
 		void		cmd_continue(vector<string> param);
-
+		void		cmd_next(vector<string> param);
+		void		cmd_delete(vector<string> param);
+		void		cmd_quit(vector<string> param);
 
 	public:
 		static int create_main_thread(void *ptr);
