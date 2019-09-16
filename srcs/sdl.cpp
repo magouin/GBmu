@@ -108,6 +108,14 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 	}
 }
 
+void	Emulateur::quit()
+{
+	save();
+	if (_header.get_ram_size() > 0)
+		delete _external_ram;
+	exit(1); // TODO peut etre d'autres trucs a faire
+}
+
 void	Emulateur::save()
 {
 	ofstream myfile;
@@ -132,10 +140,7 @@ bool	Emulateur::update()
 			break;
 		case SDL_QUIT:
 			printf("Event SDL_QUIT\n");
-			save();
-			if (_header.get_ram_size() > 0)
-				delete _external_ram;
-			exit(1); // TODO PEUTETRE UN TRUC
+			quit();
 		default:
 			break;
 	}
