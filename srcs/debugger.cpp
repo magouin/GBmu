@@ -1,26 +1,41 @@
 #include <Emulateur.hpp>
 
-void	Emulateur::cmd_breakpoint(vector<string> param)
+bool	Emulateur::get_number(string param, uint16_t &addr)
 {
-	uint16_t	addr;
 	size_t		x = -1;
 	bool		hex = false;
 
-	if (param[1][0] == '0' && (param[1][1] == 'x' || param[1][1] == 'X'))
+	if (param[0] == '0' && (param[1] == 'x' || param[1] == 'X'))
 	{
 		hex = true;
 		x = 1;
 	}
-	while (++x < param[1].length())
-		if (!(std::isdigit(param[1][x]) || (hex && ((param[1][x] >= 'a' && param[1][x] <= 'f') || (param[1][x] >= 'A' && param[1][x] <= 'F')))))
+	while (++x < param.length())
+		if (!(std::isdigit(param[x]) || (hex && ((param[x] >= 'a' && param[x] <= 'f') || (param[x] >= 'A' && param[x] <= 'F')))))
 		{
 			printf("Parse Error\n");
-			return ;
+			return (false);
 		}
 	if (hex)
-		addr = std::stoul(param[1], nullptr, 16);
+		addr = std::stoul(param, nullptr, 16);
 	else
-		addr = (uint16_t)std::stoi(param[1]);
+		addr = (uint16_t)std::stoi(param);
+	return (true);
+}
+
+
+void	Emulateur::cmd_quit(vector<string> param)
+{
+	printf("QUITTING\n");
+	quit();
+}
+
+void	Emulateur::cmd_breakpoint(vector<string> param)
+{
+	uint16_t	addr;
+
+	if (!get_number(param[1], addr))
+		return ;
 	_breakpoints.push_front({_id_break, addr});
 	printf("Added breakpoint %d at 0x%04hX\n", _id_break, addr);
 	_id_break++;
@@ -45,6 +60,26 @@ bool	Emulateur::check_breakpoint()
 void	Emulateur::cmd_continue(vector<string> param)
 {
 	_step_by_step = false;
+	_debug_mode = false;
+}
+
+void	Emulateur::cmd_next(vector<string> param)
+{
+	_step_by_step = true;
+	_debug_mode = false;
+}
+
+void	Emulateur::cmd_delete(vector<string> param)
+{
+	uint16_t id;
+	list<s_break>::iterator it_b;
+	list<s_break>::iterator end_b;
+
+	it_b = _breakpoints.begin();
+	end_b = _breakpoints.end();
+	if (!get_number(param[1], id))
+		return ;
+	_breakpoints.remove_if([id](struct s_break b){ return b.id == id; });
 }
 
 void	Emulateur::print_instr(void)
@@ -83,23 +118,27 @@ void	Emulateur::print_regs(void)
 void	Emulateur::debug_mode()
 {
 	string			cmd;
+	static string	last;
 	vector<string>	param;
+	regex			regex("\\s+");
 	size_t			i;
 
 	print_regs();
-	while (_step_by_step)
+	_debug_mode = true;
+	while (_debug_mode)
 	{
 		if (_isatty)
 			printf("> ");
 		if (!std::getline (std::cin, cmd))
 			exit(0);
-		if (cmd.empty())
+		if (cmd.empty() && last.empty())
 			continue ;
-		istringstream	iss(cmd);
-		copy(istream_iterator<string>(iss),
-			istream_iterator<string>(), back_inserter(param));
+		if (cmd.empty())
+			cmd = last;
+   		std::copy( std::sregex_token_iterator(cmd.begin(), cmd.end(), regex, -1),
+              std::sregex_token_iterator(),
+              back_inserter(param));
 		i = 0;
-		std::cout << param[0];
 		while (i < _deb_cmd.size() && _deb_cmd[i].cmd != param[0]) i++;
 		if (i == _deb_cmd.size())
 			printf("Command not found\n");
@@ -107,5 +146,7 @@ void	Emulateur::debug_mode()
 			printf("Wrong number of arguments\n");
 		else
 			(this->*_deb_cmd[i].f)(param);
+		param.clear();
+		last = cmd;
 	}
 }
