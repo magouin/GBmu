@@ -1,10 +1,10 @@
 #ifndef DEBUGGER_HPP
 # define DEBUGGER_HPP
 # define DEB_CMD \
-{"b", TWO, NULL},\
-{"break", TWO, NULL},\
-{"c", ONE, NULL},\
-{"continue", ONE, NULL},\
+{"b", TWO, &Emulateur::cmd_breakpoint},\
+{"break", TWO, &Emulateur::cmd_breakpoint},\
+{"c", ONE, &Emulateur::cmd_continue},\
+{"continue", ONE, &Emulateur::cmd_continue},\
 {"d", TWO, NULL},\
 {"delete", TWO, NULL},\
 {"h", ONE, NULL},\
