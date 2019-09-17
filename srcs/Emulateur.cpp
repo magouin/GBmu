@@ -16,6 +16,7 @@ Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({
 	std::cout << file << std::endl;
 	std::cout << file.find_last_of('.') << std::endl;
 	_save_name = file.substr(0, file.find_last_of('.')) + ".sav";
+	sdl_init();
 	// std::cout << _save_file << std::endl;
 }
 
@@ -50,8 +51,8 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 		regs.SP -= 2;
 		mem_write(_RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
-		if (_step_by_step || check_breakpoint())
-			debug_mode();
+		if (_step_by_step || check_breakpoint()) debug_mode();
+		if (_trace) {_trace--; print_trace();}
 	}
 }
 
@@ -116,8 +117,8 @@ void	Emulateur::get_instr()
 	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
-	if (_step_by_step || check_breakpoint())
-		debug_mode();
+	if (_step_by_step || check_breakpoint()) debug_mode();
+	if (_trace) {_trace--; print_trace();}
 	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
 	{
@@ -166,9 +167,10 @@ void	Emulateur::cadence()
 
 int		Emulateur::main_thread()
 {
-	_lcd_cycle = 12;
 	while (true)
 	{
+		if (_reset)
+			emu_init();
 		update_tima();
 		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
@@ -194,8 +196,8 @@ int Emulateur::create_main_thread(void *ptr)
 
 void	Emulateur::emu_start()
 {
-	emu_init();
 	setvbuf(stdout, NULL, _IONBF, 0);
+	emu_init();
 	_main_thread = SDL_CreateThread(&Emulateur::create_main_thread, "main_thread", (void *)this);
 	while (true)
 		update();

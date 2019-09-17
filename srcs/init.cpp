@@ -78,15 +78,10 @@ void Emulateur::emu_init()
 	_input.p15 = 0xff;
 	_halt_status = false;
 	_stop_status = false;
-	sdl_init();
 	memcpy(_RAM, _ROM.c_str(), 0x8000);
 	// memcpy(_RAM, _bios, 0x100);
 	_frequency = 4194300; // Need to change if it is a CGB
 	init_registers();
-
-	_timer = 0; 
-	_timer_counter = 0; 
-	_timer_status = true;
 
 	_lcd_cycle = 0;
 	_interrupt_cycle = 0;
@@ -96,5 +91,8 @@ void Emulateur::emu_init()
 
 	_isatty = isatty(0);
 	_id_break = 0;
+	_lcd_cycle = 12;
+	_reset = false;
+	_trace = 0;
 }
 

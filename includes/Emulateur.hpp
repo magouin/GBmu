@@ -85,15 +85,23 @@ struct s_ram_regs {
 	void			(Emulateur::*write)(uint8_t value);
 };
 
+typedef std::function<void(vector<string> param)> t_deb_func;
+
 struct s_deb_cmd {
 	string			cmd;
 	uint8_t			nb_param;
-	void			(Emulateur::*f)(vector<string> param);
+	t_deb_func		f;
 };
 
 struct s_break {
 	uint32_t		id;
 	uint16_t		addr;
+};
+
+struct s_watch {
+	uint32_t		id;
+	uint16_t		addr;
+	enum e_right	right;
 };
 
 class Emulateur {
@@ -110,6 +118,7 @@ class Emulateur {
 		std::string				_save_name;
 		static const uint8_t	_bios[];
 
+		list<struct s_watch>	_watchpoints;
 		list<struct s_break>	_breakpoints;
 		uint32_t				_id_break;
 		bool					_step_by_step;
@@ -136,23 +145,17 @@ class Emulateur {
 		SDL_Surface*	_surface;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
 
-		SDL_Thread		*_cpu_thread;
 		SDL_Thread		*_main_thread;
-		SDL_Thread		*_lcd_thread;
-		SDL_Thread		*_timer_thread;
-		SDL_Thread		*_tima_thread;
 
-		uint16_t	_cpu_tick_counter;
 		uint32_t	_frequency; // in Hetz
-		uint16_t	_timer;
-		uint64_t	_timer_counter;
-		bool		_timer_status;
 		bool		_tima_delay_interrupt;
 
 		bool		_halt_status;
 		bool		_stop_status;
 		bool		_isatty;
+		bool		_reset;
 		int			_test;
+		uint16_t	_trace;
 
 		struct s_param	p_A = {REG, &regs.A, NULL, UNSIGN, false, 1, 1};
 		struct s_param	p_B = {REG, &regs.B, NULL, UNSIGN, false, 1, 1};
@@ -321,13 +324,25 @@ class Emulateur {
 		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
 
+		bool		check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size);
 		bool		check_breakpoint();
-		bool		get_number(string param, uint16_t &addr);
+		bool		check_cpu_reg(string param, uint16_t * &addr, uint16_t &val);
+		bool		get_number(string param, uint16_t * &addr, uint16_t &val);
+		void		print_trace();
 		void		cmd_breakpoint(vector<string> param);
 		void		cmd_continue(vector<string> param);
 		void		cmd_next(vector<string> param);
 		void		cmd_delete(vector<string> param);
 		void		cmd_quit(vector<string> param);
+		void		cmd_help(vector<string> param);
+		void		cmd_info(vector<string> param);
+		void		cmd_print(vector<string> param, uint8_t base);
+		void		cmd_reset(vector<string> param);
+		void		cmd_read(vector<string> param, uint8_t size);
+		void		cmd_trace(vector<string> param);
+		void		cmd_watchpoint(vector<string> param, enum e_right right);
+		void		cmd_write(vector<string> param, uint8_t size);
+		void		cmd_examine(vector<string> param, uint8_t size);
 
 	public:
 		static int create_main_thread(void *ptr);
