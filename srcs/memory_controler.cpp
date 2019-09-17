@@ -209,6 +209,7 @@ uint16_t	Emulateur::mem_read(void *addr, int8_t size)
 {
 	void	*read_addr;
 
+	check_watchpoint((uint8_t *)addr, RD, size);
 	if ((read_addr = read_ROM_RAM_regs((uint8_t*)addr))) ;
 	else if ((read_addr = cpu_regs(addr))) ;
 	else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
@@ -225,6 +226,7 @@ void		Emulateur::mem_write(void *addr, uint16_t value, int8_t size)
 {
 	void	*write_addr;
 
+	check_watchpoint((uint8_t *)addr, WR, size);
 	if ((write_addr = cpu_regs(addr))) ;
 	else if (write_ROM_regs((uint8_t*)addr, value, size))
 		return ;
