@@ -2,41 +2,41 @@
 # define DEBUGGER_HPP
 
 # define DEB_CMD \
-{"b", TWO, std::bind(&Emulateur::cmd_breakpoint, this, placeholders::_1)},\
-{"break", TWO, std::bind(&Emulateur::cmd_breakpoint, this, placeholders::_1)},\
-{"c", ONE, std::bind(&Emulateur::cmd_continue, this, placeholders::_1)},\
-{"continue", ONE, std::bind(&Emulateur::cmd_continue, this, placeholders::_1)},\
-{"d", TWO, std::bind(&Emulateur::cmd_delete, this, placeholders::_1)},\
-{"delete", TWO, std::bind(&Emulateur::cmd_delete, this, placeholders::_1)},\
-{"h", ONE, std::bind(&Emulateur::cmd_help, this, placeholders::_1)},\
-{"help", ONE, std::bind(&Emulateur::cmd_help, this, placeholders::_1)},\
-{"i", ONE, std::bind(&Emulateur::cmd_info, this, placeholders::_1)},\
-{"info", ONE, std::bind(&Emulateur::cmd_info, this, placeholders::_1)},\
-{"n", ONE, std::bind(&Emulateur::cmd_next, this, placeholders::_1)},\
-{"next", ONE, std::bind(&Emulateur::cmd_next, this, placeholders::_1)},\
-{"p", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 10)},\
-{"p/t", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 2)},\
-{"p/x", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 16)},\
-{"print", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 10)},\
-{"print/t", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 2)},\
-{"print/x", TWO, std::bind(&Emulateur::cmd_print, this, placeholders::_1, 16)},\
-{"q", ONE, std::bind(&Emulateur::cmd_quit, this, placeholders::_1)},\
-{"quit", ONE, std::bind(&Emulateur::cmd_quit, this, placeholders::_1)},\
-{"reset", ONE, std::bind(&Emulateur::cmd_reset, this, placeholders::_1)},\
-{"r/1", TWO, std::bind(&Emulateur::cmd_read, this, placeholders::_1, 1)},\
-{"r/2", TWO, std::bind(&Emulateur::cmd_read, this, placeholders::_1, 2)},\
-{"r/4", TWO, std::bind(&Emulateur::cmd_read, this, placeholders::_1, 4)},\
-{"status", ONE, std::bind(&Emulateur::cmd_info, this, placeholders::_1)},\
-{"trace", TWO, std::bind(&Emulateur::cmd_trace, this, placeholders::_1)},\
-{"w", TWO, std::bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RDWR)},\
-{"w/1", THREE, std::bind(&Emulateur::cmd_write, this, placeholders::_1, 1)},\
-{"w/2", THREE, std::bind(&Emulateur::cmd_write, this, placeholders::_1, 2)},\
-{"watch", TWO, std::bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RDWR)},\
-{"watch/r", TWO, std::bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RD)},\
-{"watch/w", TWO, std::bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, WR)},\
-{"x/1", TWO | THREE, NULL},\
-{"x/2", TWO | THREE, NULL},\
-{"x/4", TWO | THREE, NULL}
+{"b", TWO, bind(&Emulateur::cmd_breakpoint, this, placeholders::_1)},\
+{"break", TWO, bind(&Emulateur::cmd_breakpoint, this, placeholders::_1)},\
+{"c", ONE, bind(&Emulateur::cmd_continue, this, placeholders::_1)},\
+{"continue", ONE, bind(&Emulateur::cmd_continue, this, placeholders::_1)},\
+{"d", TWO, bind(&Emulateur::cmd_delete, this, placeholders::_1)},\
+{"delete", TWO, bind(&Emulateur::cmd_delete, this, placeholders::_1)},\
+{"h", ONE, bind(&Emulateur::cmd_help, this, placeholders::_1)},\
+{"help", ONE, bind(&Emulateur::cmd_help, this, placeholders::_1)},\
+{"i", ONE, bind(&Emulateur::cmd_info, this, placeholders::_1)},\
+{"info", ONE, bind(&Emulateur::cmd_info, this, placeholders::_1)},\
+{"n", ONE, bind(&Emulateur::cmd_next, this, placeholders::_1)},\
+{"next", ONE, bind(&Emulateur::cmd_next, this, placeholders::_1)},\
+{"p", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 10)},\
+{"p/t", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 2)},\
+{"p/x", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 16)},\
+{"print", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 10)},\
+{"print/t", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 2)},\
+{"print/x", TWO, bind(&Emulateur::cmd_print, this, placeholders::_1, 16)},\
+{"q", ONE, bind(&Emulateur::cmd_quit, this, placeholders::_1)},\
+{"quit", ONE, bind(&Emulateur::cmd_quit, this, placeholders::_1)},\
+{"reset", ONE, bind(&Emulateur::cmd_reset, this, placeholders::_1)},\
+{"r/1", TWO, bind(&Emulateur::cmd_read, this, placeholders::_1, 1)},\
+{"r/2", TWO, bind(&Emulateur::cmd_read, this, placeholders::_1, 2)},\
+{"r/4", TWO, bind(&Emulateur::cmd_read, this, placeholders::_1, 4)},\
+{"status", ONE, bind(&Emulateur::cmd_info, this, placeholders::_1)},\
+{"trace", TWO, bind(&Emulateur::cmd_trace, this, placeholders::_1)},\
+{"w", TWO, bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RDWR)},\
+{"w/1", THREE, bind(&Emulateur::cmd_write, this, placeholders::_1, 1)},\
+{"w/2", THREE, bind(&Emulateur::cmd_write, this, placeholders::_1, 2)},\
+{"watch", TWO, bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RDWR)},\
+{"watch/r", TWO, bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, RD)},\
+{"watch/w", TWO, bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, WR)},\
+{"x/1", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 1)},\
+{"x/2", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 2)},\
+{"x/4", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 4)}
 
 # define USAGE "Generic commands:\n\
 b          Set a breakpoint\n\

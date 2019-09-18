@@ -190,15 +190,39 @@ bool	Emulateur::check_breakpoint()
 
 void	Emulateur::cmd_examine(vector<string> param, uint8_t size)
 {
-	uint16_t *addr;
-	uint16_t val1;
-	uint16_t val2;
+	uint16_t	*addr;
+	uint16_t	val1;
+	uint16_t	val2;
+	uint8_t		*data;
+	uint16_t	x;
 
-	if (!get_number(param[2], addr, val1))
+	if (!get_number(param[1], addr, val1))
 		return ;
-	if (!get_number(param[1], addr, val2))
-		return ;
-
+	if (param.size() == 3)
+	{
+		if (!get_number(param[2], addr, val2))
+			return ;
+	}
+	else
+		val2 = 16 / size;
+	data = _RAM + val1;
+	x = 0;
+	while (x < val2)
+	{
+		if (x % (16 / size) == 0)
+			printf("0x%04X:", (uint16_t)(data - _RAM));
+		if (size == 1)
+			printf(" %02hhX", *data);
+		else if (size == 2)
+			printf(" %04hX", *(uint16_t *)data);
+		else
+			printf(" %08X", *(uint32_t *)data);
+		x++;
+		if (x % (16 / size) == 0 && x != val2)
+			printf("\n");
+		data += size;
+	}
+	printf("\n");
 }
 
 
