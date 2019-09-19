@@ -30,8 +30,8 @@ using namespace std;
 # include <string.h>
 
 # include <registers.hpp>
-
 # include <Header.hpp>
+# include <Memory_controller.hpp>
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
@@ -58,36 +58,38 @@ struct __attribute__((__packed__)) s_oam_obj
 	bool				prio : 1;
 };
 
-enum e_right {
-	PROHIB = 0,
-	RD = 1,
-	WR = 2,
-	RDWR = 3
-};
-
 enum e_tile_type
 {
 	BG,
 	OBJ
 };
 
-class Emulateur;
-
-struct s_ram_regs {
-	enum e_right	right;
-	void			(Emulateur::*read)();
-	void			(Emulateur::*write)(uint8_t value);
-};
-
 class Emulateur {
+
+	public:
+		static int create_main_thread(void *ptr);
+
+		// For memory_controller
+		uint8_t		_RAM[0x10000];
+		uint8_t		*_external_ram;
+		struct user_input	_input;
+		uint8_t			*_ram_bank;
+		struct s_regs 	regs;
+		const uint8_t	*_rom_bank;
+		std::string	_ROM;
+
+		Emulateur(std::string file, std::string rom, bool debug=false);
+		~Emulateur(/* args */);
+		Emulateur & operator=(const Emulateur & cp);
+
+		void	emu_start();
+
 	private:
-		const vector<struct s_ram_regs> _ram_regs;
 		const vector<struct s_instr_params> _op203;
 		const vector<struct s_instr_params> _opcode;
 		const vector<struct s_cv_instr> _cv_instrs;
 
 		const Header		_header;
-		std::string	_ROM;
 		std::string	_file_name;
 		std::string	_save_name;
 		static const uint8_t	_bios[];
@@ -102,14 +104,8 @@ class Emulateur {
 		bool		_exec_current_instr;
 		bool		_debug;
 
-		uint8_t		_RAM[0x10000];
-
-		uint8_t		*_external_ram;
-
-		const uint8_t	*_rom_bank;
-		uint8_t			*_ram_bank;
-
-		struct user_input	_input;
+		const struct s_cartridge *_cartridge;
+		Memory_controller *_Mem_ctrl;
 
 		SDL_Window*		_window;
 		SDL_Renderer*	_renderer;
@@ -174,8 +170,7 @@ class Emulateur {
 
 		void	set_rom(std::string rom);
 		void	print_regs(void);
-
-		struct s_regs regs;
+		Memory_controller 	*get_memory_controller();
 
 		void	get_instr();
 		void	debug_mode();
@@ -297,43 +292,6 @@ class Emulateur {
 		void		print_window_line(int y);
 		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
-
-
-	public:
-		static int create_main_thread(void *ptr);
-
-		class InvalidRead : public std::exception
-		{
-			public:
-			short addr;
-			stringstream s;
-			InvalidRead(short ad) throw() : addr(ad) {
-				s << "Invalid Read at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
-			}
-			const char *what() const throw ()
-			{
-				return (s.str().c_str());
-			}
-		};
-		class InvalidWrite : public std::exception
-		{
-			public:
-			short addr;
-			stringstream s;
-			InvalidWrite(short ad) throw() : addr(ad) {
-				s << "Invalid Write at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
-			}
-			const char *what() const throw ()
-			{
-				return (s.str().c_str());
-			}
-		};
-
-		Emulateur(std::string file, std::string rom, bool debug=false);
-		~Emulateur(/* args */);
-		Emulateur & operator=(const Emulateur & cp);
-
-		void	emu_start();
 
 };
 

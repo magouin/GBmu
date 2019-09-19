@@ -7,11 +7,12 @@
 # include <cstdint>
 
 # include <inline_utils.hpp>
+# include <cartridge.hpp>
 
 using namespace std;
 
 class Header {
-	static const string cartridge_types[0xFF + 1];
+	static const struct s_cartridge cartridge_types[0xFF];
 
 	private:
 		struct __attribute__((__packed__)) s_header
@@ -45,6 +46,7 @@ class Header {
 		void read_instr(size_t offset);
 		Header & operator=(const Header & cp);
 		size_t get_ram_size(void) const;
+		const struct s_cartridge *get_cartridge_type() const;
 };
 
 #endif
