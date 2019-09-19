@@ -27,11 +27,12 @@ using namespace std;
 # include <unistd.h>
 # include <stdio.h>
 
-#include <algorithm>
-#include <iterator>
-#include <regex>
+# include <algorithm>
+# include <iterator>
+# include <regex>
 
 # include <registers.hpp>
+# include <Memory_controller.hpp>
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
@@ -58,13 +59,6 @@ struct __attribute__((__packed__)) s_oam_obj
 	bool				prio : 1;
 };
 
-enum e_right {
-	PROHIB = 0,
-	RD = 1,
-	WR = 2,
-	RDWR = 3
-};
-
 enum e_tile_type
 {
 	BG,
@@ -75,14 +69,6 @@ enum e_nb_param {
 	ONE = 1,
 	TWO = 2,
 	THREE = 4
-};
-
-class Emulateur;
-
-struct s_ram_regs {
-	enum e_right	right;
-	void			(Emulateur::*read)();
-	void			(Emulateur::*write)(uint8_t value);
 };
 
 typedef std::function<void(vector<string> param)> t_deb_func;
@@ -105,15 +91,33 @@ struct s_watch {
 };
 
 class Emulateur {
+	public:
+		static int create_main_thread(void *ptr);
+
+		// For memory_controller
+		uint8_t				_RAM[0x10000];
+		uint8_t				*_external_ram;
+		struct user_input	_input;
+		uint8_t				*_ram_bank;
+		struct s_regs 		regs;
+		const uint8_t		*_rom_bank;
+		std::string			_ROM;
+
+		Emulateur(std::string file, std::string rom, bool debug=false);
+		~Emulateur(/* args */);
+		Emulateur & operator=(const Emulateur & cp);
+
+		void	emu_start();
+		bool	check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size);
+		bool	check_breakpoint();
+
 	private:
-		const vector<struct s_ram_regs> _ram_regs;
-		const vector<struct s_instr_params> _op203;
-		const vector<struct s_instr_params> _opcode;
-		const vector<struct s_cv_instr> _cv_instrs;
-		const vector<struct s_deb_cmd> _deb_cmd;
+		const vector<struct s_instr_params>	_op203;
+		const vector<struct s_instr_params>	_opcode;
+		const vector<struct s_cv_instr> 	_cv_instrs;
+		const vector<struct s_deb_cmd>		_deb_cmd;
 
 		const Header			_header;
-		std::string				_ROM;
 		std::string				_file_name;
 		std::string				_save_name;
 		static const uint8_t	_bios[];
@@ -128,17 +132,14 @@ class Emulateur {
 		uint32_t	_lcd_cycle;
 
 		const s_instr_params	*_instr;
-		uint8_t					_current_instr_cycle;
-		uint8_t					_interrupt_cycle;
-		bool					_exec_current_instr;
 
-		uint8_t	_RAM[0x10000];
-		uint8_t	*_external_ram;
+		uint8_t		_current_instr_cycle;
+		uint8_t		_interrupt_cycle;
+		bool		_exec_current_instr;
+		bool		_debug;
 
-		const uint8_t	*_rom_bank;
-		uint8_t			*_ram_bank;
-
-		struct user_input	_input;
+		const struct s_cartridge 	&_cartridge;
+		Memory_controller 			&_MBC;
 
 		SDL_Window*		_window;
 		SDL_Renderer*	_renderer;
@@ -189,7 +190,6 @@ class Emulateur {
 		Emulateur();
 
 		void	emu_init();
-
 		const struct s_cv_instr *get_cv_infos(uint8_t opcode) const;
 		void exec_instr();
 		void update_lcd();
@@ -198,8 +198,7 @@ class Emulateur {
 
 		void	set_rom(std::string rom);
 		void	print_regs(void);
-
-		struct s_regs regs;
+		Memory_controller 	&get_memory_controller();
 
 		void	get_instr();
 		void	debug_mode();
@@ -256,8 +255,6 @@ class Emulateur {
 		void		init_registers(void);
 		bool		check_rules(enum e_cond cond);
 
-		uint16_t	mem_read(void *addr, int8_t size);
-		void		mem_write(void *addr, uint16_t value, int8_t size);
 		void		*cpu_regs(void *addr);
 		void		*read_gb_regs(uint8_t *addr);
 		void		*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
@@ -324,8 +321,6 @@ class Emulateur {
 		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
 		void		print_objs_line(struct s_oam_obj **objs, int y);
 
-		bool		check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size);
-		bool		check_breakpoint();
 		bool		check_cpu_reg(string param, uint16_t * &addr, uint16_t &val);
 		bool		get_number(string param, uint16_t * &addr, uint16_t &val);
 		void		print_trace();
@@ -343,42 +338,6 @@ class Emulateur {
 		void		cmd_watchpoint(vector<string> param, enum e_right right);
 		void		cmd_write(vector<string> param, uint8_t size);
 		void		cmd_examine(vector<string> param, uint8_t size);
-
-	public:
-		static int create_main_thread(void *ptr);
-
-		class InvalidRead : public std::exception
-		{
-			public:
-			short addr;
-			stringstream s;
-			InvalidRead(short ad) throw() : addr(ad) {
-				s << "Invalid Read at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
-			}
-			const char *what() const throw ()
-			{
-				return (s.str().c_str());
-			}
-		};
-		class InvalidWrite : public std::exception
-		{
-			public:
-			short addr;
-			stringstream s;
-			InvalidWrite(short ad) throw() : addr(ad) {
-				s << "Invalid Write at 0x" << std::setfill('0') << std::setw(4) << std::hex << addr << endl;
-			}
-			const char *what() const throw ()
-			{
-				return (s.str().c_str());
-			}
-		};
-
-		Emulateur(std::string file, std::string rom, bool debug=false);
-		~Emulateur(/* args */);
-		Emulateur & operator=(const Emulateur & cp);
-
-		void	emu_start();
 
 };
 

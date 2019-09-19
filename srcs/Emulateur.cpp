@@ -1,17 +1,16 @@
 #include <Emulateur.hpp>
 #include <debugger.hpp>
-#include <ram_regs.hpp>
 #include <opcode.hpp>
 #include <op203.hpp>
 #include <dmg_bios.hpp>
 
 const uint8_t Emulateur::_bios[] = DMG_BIOS;
 
-Emulateur::Emulateur()
+Emulateur::Emulateur(): _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom), _ROM(rom), _file_name(file), _step_by_step(debug)
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ROM(rom), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom), _file_name(file), _step_by_step(debug), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 	std::cout << file << std::endl;
 	std::cout << file.find_last_of('.') << std::endl;
@@ -20,7 +19,7 @@ Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({
 	// std::cout << _save_file << std::endl;
 }
 
-Emulateur::Emulateur(const Emulateur & cp)
+Emulateur::Emulateur(const Emulateur & cp):  _cartridge(cp._cartridge), _MBC(cp._MBC)
 {
 	(void)cp;
 }
@@ -49,7 +48,7 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 		regs.IME = false;
 		_RAM[REG_IF] &= ~iflag;
 		regs.SP -= 2;
-		mem_write(_RAM + regs.SP, regs.PC, 2);
+		_MBC.mem_write(_RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
 		if (_step_by_step || check_breakpoint()) debug_mode();
 		if (_trace) {_trace--; print_trace();}
@@ -114,9 +113,9 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
+	_instr = &_opcode[_MBC.mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
-		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
+		_instr = &_op203[_MBC.mem_read(_RAM + regs.PC + 1, 1)];
 	if (_step_by_step || check_breakpoint()) debug_mode();
 	if (_trace) {_trace--; print_trace();}
 	regs.PC += 1 + _instr->nb_params;
