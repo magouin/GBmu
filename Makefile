@@ -1,10 +1,16 @@
+MEM_CTRL_PATH = Memory_controller
+
 SRC_NAME =	main.cpp \
+			$(MEM_CTRL_PATH)/Memory_controller.cpp \
+			$(MEM_CTRL_PATH)/Memory_controller_MBC1.cpp \
+			$(MEM_CTRL_PATH)/Memory_controller_MBC2.cpp \
+			$(MEM_CTRL_PATH)/Memory_controller_MBC3.cpp \
+			$(MEM_CTRL_PATH)/Memory_controller_MBC5.cpp \
 			Header.cpp \
 			instructions.cpp \
 			Emulateur.cpp \
 			sdl.cpp \
 			lcd.cpp \
-			memory_controler.cpp \
 			init.cpp \
 			debugger.cpp
 
@@ -51,6 +57,8 @@ $(SDL2):
 
 $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
 	@mkdir $(OBJ_PATH) 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/$(MEM_CTRL_PATH) 2> /dev/null || echo "" > /dev/null
+
 	$(CC) $(CFLAGS) $(DFLAGS) $(INC) -o $@ -c $<
 
 $(NAME) : $(OBJ)

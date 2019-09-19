@@ -58,11 +58,30 @@ void	Emulateur::init_registers(void)
 	_RAM[REG_IE] = 0x00; // IE
 }
 
+Memory_controller 	&Emulateur::get_memory_controller() {
+	if (_cartridge.type == CT_ROM)
+		return (*new Memory_controller_MBC1(this));
+	else if (_cartridge.type == CT_MBC1)
+		return (*new Memory_controller_MBC1(this));
+	else if (_cartridge.type == CT_MBC2)
+		return (*new Memory_controller_MBC2(this));
+	else if (_cartridge.type == CT_MBC3)
+		return (*new Memory_controller_MBC3(this));
+	else if (_cartridge.type == CT_MBC5)
+		return (*new Memory_controller_MBC5(this));
+	else {
+		printf("Cartridge [%s] not supported", _cartridge.to_str.c_str());
+		exit(EXIT_FAILURE);
+	}
+}
+
 void Emulateur::emu_init()
 {
 	std::ifstream fs;
 
 	_external_ram = (_header.get_ram_size() > 0) ? new uint8_t[_header.get_ram_size()] : _RAM + 0xa000;
+	// _cartridge = _header.get_cartridge_type();
+	// _MBC = get_memory_controller();
 	fs.open (_save_name, std::fstream::in | ios::binary);
 	if (fs.is_open())
 	{

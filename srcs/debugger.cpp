@@ -22,7 +22,7 @@ bool	Emulateur::check_cpu_reg(string param, uint16_t * &addr, uint16_t &val)
 			if (deref)
 			{
 				addr = (uint16_t *)(_RAM + val);
-				val = mem_read(addr, 2);
+				val = _MBC.mem_read(addr, 2);
 			}
 			return (true);
 		}
@@ -38,8 +38,8 @@ void	Emulateur::print_trace()
 	i = -1;
 	printf("A: %02hhX F: %02hhX B: %02hhX C: %02hhX D: %02hhX E: %02hhX H: %02hhX L: %02hhX SP: %04X PC: ", regs.A, regs.F, regs.B, regs.C, regs.D, regs.E, regs.H, regs.L, regs.SP);
 	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
-	while (++i < _instr->nb_params) printf("%02X", mem_read(_RAM + regs.PC + i, 1));
-	printf("%02X: ", mem_read(_RAM + regs.PC + i, 1));
+	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
+	printf("%02X: ", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	print_instr();
 	if (_trace == 0)
 	{
@@ -77,7 +77,7 @@ bool	Emulateur::get_number(string param, uint16_t * &addr, uint16_t &val)
 	if (deref)
 	{
 		addr = (uint16_t *)(_RAM + val);
-		val = mem_read(addr, 2);
+		val = _MBC.mem_read(addr, 2);
 	}
 	return (true);
 }
@@ -238,7 +238,7 @@ void	Emulateur::cmd_write(vector<string> param, uint8_t size)
 		return ;
 	if (!addr)
 		addr = (uint16_t *)(_RAM + val2);
-	mem_write(addr, val1, size);
+	_MBC.mem_write(addr, val1, size);
 }
 
 void	Emulateur::cmd_read(vector<string> param, uint8_t size)
@@ -249,11 +249,11 @@ void	Emulateur::cmd_read(vector<string> param, uint8_t size)
 	if (!get_number(param[1], addr, val))
 		return ;
 	if (size == 1)
-		printf(" 0x%02hhX\n", (uint8_t)mem_read(_RAM + val, 1));
+		printf(" 0x%02hhX\n", (uint8_t)_MBC.mem_read(_RAM + val, 1));
 	else if (size == 2)
-		printf(" 0x%04hX\n", mem_read(_RAM + val, 2));
+		printf(" 0x%04hX\n", _MBC.mem_read(_RAM + val, 2));
 	else if (size == 4)
-		printf(" 0x%04hX%04hX\n", mem_read(_RAM + val + 2, 2), mem_read(_RAM + val, 2));
+		printf(" 0x%04hX%04hX\n", _MBC.mem_read(_RAM + val + 2, 2), _MBC.mem_read(_RAM + val, 2));
 }
 
 void	Emulateur::cmd_reset(vector<string> param)
@@ -294,9 +294,9 @@ void	Emulateur::print_instr(void)
 	if (_instr->nb_params == 0)
 		printf(_instr->mnemonic, NULL);
 	else if (_instr->nb_params == 1)
-		printf(_instr->mnemonic, mem_read(_RAM + regs.PC + 1, 1));
+		printf(_instr->mnemonic, _MBC.mem_read(_RAM + regs.PC + 1, 1));
 	else if (_instr->nb_params == 2)
-		printf(_instr->mnemonic, mem_read(_RAM + regs.PC + 1, 2));
+		printf(_instr->mnemonic, _MBC.mem_read(_RAM + regs.PC + 1, 2));
 }
 
 void	Emulateur::print_regs(void)
@@ -317,8 +317,8 @@ void	Emulateur::print_regs(void)
 	regs.CY ? printf("C") : printf("-");
 	printf("]\n");
 	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
-	while (++i < _instr->nb_params) printf("%02X", mem_read(_RAM + regs.PC + i, 1));
-	printf("%02X\t", mem_read(_RAM + regs.PC + i, 1));
+	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
+	printf("%02X\t", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	print_instr();
 }
 

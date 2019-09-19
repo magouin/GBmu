@@ -226,7 +226,7 @@ void	Emulateur::update_lcd()
 	line_cycle = _lcd_cycle % 456;
 	ly = _lcd_cycle / 456;
 	if (line_cycle == 0)
-		mem_write(&_RAM[REG_LY], ly % 154, 1);
+		_MBC.mem_write(&_RAM[REG_LY], ly % 154, 1);
 	// if (!init)
 	// {
 	// 	init = true;

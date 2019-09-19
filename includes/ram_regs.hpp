@@ -1,13 +1,13 @@
 #ifndef RAM_REGS
 # define RAM_REGS \
-/* 0xFF00 */ (struct s_ram_regs){RDWR, &Emulateur::read_p1, NULL}, \
+/* 0xFF00 */ (struct s_ram_regs){RDWR, &Memory_controller::read_p1, NULL}, \
 /* 0xFF01 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF02 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF03 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_div}, \
+/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_div}, \
 /* REG_DIV */ (struct s_ram_regs){RDWR, NULL, NULL}, \
 /* 0xFF06 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* REG_TAC */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_tac}, \
+/* REG_TAC */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_tac}, \
 /* 0xFF08 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF09 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF0A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
@@ -64,13 +64,13 @@
 /* 0xFF3D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF3E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
 /* 0xFF3F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF40 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_lcdc}, \
-/* 0xFF41 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_stat}, \
-/* 0xFF42 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_scy}, \
-/* 0xFF43 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_scx}, \
-/* 0xFF44 */ (struct s_ram_regs){RD, NULL, &Emulateur::write_ly}, \
-/* 0xFF45 */ (struct s_ram_regs){RDWR, NULL, &Emulateur::write_lyc}, \
-/* 0xFF46 */ (struct s_ram_regs){WR, NULL, &Emulateur::write_dma}, \
+/* 0xFF40 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_lcdc}, \
+/* 0xFF41 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_stat}, \
+/* 0xFF42 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_scy}, \
+/* 0xFF43 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_scx}, \
+/* 0xFF44 */ (struct s_ram_regs){RD, NULL, &Memory_controller::write_ly}, \
+/* 0xFF45 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_lyc}, \
+/* 0xFF46 */ (struct s_ram_regs){WR, NULL, &Memory_controller::write_dma}, \
 /* 0xFF47 */ (struct s_ram_regs){WR, NULL, NULL}, \
 /* 0xFF48 */ (struct s_ram_regs){WR, NULL, NULL}, \
 /* 0xFF49 */ (struct s_ram_regs){WR, NULL, NULL}, \
