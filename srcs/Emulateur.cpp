@@ -1,5 +1,4 @@
 #include <Emulateur.hpp>
-#include <ram_regs.hpp>
 #include <opcode.hpp>
 #include <op203.hpp>
 #include <dmg_bios.hpp>
@@ -10,7 +9,7 @@ Emulateur::Emulateur()
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ram_regs({RAM_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _ROM(rom), _file_name(file), _debug(debug)
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ROM(rom), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _header(rom), _file_name(file), _debug(debug)
 {
 	std::cout << file << std::endl;
 	std::cout << file.find_last_of('.') << std::endl;
@@ -114,11 +113,30 @@ void	Emulateur::init_registers(void)
 	_RAM[REG_IE] = 0x00; // IE
 }
 
+Memory_controller 	*Emulateur::get_memory_controller() {
+	if (_cartridge->type == CT_ROM)
+		return (new Memory_controller_MBC1(this));
+	else if (_cartridge->type == CT_MBC1)
+		return (new Memory_controller_MBC1(this));
+	else if (_cartridge->type == CT_MBC2)
+		return (new Memory_controller_MBC2(this));
+	else if (_cartridge->type == CT_MBC3)
+		return (new Memory_controller_MBC3(this));
+	else if (_cartridge->type == CT_MBC5)
+		return (new Memory_controller_MBC5(this));
+	else {
+		printf("Cartridge [%s] not supported", _cartridge->to_str.c_str());
+		exit(EXIT_FAILURE);
+	}
+}
+
 void Emulateur::emu_init()
 {
 	std::ifstream fs;
 
 	_external_ram = (_header.get_ram_size() > 0) ? new uint8_t[_header.get_ram_size()] : _RAM + 0xa000;
+	_cartridge = _header.get_cartridge_type();
+	_Mem_ctrl = get_memory_controller();
 	fs.open (_save_name, std::fstream::in | ios::binary);
 	if (fs.is_open())
 	{
@@ -166,7 +184,7 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 		regs.IME = false;
 		_RAM[REG_IF] &= ~iflag;
 		regs.SP -= 2;
-		mem_write(_RAM + regs.SP, regs.PC, 2);
+		_Mem_ctrl->mem_write(_RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
 		if (_debug)
 			debug_mode();
@@ -231,9 +249,9 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	_instr = &_opcode[mem_read(_RAM + regs.PC, 1)];
+	_instr = &_opcode[_Mem_ctrl->mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
-		_instr = &_op203[mem_read(_RAM + regs.PC + 1, 1)];
+		_instr = &_op203[_Mem_ctrl->mem_read(_RAM + regs.PC + 1, 1)];
 	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
 	{

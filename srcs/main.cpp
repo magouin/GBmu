@@ -46,15 +46,6 @@ int main(int ac, const char **av)
 	Header r(rom);
 
 	Emulateur emu(file_name, rom, debug);
-
-	try {
-		emu.emu_start();
-	}
-	catch (Emulateur::InvalidRead &e) {
-		cout << e.what() << endl;
-	}
-	catch (Emulateur::InvalidWrite &e) {
-		cout << e.what() << endl;
-	}
+	emu.emu_start();
 	return (0);
 }
