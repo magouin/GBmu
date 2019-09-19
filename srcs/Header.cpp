@@ -1,16 +1,6 @@
 #include <Header.hpp>
 
-const string Header::cartridge_types[] = {"ROM ONLY","MBC1","MBC1+RAM","MBC1+RAM+BATTERY","","MBC2","MBC2+BATTERY","","ROM+RAM","ROM+RAM+BATTERY","",
-										  "MMM01","MMM01+RAM","MMM01+RAM+BATTERY","","MBC3+TIMER+BATTERY","MBC3+TIMER+RAM+BATTERY","MBC3","MBC3+RAM",
-										  "MBC3+RAM+BATTERY","","","","","","MBC5","MBC5+RAM","MBC5+RAM+BATTERY","MBC5+RUMBLE","MBC5+RUMBLE+RAM",
-										  "MBC5+RUMBLE+RAM+BATTERY","","MBC6","","MBC7+SENSOR+RUMBLE+RAM+BATTERY","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",
-										  "POCKET CAMERA","BANDAI TAMA5","HuC3","HuC1+RAM+BATTERY"};
+const struct s_cartridge Header::cartridge_types[] = {CARTRIDGE_TYPE};
 
 Header::Header()
 {
@@ -27,7 +17,7 @@ Header::Header(const string & file) : _file(file)
 	_header = *reinterpret_cast<const struct s_header*>(head);
 
 	// cout << "Title: " << this->_header.title << endl;
-	// cout << "Cartdrige type: " << cartridge_types[(int)this->_header.cartridge] << endl;
+	// cout << "Cartdrige type: " << cartridge_types[(int)this->_header.cartridge].to_str << endl;
 
 	// this->_header.entrypoint = endian_conv_32(this->_header.entrypoint);
 	// this->read_instr(0x150);
@@ -69,4 +59,17 @@ size_t		Header::get_ram_size() const
 		return (64 * 1024);
 	printf("Error: Invalid ram_size in header\n");
 	return (0);
+}
+
+const struct s_cartridge &Header::get_cartridge_type() const
+{
+	uint16_t i = 0;
+	while (i < 257) {
+		if (cartridge_types[i].id == (int)this->_header.cartridge)
+			return (cartridge_types[i]);
+		i++;
+	}
+	printf("Wrong cartridge type\n");
+	exit(EXIT_FAILURE);
+	// return (0);
 }
