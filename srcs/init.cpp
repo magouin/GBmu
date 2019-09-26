@@ -60,15 +60,15 @@ void	Emulateur::init_registers(void)
 
 Memory_controller 	&Emulateur::get_memory_controller() {
 	if (_cartridge.type == CT_ROM)
-		return (*new Memory_controller_MBC1(this));
+		return (*new Memory_controller_MBC1(*this, _header.get_ram_size()));
 	else if (_cartridge.type == CT_MBC1)
-		return (*new Memory_controller_MBC1(this));
+		return (*new Memory_controller_MBC1(*this, _header.get_ram_size()));
 	else if (_cartridge.type == CT_MBC2)
-		return (*new Memory_controller_MBC2(this));
+		return (*new Memory_controller_MBC2(*this, MBC2_RAM_SIZE));
 	else if (_cartridge.type == CT_MBC3)
-		return (*new Memory_controller_MBC3(this));
+		return (*new Memory_controller_MBC3(*this, _header.get_ram_size()));
 	else if (_cartridge.type == CT_MBC5)
-		return (*new Memory_controller_MBC5(this));
+		return (*new Memory_controller_MBC5(*this, _header.get_ram_size()));
 	else {
 		printf("Cartridge [%s] not supported", _cartridge.to_str.c_str());
 		exit(EXIT_FAILURE);
@@ -77,17 +77,6 @@ Memory_controller 	&Emulateur::get_memory_controller() {
 
 void Emulateur::emu_init()
 {
-	std::ifstream fs;
-
-	_external_ram = (_header.get_ram_size() > 0) ? new uint8_t[_header.get_ram_size()] : _RAM + 0xa000;
-	// _cartridge = _header.get_cartridge_type();
-	// _MBC = get_memory_controller();
-	fs.open (_save_name, std::fstream::in | ios::binary);
-	if (fs.is_open())
-	{
-		fs.read((char *)_external_ram, _header.get_ram_size());
-		fs.close();
-	}
 	_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000);
 	_ram_bank = _external_ram;
 	_cycle = 0;
