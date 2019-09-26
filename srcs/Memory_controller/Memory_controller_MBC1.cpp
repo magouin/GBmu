@@ -28,24 +28,17 @@ bool		Memory_controller_MBC1::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 		_emu.regs.RAM_ENABLE = ((value & 0xf) == 0xa ? true : false);
 	else if (addr - _emu._RAM < 0x4000)
 	{
-		if (value < 1 || value > 0x1f) ;
-			// printf("ERROR: This value should be between 1 and 1f\n");
-		else
-			_emu.regs.ROM_BANK = value;
+		if (!value)
+			value = 1;
+		_emu.regs.ROM_BANK = value & 0x1f;
 	}
 	else if (addr - _emu._RAM < 0x6000)
 	{
-		if (value > 3)
-			printf("ERROR: This value should be between 0 and 3\n");
-		else
-			_emu.regs.ROM_RAM_BANK = value;
+		_emu.regs.ROM_RAM_BANK = value & 3;
 	}
 	else if (addr - _emu._RAM  < 0x8000)
 	{
-		if (value > 1)
-			printf("ERROR: This value should be between 0 and 1\n");
-		else
-			_emu.regs.ROM_RAM_SELECT = value;
+		_emu.regs.ROM_RAM_SELECT = value & 1;
 	}
 	else
 		return (false);

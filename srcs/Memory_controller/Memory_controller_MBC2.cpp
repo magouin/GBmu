@@ -28,7 +28,6 @@ bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 	else if (addr - _emu._RAM < 0x4000)
 	{
 		if ((addr - _emu._RAM) & 0x0100) {
-			// if (!value) value++;
 			_emu.regs.ROM_BANK = value & 0x0f;
 		}
 		else
