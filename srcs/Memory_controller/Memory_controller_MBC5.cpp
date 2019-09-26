@@ -19,49 +19,27 @@ void		*Memory_controller_MBC5::read_ROM_RAM_regs(uint8_t *addr)
 
 bool		Memory_controller_MBC5::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
 {
-	uint8_t id;
-
 	if (addr < _emu._RAM)
 		return (false);
 
 	if (addr - _emu._RAM < 0x2000)
 		_emu.regs.RAM_ENABLE = ((value & 0xf) == 0xa ? true : false);
+	else if (addr - _emu._RAM < 0x3000)
+	{
+		_emu.regs.ROM_BANK = value;
+	}
 	else if (addr - _emu._RAM < 0x4000)
 	{
-		if (value < 1 || value > 0x1f) ;
-			// printf("ERROR: This value should be between 1 and 1f\n");
-		else
-			_emu.regs.ROM_BANK = value;
+		_emu.regs.ROM_BANK = value & 1;
 	}
 	else if (addr - _emu._RAM < 0x6000)
 	{
-		if (value > 3)
-			printf("ERROR: This value should be between 0 and 3\n");
-		else
-			_emu.regs.ROM_RAM_BANK = value;
-	}
-	else if (addr - _emu._RAM  < 0x8000)
-	{
-		if (value > 1)
-			printf("ERROR: This value should be between 0 and 1\n");
-		else
-			_emu.regs.ROM_RAM_SELECT = value;
+		_emu.regs.ROM_RAM_BANK = value & 0xf;
 	}
 	else
 		return (false);
-
-	if (_emu.regs.ROM_RAM_SELECT == 0)
-	{
-		id = _emu.regs.ROM_BANK + (_emu.regs.ROM_RAM_BANK << 5);
-		_emu._rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000 * id);
-		_emu._ram_bank = _emu._external_ram;
-	}
-	else if (_emu.regs.ROM_RAM_SELECT == 1)
-	{
-		id = _emu.regs.ROM_BANK;
-		_emu._rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000 * id);
-		_emu._ram_bank = _emu._external_ram + _emu.regs.ROM_RAM_BANK * 0x2000;
-	}
+	_emu._rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000 * _emu.regs.ROM_BANK);
+	_emu._ram_bank = _emu._external_ram + _emu.regs.ROM_RAM_BANK * 0x2000;
 	return (true);
 }
 
