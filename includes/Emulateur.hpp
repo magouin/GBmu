@@ -32,6 +32,7 @@ using namespace std;
 # include <regex>
 
 # include <registers.hpp>
+# include <ram_regs.hpp>
 # include <Memory_controller.hpp>
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
@@ -97,11 +98,12 @@ class Emulateur {
 		// For memory_controller
 		uint8_t				_RAM[0x10000];
 		uint8_t				*_external_ram;
-		struct user_input	_input;
 		uint8_t				*_ram_bank;
-		struct s_regs 		regs;
 		const uint8_t		*_rom_bank;
+		struct s_regs 		regs;
+		struct user_input	_input;
 		std::string			_ROM;
+		std::string			_save_name;
 
 		Emulateur(std::string file, std::string rom, bool debug=false);
 		~Emulateur(/* args */);
@@ -119,7 +121,6 @@ class Emulateur {
 
 		const Header			_header;
 		std::string				_file_name;
-		std::string				_save_name;
 		static const uint8_t	_bios[];
 
 		list<struct s_watch>	_watchpoints;
@@ -306,7 +307,6 @@ class Emulateur {
 
 		// static void	timer_thread(uint8_t *_RAM);
 		int			main_thread();
-		void		save();
 		void		quit();
 
 		void		sort_objs(struct s_oam_obj **objs);

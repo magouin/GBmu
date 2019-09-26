@@ -110,19 +110,8 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 
 void	Emulateur::quit()
 {
-	save();
-	if (_header.get_ram_size() > 0)
-		delete _external_ram;
+	_MBC.save();
 	exit(1); // TODO peut etre d'autres trucs a faire
-}
-
-void	Emulateur::save()
-{
-	ofstream myfile;
-
-	myfile.open(_save_name, ios::out | ios::binary);
-	myfile.write((char *)_external_ram, _header.get_ram_size());
-	myfile.close();
 }
 
 bool	Emulateur::update()
