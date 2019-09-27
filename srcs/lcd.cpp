@@ -216,8 +216,8 @@ void	Emulateur::update_lcd()
 	uint64_t				line_cycle;
 	uint8_t					ly;
 	static struct s_oam_obj	*objs[40];
-	static uint8_t			img = 0;	
-	bool					print;	
+	static uint8_t			img = 0;
+	bool					print;
 
 	if (!(_RAM[REG_LCDC] & 0x80))
 	{
@@ -228,7 +228,7 @@ void	Emulateur::update_lcd()
 	ly = _lcd_cycle / 456;
 	if (line_cycle == 0)
 		_MBC.mem_write(&_RAM[REG_LY], ly % 154, 1);
-	print = !(img % (_frequency >> 21));
+	print = !(img % (_frequency >> 22));
 	if (ly < 144)
 	{
 		if (line_cycle == 0)
@@ -243,12 +243,13 @@ void	Emulateur::update_lcd()
 		}
 		else if (line_cycle == 252)
 		{
-			if (print)
+			if (print) {
 				print_bg_line(ly);
-			if (print && (_RAM[REG_LCDC] & (1 << 5)) && ly >= _RAM[REG_WY])
-				print_window_line(ly);
-			if (print && _RAM[REG_LCDC] & 2)
-				print_objs_line(objs, ly);
+				if ((_RAM[REG_LCDC] & (1 << 5)) && ly >= _RAM[REG_WY])
+					print_window_line(ly);
+				if (_RAM[REG_LCDC] & 2)
+					print_objs_line(objs, ly);
+			}
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 			if (_RAM[REG_STAT] & (1 << 3))
 				_RAM[REG_IF] |= (1 << 1);
