@@ -65,8 +65,10 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_test++;
 		else if (sym == SDLK_h)
 		{
-			_frequency = 0x400000 + 0x400000 * freq;
 			freq = (1 + freq) % 3;
+			printf("_frequency >> 21: %x -> ", _frequency >> 21);
+			_frequency = 0x400000 + 0x400000 * freq;
+			printf("%x\n", _frequency >> 21);
 		}
 		if (sym == SDLK_UP)
 			_input.p14 &= ~IO_UP;
