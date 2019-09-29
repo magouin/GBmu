@@ -73,7 +73,7 @@ void			Memory_controller::write_dma(uint8_t value)
 	if (value < 0xa0 || value >= 0xc0)
 		memcpy(_emu._RAM + 0xfe00, _emu._RAM + value * 256, 40 * 4);
 	else
-		memcpy(_emu._RAM + 0xfe00, _emu._ram_bank + (value - 0xa0) * 256, 40 * 4);
+		memcpy(_emu._RAM + 0xfe00, ram_bank + (value - 0xa0) * 256, 40 * 4);
 }
 
 void			Memory_controller::write_tac(uint8_t value)
@@ -176,24 +176,28 @@ void	Memory_controller::save()
 
 	fs.open(_emu._save_name, ios::out | ios::binary);
 	if (fs.is_open()) {
-		fs.write((char *)_emu._external_ram, _ram_size);
+		fs.write((char *)external_ram, _ram_size);
 		fs.close();
 	}
 	if (_ram_size > 0)
-		delete _emu._external_ram;
+		delete external_ram;
 }
 
 void	Memory_controller::init(size_t ram_size) {
 	_ram_size = ram_size;
-	_emu._external_ram = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu._RAM + 0xa000;
+	rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000);
+	external_ram = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu._RAM + 0xa000;
+	ram_bank = external_ram;
 
 	std::ifstream fs;
 	fs.open (_emu._save_name, std::fstream::in | ios::binary);
 	if (fs.is_open())
 	{
-		fs.read((char *)_emu._external_ram, _ram_size);
+		fs.read((char *)external_ram, _ram_size);
 		fs.close();
 	}
+	_RAM_ENABLE = false;
+	_ROM_BANK = 1;
 }
 
 
