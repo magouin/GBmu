@@ -15,11 +15,6 @@ void	Emulateur::init_registers(void)
 	regs.PC = 0x0100;
 	// regs.PC = 0x0000;
 	regs.IME = false;
-	regs.RAM_ENABLE = false;
-	regs.ROM_BANK = 1;
-	regs.ROM_RAM_BANK = 0;
-	regs.ROM_RAM_SELECT = 0;
-
 
 	_RAM[REG_P1] = 0x00; // P1
 	_RAM[REG_DIV] = 0x00; // TIMA
@@ -77,8 +72,6 @@ Memory_controller 	&Emulateur::get_memory_controller() {
 
 void Emulateur::emu_init()
 {
-	_rom_bank = (const uint8_t*)(_ROM.c_str() + 0x4000);
-	_ram_bank = _external_ram;
 	_cycle = 0;
 	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
