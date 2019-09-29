@@ -23,6 +23,10 @@ struct s_ram_regs {
 
 class Memory_controller {
 	public:
+		uint8_t				*external_ram;
+		uint8_t				*ram_bank;
+		const uint8_t		*rom_bank;
+
 		Memory_controller(Emulateur &emu, size_t ram_size);
 		~Memory_controller();
 		Memory_controller & operator=(const Memory_controller & cp);
@@ -36,6 +40,9 @@ class Memory_controller {
 		Emulateur &_emu;
 		const vector<struct s_ram_regs> _ram_regs;
 		size_t	_ram_size;
+
+		bool	_RAM_ENABLE;
+		uint8_t	_ROM_BANK;
 
 		virtual void		init(size_t ram_size);
 
@@ -76,6 +83,9 @@ class Memory_controller_MBC1 : public Memory_controller {
 		Memory_controller_MBC1(Emulateur &emu, size_t ram_size);
 
 	private:
+		uint8_t	_ROM_RAM_BANK;
+		uint8_t	_ROM_RAM_SELECT;
+
 		void	*read_ROM_RAM_regs(uint8_t *addr);
 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
 		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
@@ -99,6 +109,9 @@ class Memory_controller_MBC3 : public Memory_controller {
 		Memory_controller_MBC3(Emulateur &emu, size_t ram_size);
 
 	private:
+		uint8_t	_ROM_RAM_BANK;
+		uint8_t	_ROM_RAM_SELECT;
+
 		void	*read_ROM_RAM_regs(uint8_t *addr);
 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
 		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
@@ -109,6 +122,8 @@ class Memory_controller_MBC5 : public Memory_controller {
 		Memory_controller_MBC5(Emulateur &emu, size_t ram_size);
 
 	private:
+		uint8_t	_RAM_BANK;
+
 		void	*read_ROM_RAM_regs(uint8_t *addr);
 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
 		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);

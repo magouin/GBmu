@@ -97,9 +97,6 @@ class Emulateur {
 
 		// For memory_controller
 		uint8_t				_RAM[0x10000];
-		uint8_t				*_external_ram;
-		uint8_t				*_ram_bank;
-		const uint8_t		*_rom_bank;
 		struct s_regs 		regs;
 		struct user_input	_input;
 		std::string			_ROM;

@@ -37,7 +37,7 @@ void	Emulateur::print_trace()
 
 	i = -1;
 	printf("A: %02hhX F: %02hhX B: %02hhX C: %02hhX D: %02hhX E: %02hhX H: %02hhX L: %02hhX SP: %04X PC: ", regs.A, regs.F, regs.B, regs.C, regs.D, regs.E, regs.H, regs.L, regs.SP);
-	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
+	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
 	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	printf("%02X: ", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	print_instr();
@@ -309,14 +309,14 @@ void	Emulateur::print_regs(void)
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", regs.D, regs.E, regs.DE);
 	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", regs.H, regs.L, regs.HL);
 	printf("PC: %04hX  SP: %04X\n", regs.PC, regs.SP);
-	printf("ROM: %02x  RAM: %02x  WRAM: %02X  VRAM: %02X\n", (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000), (uint8_t)(((uint8_t *)_ram_bank - (uint8_t *)_external_ram) / 0x2000), (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
+	printf("ROM: %02x  RAM: %02x  WRAM: %02X  VRAM: %02X\n", (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000), (uint8_t)(((uint8_t *)_MBC.ram_bank - (uint8_t *)_MBC.external_ram) / 0x2000), (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
 	printf("F: [");
 	regs.Z ? printf("Z") : printf("-");
 	regs.N ? printf("N") : printf("-");
 	regs.HC ? printf("H") : printf("-");
 	regs.CY ? printf("C") : printf("-");
 	printf("]\n");
-	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
+	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
 	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	printf("%02X\t", _MBC.mem_read(_RAM + regs.PC + i, 1));
 	print_instr();

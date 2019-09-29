@@ -7,11 +7,11 @@ void		*Memory_controller_MBC2::read_ROM_RAM_regs(uint8_t *addr)
 	if (addr - _emu._RAM < 0x4000)
 		return (addr);
 	else if (addr - _emu._RAM  < 0x8000)
-		return (void*)(_emu._rom_bank + (addr - _emu._RAM - 0x4000));
+		return (void*)(rom_bank + (addr - _emu._RAM - 0x4000));
 	else if (addr - _emu._RAM >= 0xa000 && addr - _emu._RAM <= 0xa1ff)
 	{
-		if (_emu.regs.RAM_ENABLE)
-			return (void*)(_emu._ram_bank + (addr - _emu._RAM - 0xa000));
+		if (_RAM_ENABLE)
+			return (void*)(ram_bank + (addr - _emu._RAM - 0xa000));
 		return (NULL);
 	}
 	else return (NULL);
@@ -23,20 +23,20 @@ bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 		return (false);
 
 	if (addr - _emu._RAM < 0x2000) {
-		_emu.regs.RAM_ENABLE = !((addr - _emu._RAM) & 0x1000) ? !_emu.regs.RAM_ENABLE : _emu.regs.RAM_ENABLE;
+		_RAM_ENABLE = !((addr - _emu._RAM) & 0x1000) ? !_RAM_ENABLE : _RAM_ENABLE;
 	}
 	else if (addr - _emu._RAM < 0x4000)
 	{
 		if ((addr - _emu._RAM) & 0x0100) {
-			_emu.regs.ROM_BANK = value & 0x0f;
+			_ROM_BANK = value & 0x0f;
 		}
 		else
 			printf("ERROR: Address range should have 0x1000 bit set to 1 at addr 0x%hx\n", (uint16_t)(addr - _emu._RAM));
 	}
 	else
 		return (false);
-	_emu._rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000 * _emu.regs.ROM_BANK);
-	_emu._ram_bank = _emu._external_ram;
+	rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000 * _ROM_BANK);
+	ram_bank = external_ram;
 	return (true);
 }
 
@@ -45,9 +45,9 @@ bool		Memory_controller_MBC2::write_RAM_regs(uint8_t *addr, uint16_t value, int8
 	if (addr - _emu._RAM >= 0xA000 && addr - _emu._RAM <= 0xa1ff)
 	{
 		if (size == 2)
-			*(uint16_t *)(_emu._ram_bank + (addr - _emu._RAM - 0xA000)) = value & 0x0f0f;
+			*(uint16_t *)(ram_bank + (addr - _emu._RAM - 0xA000)) = value & 0x0f0f;
 		else
-			*(uint8_t *)(_emu._ram_bank + (addr - _emu._RAM - 0xA000)) = (uint8_t)value & 0x0f;
+			*(uint8_t *)(ram_bank + (addr - _emu._RAM - 0xA000)) = (uint8_t)value & 0x0f;
 		return (true);
 	}
 	return (false);
@@ -85,7 +85,7 @@ void	Memory_controller_MBC2::save()
 	char	tmp[MBC2_SAV_SIZE];
 
 	for (uint16_t i = 0; i < MBC2_SAV_SIZE; i++)
-		tmp[i] = (_emu._external_ram[i * 2] & 0x0f) + ((_emu._external_ram[i * 2 + 1] & 0x0f) << 4);
+		tmp[i] = (external_ram[i * 2] & 0x0f) + ((external_ram[i * 2 + 1] & 0x0f) << 4);
 	fs.open(_emu._save_name, ios::out | ios::binary);
 	if (fs.is_open()) {
 		fs.write(tmp, MBC2_SAV_SIZE);
@@ -95,7 +95,7 @@ void	Memory_controller_MBC2::save()
 
 void	Memory_controller_MBC2::init(size_t ram_size) {
 	_ram_size = MBC2_RAM_SIZE;
-	_emu._external_ram = _emu._RAM + 0xa000;
+	external_ram = _emu._RAM + 0xa000;
 
 	std::ifstream fs;
 	char	tmp[MBC2_SAV_SIZE];
@@ -107,8 +107,8 @@ void	Memory_controller_MBC2::init(size_t ram_size) {
 		fs.close();
 	}
 	for (uint16_t i = 0; i < MBC2_SAV_SIZE; i++) {
-		_emu._external_ram[i * 2] = tmp[i] & 0x0f;
-		_emu._external_ram[i * 2 + 1] = (tmp[i] & 0xf0) >> 4;
+		external_ram[i * 2] = tmp[i] & 0x0f;
+		external_ram[i * 2 + 1] = (tmp[i] & 0xf0) >> 4;
 	}
 }
 
