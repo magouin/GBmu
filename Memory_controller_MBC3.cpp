@@ -1,106 +1,95 @@
 #include <Emulateur.hpp>
 
-#define SECOND_PER_MINUTE 60
-#define MINUTE_PER_HOUR 60
-#define HOUR_PER_DAY 24
-#define DAY_LOW_PER_DAY_HIGH (0xff + 1)
+#define MINUTES 60
+#define HOURS 3600
+#define DAY_LOW 86400
+#define DAY_HIGH 22032000
 
-#define MINUTE_TO_SEC 60
-#define HOUR_TO_SEC 3600
-#define DAY_LOW_TO_SEC 86400
-#define DAY_HIGH_TO_SEC 22032000
-
-void	Memory_controller_MBC3::RTC::update_timestamp_gb() {
-	if (!_halt) {
-		_timestamp_gb += std::time(nullptr) - _real_timestamp;
-		if (_timestamp_gb / 44236800) // (0x1ff + 1) * DAY
-		{
-			_day_count_cy = true;
-			_timestamp_gb %= 44236800;
-		}		
-	}
+uint8_t Memory_controller_MBC3::RTC::get_S(void) {
+	printf("SECOND GET REQUEST\n");
+	return get_timestamp_gb() % 60;
 }
 
-uint8_t Memory_controller_MBC3::RTC::get_S(time_t timestamp_gb) {
-	return timestamp_gb % SECOND_PER_MINUTE;
+uint8_t Memory_controller_MBC3::RTC::get_M(void) {
+	printf("MINUTE GET REQUEST\n");
+	return get_timestamp_gb() / 60 % 60;
 }
 
-uint8_t Memory_controller_MBC3::RTC::get_M(time_t timestamp_gb) {
-	return timestamp_gb / MINUTE_TO_SEC % MINUTE_PER_HOUR;
+uint8_t Memory_controller_MBC3::RTC::get_H(void) {
+	printf("HOUR GET REQUEST\n");
+	return get_timestamp_gb() / 3600 % 24;
 }
 
-uint8_t Memory_controller_MBC3::RTC::get_H(time_t timestamp_gb) {
-	return timestamp_gb / HOUR_TO_SEC % HOUR_PER_DAY;
-}
-
-uint8_t Memory_controller_MBC3::RTC::get_DL(time_t timestamp_gb) {
-	return timestamp_gb / DAY_LOW_TO_SEC % DAY_LOW_PER_DAY_HIGH;
-}
-
-uint8_t Memory_controller_MBC3::RTC::get_DH(time_t timestamp_gb) {
-	_day_count_9_bit = timestamp_gb / DAY_HIGH_TO_SEC;
-	return _RTC_DH;
+uint8_t Memory_controller_MBC3::RTC::get_DL(void) {
+	// update_RTC();
+	// change_stored_timestamp();
+	// get_new_value_on_RTC();
+	printf("DAY LOW BIT GET REQUEST\n");
+	return get_timestamp_gb() / 86400 % 0xff;
 }
 
 uint8_t Memory_controller_MBC3::RTC::get_DH(void) {
-	_day_count_9_bit = get_timestamp_gb() / DAY_HIGH_TO_SEC;
+	_day_count_9_bit = get_timestamp_gb() / 22032000;
 	return _RTC_DH;
 }
 
-void Memory_controller_MBC3::RTC::set_S(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = timestamp_gb / MINUTE_TO_SEC * MINUTE_TO_SEC + value;
+void Memory_controller_MBC3::RTC::set_S(uint8_t value) {
+	printf("SECOND SET REQUEST\n");
+	time_t current_timestamp_gb = get_timestamp_gb();
+	time_t tmp = (current_timestamp_gb / 60 * 60) + value;
 	if (_halt)
 		_halt_timestamp_gb = tmp;
 	else {
-		_real_timestamp += value - get_S(_real_timestamp);
 		_timestamp_gb = tmp;
+		_real_timestamp += value - (current_timestamp_gb % 60);
 	}
 }
 
-void Memory_controller_MBC3::RTC::set_M(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / HOUR_TO_SEC * HOUR_TO_SEC + value * MINUTE_TO_SEC) + get_S(timestamp_gb);
+void Memory_controller_MBC3::RTC::set_M(uint8_t value) {
+	printf("MINUTE SET REQUEST\n");
+	time_t current_timestamp_gb = get_timestamp_gb();
+	time_t tmp = (current_timestamp_gb / 3600 * 3600 + value * 60) + (current_timestamp_gb % 60);
 	if (_halt)
 		_halt_timestamp_gb = tmp;
 	else {
-		_real_timestamp += (value - get_M(_real_timestamp)) * MINUTE_TO_SEC;
 		_timestamp_gb = tmp;
+		_real_timestamp += value * 60 - (current_timestamp_gb / 60 % 60);
 	}
 }
 
-void Memory_controller_MBC3::RTC::set_H(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / DAY_LOW_TO_SEC * DAY_LOW_TO_SEC + value * HOUR_TO_SEC) + get_M(timestamp_gb) + get_S(timestamp_gb);
+void Memory_controller_MBC3::RTC::set_H(uint8_t value) {
+	printf("HOUR SET REQUEST\n");
+	time_t current_timestamp_gb = get_timestamp_gb();
+	time_t tmp = (current_timestamp_gb / 86400 * 86400 + value * 3600) + (current_timestamp_gb / 60 % 60) + (current_timestamp_gb % 60);
 	if (_halt)
 		_halt_timestamp_gb = tmp;
-	else {
-		// printf("_real_timestamp [%ld] and value [%hhu] | get_H() = [%hhu] ----> ", _real_timestamp, value, get_H(_real_timestamp));
-		_real_timestamp += (value - get_H(_real_timestamp)) * HOUR_TO_SEC;
-		// printf("_real_timestamp now = [%ld]\n", _real_timestamp);
+	else
 		_timestamp_gb = tmp;
-	}
 }
 
-void Memory_controller_MBC3::RTC::set_DL(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / DAY_HIGH_TO_SEC * DAY_HIGH_TO_SEC + value * DAY_LOW_TO_SEC) + get_H(timestamp_gb) + get_M(timestamp_gb) + get_S(timestamp_gb);
+void Memory_controller_MBC3::RTC::set_DL(uint8_t value) {
+	printf("DAY LOW BIT SET REQUEST\n");
+	time_t current_timestamp_gb = get_timestamp_gb();
+	time_t tmp = (current_timestamp_gb / 22032000 * 22032000 + value * 86400) + (current_timestamp_gb / 3600 % 24) + (current_timestamp_gb / 60 % 60) + (current_timestamp_gb % 60);
 	if (_halt)
 		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += (value - get_DL(_real_timestamp)) * DAY_LOW_TO_SEC;
+	else
 		_timestamp_gb = tmp;
-	}
 }
 
-void Memory_controller_MBC3::RTC::set_DH(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / 22118400 * 22118400 + (value & 0x01)) + get_DL(timestamp_gb) + get_H(timestamp_gb) + get_M(timestamp_gb) + get_S(timestamp_gb);
+void Memory_controller_MBC3::RTC::set_DH(uint8_t value) {
+	printf("DH SET REQUEST\n");
+	time_t current_timestamp_gb = get_timestamp_gb();
+	time_t tmp = (current_timestamp_gb / 22118400 * 22118400 + (value & 0x01)) + (current_timestamp_gb / 86400 % 0xff) + (current_timestamp_gb / 3600 % 24) + (current_timestamp_gb / 60 % 60) + (current_timestamp_gb % 60);
 	if (_halt)
 		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += ((value & 0x01) - get_DH(_real_timestamp)) * DAY_HIGH_TO_SEC;
+	else
 		_timestamp_gb = tmp;
-	}
 	_RTC_DH = value;
 }
 
 void Memory_controller_MBC3::RTC::set_halt_flag() {
+	printf("HALT LA\n");
 	if (!_halt) {
 		_halt_timestamp_gb = get_timestamp_gb();
 	}
@@ -112,27 +101,33 @@ void Memory_controller_MBC3::RTC::set_halt_flag() {
 }
 
 uint8_t	Memory_controller_MBC3::RTC::get_register() {
-	update_timestamp_gb();
-	return (this->*_getters[_register_in_use])(get_timestamp_gb());
+	return (this->*_getters[_register_in_use])();
 }
 
 void 	Memory_controller_MBC3::RTC::set_register(uint8_t value) {
-	update_timestamp_gb();
-	(this->*_setters[_register_in_use])(value, get_timestamp_gb());
+	(this->*_setters[_register_in_use])(value);
 }
 
 time_t	Memory_controller_MBC3::RTC::get_timestamp_gb(void) {
 	if (_halt)
 		return (_halt_timestamp_gb);
+	_timestamp_gb += std::time(nullptr) - _real_timestamp;
+	if (_timestamp_gb / 44236800) // ((0x1ff + 1) * 24 * 60 * 60)
+	{
+		_day_count_cy = true;
+		_timestamp_gb %= 44236800;
+	}
 	return (_timestamp_gb);
 }
 
 void	Memory_controller_MBC3::RTC::init_timestamp(std::time_t last_shutdown, std::time_t old_timestamp, uint8_t RTC_DH) {
 	printf("Found timestamp\n");
+
 	_real_timestamp = std::time(nullptr);
 	time_t elapse_time = _real_timestamp - last_shutdown;
 	_timestamp_gb = old_timestamp + elapse_time;
-	_halt = _RTC_DH & 0x40;
+	_halt = RTC_DH & 0x40;
+	printf("Halt init -> %d\n", _halt);
 }
 
 void	Memory_controller_MBC3::RTC::init_timestamp() {
@@ -140,7 +135,7 @@ void	Memory_controller_MBC3::RTC::init_timestamp() {
 	_real_timestamp = std::time(nullptr);
 	_timestamp_gb = 0;
 	_day_count_cy = false;
-	_halt = false;
+	_halt = true;
 }
 
 Memory_controller_MBC3::RTC::RTC(void):
@@ -160,10 +155,12 @@ Memory_controller_MBC3::RTC::RTC(void):
 	})
 {
 	_register_in_use = 0;
+	// _halt = false;
 }
 
 
 void	Memory_controller_MBC3::RTC::set_register_in_use(uint8_t value) {
+	// printf("SET register to use 0x%02hhx\n", value);
 	if (value >= 0x08 && value <= 0x0C)
 		_register_in_use = value - 0x08;
 }
@@ -275,7 +272,6 @@ void	Memory_controller_MBC3::save()
 		time_t tmp;
 		tmp = std::time(nullptr);
 		fs.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
-		_RTC.update_timestamp_gb();
 		tmp = _RTC.get_timestamp_gb();
 		fs.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
 		uint8_t RTC_DH = _RTC.get_DH();
