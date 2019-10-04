@@ -12,13 +12,27 @@
 
 void	Memory_controller_MBC3::RTC::update_timestamp_gb() {
 	if (!_halt) {
-		_timestamp_gb += std::time(nullptr) - _real_timestamp;
+		time_t _current_timestamp = std::time(nullptr);
+		_timestamp_gb += _current_timestamp - _real_timestamp + _diff_timestamp;
+		if (_timestamp_gb < 0) {
+			printf("SHOULD Not HAPPEN\n");
+			_timestamp_gb = 0;
+		}
+		_real_timestamp = _current_timestamp;
 		if (_timestamp_gb / 44236800) // (0x1ff + 1) * DAY
 		{
 			_day_count_cy = true;
 			_timestamp_gb %= 44236800;
-		}		
+		}
 	}
+	else {
+		_halt_timestamp_gb += _diff_timestamp;
+		if (_halt_timestamp_gb < 0) {
+			printf("SHOULD Not HAPPEN\n");
+			_halt_timestamp_gb = 0;
+		}
+	}
+	_diff_timestamp = 0;
 }
 
 uint8_t Memory_controller_MBC3::RTC::get_S(time_t timestamp_gb) {
@@ -48,65 +62,41 @@ uint8_t Memory_controller_MBC3::RTC::get_DH(void) {
 }
 
 void Memory_controller_MBC3::RTC::set_S(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = timestamp_gb / MINUTE_TO_SEC * MINUTE_TO_SEC + value;
-	if (_halt)
-		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += value - get_S(_real_timestamp);
-		_timestamp_gb = tmp;
-	}
+	_diff_timestamp += (value - get_S(timestamp_gb));
 }
 
 void Memory_controller_MBC3::RTC::set_M(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / HOUR_TO_SEC * HOUR_TO_SEC + value * MINUTE_TO_SEC) + get_S(timestamp_gb);
-	if (_halt)
-		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += (value - get_M(_real_timestamp)) * MINUTE_TO_SEC;
-		_timestamp_gb = tmp;
-	}
+	_diff_timestamp += (value - get_M(timestamp_gb)) * MINUTE_TO_SEC;
 }
 
 void Memory_controller_MBC3::RTC::set_H(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / DAY_LOW_TO_SEC * DAY_LOW_TO_SEC + value * HOUR_TO_SEC) + get_M(timestamp_gb) + get_S(timestamp_gb);
-	if (_halt)
-		_halt_timestamp_gb = tmp;
-	else {
-		// printf("_real_timestamp [%ld] and value [%hhu] | get_H() = [%hhu] ----> ", _real_timestamp, value, get_H(_real_timestamp));
-		_real_timestamp += (value - get_H(_real_timestamp)) * HOUR_TO_SEC;
-		// printf("_real_timestamp now = [%ld]\n", _real_timestamp);
-		_timestamp_gb = tmp;
-	}
+	_diff_timestamp += (value - get_H(timestamp_gb)) * HOUR_TO_SEC;
 }
 
 void Memory_controller_MBC3::RTC::set_DL(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / DAY_HIGH_TO_SEC * DAY_HIGH_TO_SEC + value * DAY_LOW_TO_SEC) + get_H(timestamp_gb) + get_M(timestamp_gb) + get_S(timestamp_gb);
-	if (_halt)
-		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += (value - get_DL(_real_timestamp)) * DAY_LOW_TO_SEC;
-		_timestamp_gb = tmp;
-	}
+	_diff_timestamp += (value - get_DL(timestamp_gb)) * DAY_LOW_TO_SEC;
 }
 
 void Memory_controller_MBC3::RTC::set_DH(uint8_t value, time_t timestamp_gb) {
-	time_t tmp = (timestamp_gb / 22118400 * 22118400 + (value & 0x01)) + get_DL(timestamp_gb) + get_H(timestamp_gb) + get_M(timestamp_gb) + get_S(timestamp_gb);
-	if (_halt)
-		_halt_timestamp_gb = tmp;
-	else {
-		_real_timestamp += ((value & 0x01) - get_DH(_real_timestamp)) * DAY_HIGH_TO_SEC;
-		_timestamp_gb = tmp;
-	}
-	_RTC_DH = value;
+	_diff_timestamp += ((value & 0x01) - (get_DH(timestamp_gb) & 0x01)) * DAY_HIGH_TO_SEC;
+	if ((value & 0x40) !=  _halt)
+		switch_halt_flag();
+	_RTC_DH = value & 0xbf;
 }
 
-void Memory_controller_MBC3::RTC::set_halt_flag() {
+bool Memory_controller_MBC3::RTC::get_halt_flag() {
+	return (_halt);
+}
+
+void Memory_controller_MBC3::RTC::switch_halt_flag() {
+	update_timestamp_gb();
+	// printf("switch _halt\n");
 	if (!_halt) {
 		_halt_timestamp_gb = get_timestamp_gb();
 	}
 	else {
-		_timestamp_gb = _halt_timestamp_gb;
 		_real_timestamp = std::time(nullptr);
+		_timestamp_gb = _halt_timestamp_gb;
 	}
 	_halt = !_halt;
 }
@@ -128,17 +118,18 @@ time_t	Memory_controller_MBC3::RTC::get_timestamp_gb(void) {
 }
 
 void	Memory_controller_MBC3::RTC::init_timestamp(std::time_t last_shutdown, std::time_t old_timestamp, uint8_t RTC_DH) {
-	printf("Found timestamp\n");
 	_real_timestamp = std::time(nullptr);
 	time_t elapse_time = _real_timestamp - last_shutdown;
 	_timestamp_gb = old_timestamp + elapse_time;
+	_halt_timestamp_gb = _timestamp_gb;
+	_diff_timestamp = 0;
 	_halt = _RTC_DH & 0x40;
 }
 
 void	Memory_controller_MBC3::RTC::init_timestamp() {
-	printf("No timestamp\n");
 	_real_timestamp = std::time(nullptr);
 	_timestamp_gb = 0;
+	_diff_timestamp = 0;
 	_day_count_cy = false;
 	_halt = false;
 }
@@ -193,7 +184,6 @@ void		*Memory_controller_MBC3::read_ROM_RAM_regs(uint8_t *addr)
 			}
 			return (void*)(ram_bank + (addr - _emu._RAM - 0xa000));
 		}
-		printf("_RAM_RTC_ENABLE not true\n");
 	}
 	return (NULL);
 }
@@ -221,23 +211,18 @@ bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 			_RAM_RTC_SELECT = E_RTC;
 			_RTC.set_register_in_use(value);
 		}
-		else
-			printf("ERROR: This value (%hhx) should be between 0x00-0x03 or 0x08-0x0C\n", value);
+		else ;
+			// printf("ERROR: This value (%hhx) should be between 0x00-0x03 or 0x08-0x0C\n", value);
 	}
 	else if (addr - _emu._RAM  < 0x8000)
 	{
-		static bool previous_write_0 = false;
-
-		if (value > 1)
-			printf("ERROR: This value (%hhx) should be between 0 and 1\n", value);
+		if (value > 1) ;
+			// printf("ERROR: This value (%hhx) should be between 0 and 1\n", value);
 		else {
-			if (value == 0)
-				previous_write_0 = true;
-			else {
-				if (previous_write_0)
-					_RTC.set_halt_flag();
-				previous_write_0 = false;
-			}
+			if (value == 0 && _RTC.get_halt_flag())
+				_RTC.switch_halt_flag();
+			else if (value == 1 && _RTC.get_halt_flag())
+				_RTC.switch_halt_flag();
 		}
 	}
 	else
@@ -308,7 +293,6 @@ void	Memory_controller_MBC3::init(size_t ram_size) {
 		fs.read(reinterpret_cast<char *>(&last_shutdown), sizeof(last_shutdown));
 		fs.read(reinterpret_cast<char *>(&old_timestamp), sizeof(old_timestamp));
 		fs.read(reinterpret_cast<char *>(&RTC_DH), sizeof(RTC_DH));
-		// printf("last_shutdown = %ld and old_timestamp = %ld\n", last_shutdown, old_timestamp);
 		if (fs.good()) {
 			_RTC.init_timestamp(last_shutdown, old_timestamp, RTC_DH);
 			fs.read((char *)external_ram, _ram_size);
