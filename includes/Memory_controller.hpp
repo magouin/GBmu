@@ -134,11 +134,12 @@ class Memory_controller_MBC3 : public Memory_controller {
 				void	set_register(uint8_t value);
 
 				uint8_t get_DH(void);
+				bool 	get_halt_flag(void);
 
 				time_t	get_timestamp_gb(void);
 				void	update_timestamp_gb();
 
-				void 	set_halt_flag();
+				void 	switch_halt_flag();
 				void	set_register_in_use(uint8_t value);
 
 
@@ -160,6 +161,7 @@ class Memory_controller_MBC3 : public Memory_controller {
 
 				std::time_t _timestamp_gb;
 				std::time_t _real_timestamp;
+				std::time_t _diff_timestamp;
 				std::time_t _halt_timestamp_gb;
 
 				uint8_t get_S(time_t timestamp_gb);
