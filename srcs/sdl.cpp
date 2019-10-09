@@ -150,14 +150,16 @@ void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 
 void	Emulateur::render()
 {
-	static auto		start = std::chrono::system_clock::now();
-	static auto		now = std::chrono::system_clock::now();
-	static uint64_t	x = 0;
+	static auto								start = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point	now;
+	static uint64_t							x = 0;
 
-	if (!(++x % 60))
+	x++;
+	now = std::chrono::system_clock::now();
+	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > 1000)
 	{
-		now = std::chrono::system_clock::now();
-		printf("FPS: %d\n", (int)(60.0 / (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() / 1000.0)));
+		printf("FPS: %lld\n", x);
+		x = 0;
 		start = now;
 	}
 	SDL_RenderClear(_renderer);
