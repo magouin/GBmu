@@ -112,7 +112,7 @@ void	Memory_controller_MBC2::init(size_t ram_size) {
 	}
 }
 
-Memory_controller_MBC2::Memory_controller_MBC2(Emulateur &emu, size_t ram_size): Memory_controller(emu, ram_size)
+Memory_controller_MBC2::Memory_controller_MBC2(Emulateur &emu, size_t ram_size, bool debug): Memory_controller(emu, ram_size, debug)
 {
 	init(MBC2_RAM_SIZE);
 }
