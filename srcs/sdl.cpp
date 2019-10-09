@@ -58,6 +58,7 @@ void	Emulateur::sdl_init()
 void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 {
 	static uint8_t freq = 0;
+	uint8_t			reg_p1 = _MBC.mem_read(REG_P1, 1);
 
 	if (t == SDL_KEYDOWN)
 	{
@@ -80,7 +81,7 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_input.p14 &= ~IO_RIGHT;
 		else if (sym == SDLK_a)
 			_input.p15 &= ~IO_A;
-		else if (sym == SDLK_b)
+		else if (sym == SDLK_b || sym == SDLK_x)
 			_input.p15 &= ~IO_B;
 		else if (sym == SDLK_p)
 			_input.p15 &= ~IO_START;
@@ -88,8 +89,8 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_input.p15 &= ~IO_SELECT;
 		else
 			return ;
-		if ((!(_RAM[REG_P1] & 0x10) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(_RAM[REG_P1] & 0x20) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
-			_RAM[REG_IF] |= (1 << 4);
+		if ((!(reg_p1 & 0x10) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(reg_p1 & 0x20) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
+			_MBC.mem_write(REG_IF, _MBC.mem_read(REG_IF, 1) | (1 << 4), 1);
 		_stop_status = false;
 	}
 	else
@@ -104,7 +105,7 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_input.p14 |= IO_RIGHT;
 		else if (sym == SDLK_a)
 			_input.p15 |= IO_A;
-		else if (sym == SDLK_b)
+		else if (sym == SDLK_b || sym == SDLK_x)
 			_input.p15 |= IO_B;
 		else if (sym == SDLK_p)
 			_input.p15 |= IO_START;
@@ -149,6 +150,16 @@ void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 
 void	Emulateur::render()
 {
+	static auto		start = std::chrono::system_clock::now();
+	static auto		now = std::chrono::system_clock::now();
+	static uint64_t	x = 0;
+
+	if (!(++x % 60))
+	{
+		now = std::chrono::system_clock::now();
+		printf("FPS: %d\n", (int)(60.0 / (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() / 1000.0)));
+		start = now;
+	}
 	SDL_RenderClear(_renderer);
 
 	SDL_LockSurface(_surface);
