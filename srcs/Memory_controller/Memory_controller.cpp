@@ -131,14 +131,17 @@ uint16_t	Memory_controller::mem_read(void *addr, int8_t size)
 {
 	void	*read_addr = NULL;
 
-	_emu.check_watchpoint((uint8_t *)addr, RD, size);
 	if ((read_addr = read_ROM_RAM_regs((uint8_t*)addr))) ;
-	else if ((read_addr = cpu_regs(addr))) ;
-	else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
-	else if ((read_addr = gb_mem(addr))) ;
 	else {
-		printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
-		return (0);
+		if (_debug)
+			_emu.check_watchpoint((uint8_t *)addr, RD, size);
+		if ((read_addr = cpu_regs(addr))) ;
+		else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
+		else if ((read_addr = gb_mem(addr))) ;
+		else {
+			printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
+			return (0);
+		}
 	}
 	if (size == 2)
 		return (*(uint16_t *)read_addr);
@@ -150,20 +153,22 @@ void		Memory_controller::mem_write(void *addr, uint16_t value, int8_t size)
 {
 	void	*write_addr;
 
-	_emu.check_watchpoint((uint8_t *)addr, WR, size);
 	if ((write_addr = cpu_regs(addr))) ;
-	else if (write_ROM_regs((uint8_t*)addr, value, size))
-		return ;
-	else if (write_RAM_regs((uint8_t*)addr, value, size))
-		return ;
-	else if (write_gb_regs((uint8_t *)addr, value, size))
-		return ;
-	else if ((write_addr = gb_mem(addr))) ;
 	else {
-		printf("GBmu: warning: Invalid write at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
-		return ;
-	} 
-
+		if (_debug)
+			_emu.check_watchpoint((uint8_t *)addr, WR, size);
+		if (write_ROM_regs((uint8_t*)addr, value, size))
+			return ;
+		else if (write_RAM_regs((uint8_t*)addr, value, size))
+			return ;
+		else if (write_gb_regs((uint8_t *)addr, value, size))
+			return ;
+		else if ((write_addr = gb_mem(addr))) ;
+		else {
+			printf("GBmu: warning: Invalid write at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
+			return ;
+		} 
+	}
 	if (size == 2)
 		*(uint16_t *)addr = value;
 	else
@@ -201,7 +206,7 @@ void	Memory_controller::init(size_t ram_size) {
 }
 
 
-Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size): _emu(emu), _ram_regs({RAM_REGS})
+Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS}), _debug(debug)
 {
 }
 

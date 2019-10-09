@@ -55,15 +55,15 @@ void	Emulateur::init_registers(void)
 
 Memory_controller 	&Emulateur::get_memory_controller() {
 	if (_cartridge.type == CT_ROM)
-		return (*new Memory_controller_MBC1(*this, _header.get_ram_size()));
+		return (*new Memory_controller_MBC1(*this, _header.get_ram_size(), _debug));
 	else if (_cartridge.type == CT_MBC1)
-		return (*new Memory_controller_MBC1(*this, _header.get_ram_size()));
+		return (*new Memory_controller_MBC1(*this, _header.get_ram_size(), _debug));
 	else if (_cartridge.type == CT_MBC2)
-		return (*new Memory_controller_MBC2(*this, MBC2_RAM_SIZE));
+		return (*new Memory_controller_MBC2(*this, MBC2_RAM_SIZE, _debug));
 	else if (_cartridge.type == CT_MBC3)
-		return (*new Memory_controller_MBC3(*this, _header.get_ram_size()));
+		return (*new Memory_controller_MBC3(*this, _header.get_ram_size(), _debug));
 	else if (_cartridge.type == CT_MBC5)
-		return (*new Memory_controller_MBC5(*this, _header.get_ram_size()));
+		return (*new Memory_controller_MBC5(*this, _header.get_ram_size(), _debug));
 	else {
 		printf("Cartridge [%s] not supported", _cartridge.to_str.c_str());
 		exit(EXIT_FAILURE);

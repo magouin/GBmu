@@ -27,7 +27,7 @@ class Memory_controller {
 		uint8_t				*ram_bank;
 		const uint8_t		*rom_bank;
 
-		Memory_controller(Emulateur &emu, size_t ram_size);
+		Memory_controller(Emulateur &emu, size_t ram_size, bool debug = false);
 		~Memory_controller();
 		Memory_controller & operator=(const Memory_controller & cp);
 
@@ -43,6 +43,7 @@ class Memory_controller {
 
 		bool	_RAM_ENABLE;
 		uint8_t	_ROM_BANK;
+		const uint8_t		_debug;
 
 		virtual void		init(size_t ram_size);
 
@@ -80,7 +81,7 @@ class Memory_controller {
 
 class Memory_controller_MBC1 : public Memory_controller {
 	public:
-		Memory_controller_MBC1(Emulateur &emu, size_t ram_size);
+		Memory_controller_MBC1(Emulateur &emu, size_t ram_size, bool debug);
 
 	private:
 		uint8_t	_ROM_RAM_BANK;
@@ -93,7 +94,7 @@ class Memory_controller_MBC1 : public Memory_controller {
 
 class Memory_controller_MBC2 : public Memory_controller {
 	public:
-		Memory_controller_MBC2(Emulateur &emu, size_t ram_size);
+		Memory_controller_MBC2(Emulateur &emu, size_t ram_size, bool debug);
 		uint16_t	mem_read(void *addr, int8_t size);
 		void		init(size_t ram_size);
 		void		save();
@@ -106,7 +107,7 @@ class Memory_controller_MBC2 : public Memory_controller {
 
 class Memory_controller_MBC3 : public Memory_controller {
 	public:
-		Memory_controller_MBC3(Emulateur &emu, size_t ram_size);
+		Memory_controller_MBC3(Emulateur &emu, size_t ram_size, bool debug);
 
 	private:
 		uint8_t	_ROM_RAM_BANK;
@@ -119,7 +120,7 @@ class Memory_controller_MBC3 : public Memory_controller {
 
 class Memory_controller_MBC5 : public Memory_controller {
 	public:
-		Memory_controller_MBC5(Emulateur &emu, size_t ram_size);
+		Memory_controller_MBC5(Emulateur &emu, size_t ram_size, bool debug);
 
 	private:
 		uint8_t	_RAM_BANK;

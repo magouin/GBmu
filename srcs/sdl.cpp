@@ -58,7 +58,7 @@ void	Emulateur::sdl_init()
 void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 {
 	static uint8_t freq = 0;
-	uint8_t			reg_p1 = _MBC.mem_read(REG_P1, 1);
+	uint8_t			reg_p1 = _RAM[REG_P1];
 
 	if (t == SDL_KEYDOWN)
 	{
@@ -66,9 +66,9 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_test++;
 		else if (sym == SDLK_h)
 		{
-			freq = (1 + freq) % 3;
+			freq = (1 + freq) % 5;
 			printf("_frequency >> 21: %x -> ", _frequency >> 21);
-			_frequency = 0x400000 + 0x400000 * freq;
+			_frequency = (0x400000 << freq);
 			printf("%x\n", _frequency >> 21);
 		}
 		if (sym == SDLK_UP)
@@ -90,7 +90,7 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 		else
 			return ;
 		if ((!(reg_p1 & 0x10) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(reg_p1 & 0x20) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
-			_MBC.mem_write(REG_IF, _MBC.mem_read(REG_IF, 1) | (1 << 4), 1);
+			_RAM[REG_IF] |= (1 << 4);
 		_stop_status = false;
 	}
 	else

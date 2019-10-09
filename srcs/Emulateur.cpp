@@ -156,7 +156,7 @@ void	Emulateur::cadence()
 {
 	auto now = std::chrono::system_clock::now();
 
-	if (_cycle * (1.0 / _frequency) * 1000.0 * 1000.0 > (now - _start_time).count())
+	if (_cycle * (1.0 / _frequency) * 100.0 * 1000.0 > (now - _start_time).count())
 		SDL_Delay(1);
 }
 
