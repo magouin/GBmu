@@ -78,7 +78,7 @@ bool		Memory_controller_MBC3::write_RAM_regs(uint8_t *addr, uint16_t value, int8
 	return (false);
 }
 
-Memory_controller_MBC3::Memory_controller_MBC3(Emulateur &emu, size_t ram_size): Memory_controller(emu, ram_size)
+Memory_controller_MBC3::Memory_controller_MBC3(Emulateur &emu, size_t ram_size, bool debug): Memory_controller(emu, ram_size, debug)
 {
 	init(ram_size);
 	_ROM_RAM_BANK = 0;
