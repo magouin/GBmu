@@ -88,7 +88,7 @@ void	Emulateur::update_tima()
 	static bool				last = 0;
 	bool					now;
 
-	now = ((_RAM[REG_DIV] * 256) + (_cycle % 256)) % num_to_byte[_RAM[REG_TAC] & 0x3] && (_RAM[REG_TAC] & 0x4);
+	now = ((_RAM[REG_DIV] * 256) + (_cycle % 256)) % num_to_byte[_RAM[REG_TAC] & 0x3];
 	if (!now && last)
 	{
 		if (_tima_delay_interrupt)
@@ -112,7 +112,7 @@ void	Emulateur::get_instr()
 	_instr = &_opcode[_MBC.mem_read(_RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[_MBC.mem_read(_RAM + regs.PC + 1, 1)];
-	if (_step_by_step || check_breakpoint()) debug_mode();
+	if (_debug && (_step_by_step || check_breakpoint())) debug_mode();
 	if (_trace) {_trace--; print_trace();}
 	regs.PC += 1 + _instr->nb_params;
 	if (_instr->cycle_nb == 0)
@@ -152,21 +152,14 @@ void Emulateur::exec_instr()
 	}
 }
 
-void	Emulateur::cadence()
-{
-	auto now = std::chrono::system_clock::now();
-
-	if ((_cycle / _frequency) * 1000.0 * 1000.0 > (now - _start_time).count())
-		SDL_Delay(1);
-}
-
 int		Emulateur::main_thread()
 {
 	while (true)
 	{
 		if (_reset)
 			emu_init();
-		update_tima();
+		if (_RAM[REG_TAC] & 0x4)
+			update_tima();
 		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
 		if (_current_instr_cycle == 0)
@@ -175,7 +168,6 @@ int		Emulateur::main_thread()
 		if (!(_cycle % 70224))
 			_start_time = std::chrono::system_clock::now();
 		_cycle = (_cycle + 4) % 70224;
-		cadence();
 		if (_cycle % 256 == 0)
 			_RAM[REG_DIV]++;
 	}
