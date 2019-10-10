@@ -84,25 +84,25 @@ const struct s_cv_instr *Emulateur::get_cv_infos(uint8_t opcode) const
 
 void	Emulateur::update_tima()
 {
-	const uint16_t			num_to_byte[4] = {1024, 16, 64, 256};
-	static bool				last = 0;
-	bool					now;
+	const uint8_t			num_to_byte[4] = {8, 2, 4, 6};
+	static uint64_t			nb_tick = 0;
 
-	now = ((_RAM[REG_DIV] * 256) + (_cycle % 256)) % num_to_byte[_RAM[REG_TAC] & 0x3];
-	if (!now && last)
+	if (_tima_delay_interrupt)
 	{
-		if (_tima_delay_interrupt)
-		{
-			_tima_delay_interrupt = false;
-			_RAM[REG_TIMA] = _RAM[0xFF06];
-			_RAM[REG_IF] |= 4;
-			return ;
-		}
+		_tima_delay_interrupt = false;
+		_RAM[REG_TIMA] = _RAM[0xFF06];
+		_RAM[REG_IF] |= 4;
+		return ;
+	}
+	if (nb_tick == 0)
+		nb_tick = (1l << (num_to_byte[_RAM[REG_TAC] & 0x3]));
+	nb_tick--;
+	if (nb_tick == 0)
+	{
 		if (_RAM[REG_TIMA] == 0xff)
 			_tima_delay_interrupt = true;
 		_RAM[REG_TIMA]++;
 	}
-	last = now;
 }
 
 void	Emulateur::get_instr()
@@ -165,8 +165,6 @@ int		Emulateur::main_thread()
 		if (_current_instr_cycle == 0)
 			interrupt();
 		update_lcd();
-		if (!(_cycle % 70224))
-			_start_time = std::chrono::system_clock::now();
 		_cycle = (_cycle + 4) % 70224;
 		if (_cycle % 256 == 0)
 			_RAM[REG_DIV]++;
