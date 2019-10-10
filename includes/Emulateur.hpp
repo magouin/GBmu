@@ -183,8 +183,6 @@ class Emulateur {
 		struct s_param	p_nn_D1 = {DIR, NULL, NULL, UNSIGN, true, 2, 1};
 		struct s_param	p_nn_D2 = {DIR, NULL, NULL, UNSIGN, true, 2, 2};
 
-		std::chrono::time_point<std::chrono::system_clock> _start_time;
-
 		Emulateur();
 
 		void	emu_init();
@@ -268,7 +266,6 @@ class Emulateur {
 
 
 		void		print_line(uint64_t ly, uint64_t start, struct s_oam_obj **objs);
-		uint32_t	get_time_from_frequency(uint8_t freq);
 
 		bool		update();
 		void		render();
