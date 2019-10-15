@@ -47,6 +47,9 @@ class Memory_controller {
 		uint8_t		*_working_ram;
 		uint8_t		_working_ram_bank;
 
+		uint8_t		*_video_external_ram;
+		bool		_video_ram_bank;
+
 		virtual void		init(size_t ram_size);
 
 		void	write_div(uint8_t value);

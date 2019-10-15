@@ -42,6 +42,11 @@
 // CGB only
 # define REG_SVBK	0xff70
 # define REG_KEY1	0xff4d
+# define REG_HDMA1	0xff51
+# define REG_HDMA2	0xff52
+# define REG_HDMA3	0xff53
+# define REG_HDMA4	0xff54
+# define REG_HDMA5	0xff55
 
 struct s_regs {
 	union {
