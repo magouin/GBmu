@@ -91,6 +91,11 @@ struct s_watch {
 	enum e_right	right;
 };
 
+struct s_cgb {
+	bool on;
+	bool mode_double_speed;
+};
+
 class Emulateur {
 	public:
 		static int create_main_thread(void *ptr);
@@ -101,6 +106,8 @@ class Emulateur {
 		struct user_input	_input;
 		std::string			_ROM;
 		std::string			_save_name;
+		struct s_cgb		cgb;
+
 
 		Emulateur(std::string file, std::string rom, bool debug=false);
 		~Emulateur(/* args */);

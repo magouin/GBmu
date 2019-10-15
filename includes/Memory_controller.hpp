@@ -17,7 +17,6 @@ class Memory_controller;
 
 struct s_ram_regs {
 	enum e_right	right;
-	void			(Memory_controller::*read)();
 	void			(Memory_controller::*write)(uint8_t value);
 };
 
@@ -45,6 +44,9 @@ class Memory_controller {
 		uint8_t	_ROM_BANK;
 		const uint8_t		_debug;
 
+		uint8_t		*_working_ram;
+		uint8_t		_working_ram_bank;
+
 		virtual void		init(size_t ram_size);
 
 		void	write_div(uint8_t value);
@@ -56,6 +58,9 @@ class Memory_controller {
 		void	write_lyc(uint8_t value);
 		void	write_dma(uint8_t value);
 		void	write_tac(uint8_t value);
+		void	write_svbk(uint8_t value);
+		void	write_key1(uint8_t value);
+
 		void	read_p1(void);
 
 		virtual void	*read_ROM_RAM_regs(uint8_t *addr) = 0;
@@ -64,7 +69,9 @@ class Memory_controller {
 
 		void	*cpu_regs(void *addr);
 		void	*read_gb_regs(uint8_t *addr);
+		void	*read_working_ram(uint8_t *addr);
 		void	*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
+		void	*write_working_ram(uint8_t *addr, uint16_t value, int8_t size);
 		void	*gb_mem(void *addr);
 
 };

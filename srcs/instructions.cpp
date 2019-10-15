@@ -119,8 +119,19 @@ void	Emulateur::cpl()
 	regs.N = true;
 }
 
-void	Emulateur::stop() // TODO
+void	Emulateur::stop()
 {
+	uint8_t key1 = _MBC.mem_read(_RAM + REG_KEY1, 1);
+
+	if (cgb.on && key1 & 0x1) {
+		if (cgb.mode_double_speed)
+			_frequency >>= 1;
+		else
+			_frequency <<= 1;
+		cgb.mode_double_speed = !cgb.mode_double_speed;
+		key1 = ~key1 & 0x80;
+		_MBC.mem_write(_RAM + REG_KEY1, key1, 1);
+	}
 	while ((_input.p14 & 0xf) != 0xf || (_input.p15 & 0xf) != 0xf) ;
 	_stop_status = true;
 }
@@ -311,6 +322,12 @@ void	Emulateur::push(struct s_param *p)
 
 void	Emulateur::rst(uint8_t nb)
 {
+	if (cgb.on) {
+		if (cgb.mode_double_speed)
+			_frequency >>= 1;
+		cgb.mode_double_speed = false;
+		_MBC.mem_write(_RAM + REG_KEY1, 0, 1);
+	}
 	regs.SP -= 2;
 	_MBC.mem_write(_RAM + regs.SP, regs.PC, 2);
 	regs.PC = nb * 8;

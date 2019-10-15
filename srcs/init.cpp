@@ -51,6 +51,7 @@ void	Emulateur::init_registers(void)
 	_RAM[REG_WY] = 0x00; // WY
 	_RAM[REG_WX] = 0x00; // WX
 	_RAM[REG_IE] = 0x00; // IE
+	_RAM[REG_KEY1] = 0x00;
 }
 
 Memory_controller 	&Emulateur::get_memory_controller() {
@@ -72,6 +73,10 @@ Memory_controller 	&Emulateur::get_memory_controller() {
 
 void Emulateur::emu_init()
 {
+	printf("cgb on -> %s (0x%hhx)\n", cgb.on ? "true" : "false", _header.cgb_supp_code);
+	if (cgb.on) {
+		cgb.mode_double_speed = false;
+	}
 	_cycle = 0;
 	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));

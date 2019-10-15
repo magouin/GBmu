@@ -81,6 +81,26 @@ void			Memory_controller::write_tac(uint8_t value)
 	_emu._RAM[REG_TAC] = value;
 }
 
+void			Memory_controller::write_key1(uint8_t value)
+{
+	if (value & 1)
+	{
+		_emu._RAM[REG_P1] = 0x30;
+		_emu._RAM[REG_IE] = 0x00;
+		_emu._RAM[REG_KEY1] = 0x01;
+	}
+}
+
+void			Memory_controller::write_svbk(uint8_t value)
+{
+	if (_emu.cgb.on) {
+		if (!(value & 0x7)) value++;
+		_working_ram_bank = value & 0x7;
+	}
+	else
+		_emu._RAM[REG_SVBK] = value;
+}
+
 void			Memory_controller::read_p1()
 {
 	uint8_t value;
@@ -102,12 +122,11 @@ void		*Memory_controller::cpu_regs(void *addr)
 
 void		*Memory_controller::read_gb_regs(uint8_t *addr)
 {
-	if (addr < _emu._RAM + 0xff00 || addr > _emu._RAM + 0xff7f)
-		return (NULL);
-	if (_ram_regs[addr - 0xff00 - _emu._RAM].read)
-		(this->*_ram_regs[addr - 0xff00 - _emu._RAM].read)();
-	else return (NULL);
-	return (addr);
+	if (addr == _emu._RAM + 0xff00) {
+		read_p1();
+		return (addr);
+	}
+	return (NULL);
 }
 
 void		*Memory_controller::write_gb_regs(uint8_t *addr, uint8_t value, int8_t size)
@@ -127,6 +146,29 @@ void		*Memory_controller::gb_mem(void *addr)
 	return (addr);
 }
 
+void		*Memory_controller::write_working_ram(uint8_t *addr, uint16_t value, int8_t size)
+{
+	if (addr < _emu._RAM + 0xd000 || addr > _emu._RAM + 0xdfff)
+		return (NULL);
+	if (_working_ram_bank == 1)
+		return (NULL);
+	uint16_t offset = (_working_ram_bank - 2) * 0x1000;
+	if (size == 1)
+		*(uint8_t *)(_working_ram + offset) = (uint8_t)value;
+	else
+		*(uint16_t *)(_working_ram + offset) = value;
+	return (_working_ram + offset);
+}
+
+void		*Memory_controller::read_working_ram(uint8_t *addr)
+{
+	if (addr < _emu._RAM + 0xd000 || addr > _emu._RAM + 0xdfff)
+		return (NULL);
+	if (_working_ram_bank == 1)
+		return (NULL);
+	return (_working_ram + (_working_ram_bank - 2) * 0x1000);
+}
+
 uint16_t	Memory_controller::mem_read(void *addr, int8_t size)
 {
 	void	*read_addr = NULL;
@@ -137,6 +179,7 @@ uint16_t	Memory_controller::mem_read(void *addr, int8_t size)
 			_emu.check_watchpoint((uint8_t *)addr, RD, size);
 		if ((read_addr = cpu_regs(addr))) ;
 		else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
+		else if (_emu.cgb.on && (read_addr = read_working_ram((uint8_t*)addr))) ;
 		else if ((read_addr = gb_mem(addr))) ;
 		else {
 			printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
@@ -163,6 +206,8 @@ void		Memory_controller::mem_write(void *addr, uint16_t value, int8_t size)
 			return ;
 		else if (write_gb_regs((uint8_t *)addr, value, size))
 			return ;
+		else if (_emu.cgb.on && write_working_ram((uint8_t *)addr, value, size))
+			return ;
 		else if ((write_addr = gb_mem(addr))) ;
 		else {
 			printf("GBmu: warning: Invalid write at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
@@ -186,6 +231,8 @@ void	Memory_controller::save()
 	}
 	if (_ram_size > 0)
 		delete external_ram;
+	if (_emu.cgb.on)
+		delete _working_ram;
 }
 
 void	Memory_controller::init(size_t ram_size) {
@@ -193,7 +240,10 @@ void	Memory_controller::init(size_t ram_size) {
 	rom_bank = (const uint8_t*)(_emu._ROM.c_str() + 0x4000);
 	external_ram = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu._RAM + 0xa000;
 	ram_bank = external_ram;
-
+	if (_emu.cgb.on) {
+		_working_ram = new uint8_t[0x6000];
+		_working_ram_bank = 1;
+	}
 	std::ifstream fs;
 	fs.open (_emu._save_name, std::fstream::in | ios::binary);
 	if (fs.is_open())
