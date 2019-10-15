@@ -38,6 +38,11 @@
 # define REG_WY		0xff4a
 # define REG_WX		0xff4b
 
+
+// CGB only
+# define REG_SVBK	0xff70
+# define REG_KEY1	0xff4d
+
 struct s_regs {
 	union {
 		struct {
