@@ -58,22 +58,26 @@ void			Memory_controller::write_lyc(uint8_t value)
 
 void			Memory_controller::write_dma(uint8_t value)
 {
-	// uint64_t	t;
-
-	// t = _timer_counter * 256 + _timer;
-
-	if (value < 0x80 || value > 0xdf)
-	{
-		printf("SHOULDNT HAPPEN 2 [%hhx]\n", value);
-		// throw InvalidWrite((value));
+	if (_emu.cgb.on) {
+		_emu._RAM[0xff46] = value;
+		if (value >= 0x80 && value < 0xa0)
+			memcpy(_emu._RAM + 0xfe00, (_video_ram_bank ? (_video_external_ram + (value - 0x80) * 256) : (_emu._RAM + value * 256)), 40 * 4);
+		else if (value >= 0xa0 && value < 0xc0)
+			memcpy(_emu._RAM + 0xfe00, ram_bank + (value - 0xa0) * 256, 40 * 4);
+		else if (_working_ram_bank > 1 && value >= 0xd0 && value < 0xe0)
+			memcpy(_emu._RAM + 0xfe00, _working_ram + (_working_ram_bank - 2) * 0x1000 + (value - 0xd0) * 256, 40 * 4);
+		else
+			memcpy(_emu._RAM + 0xfe00, _emu._RAM + value * 256, 40 * 4);
 	}
-	_emu._RAM[0xff46] = value;
-	// if ((_emu._RAM[REG_STAT] & 3) != 2)
-	// 	return ;
-	if (value < 0xa0 || value >= 0xc0)
-		memcpy(_emu._RAM + 0xfe00, _emu._RAM + value * 256, 40 * 4);
-	else
-		memcpy(_emu._RAM + 0xfe00, ram_bank + (value - 0xa0) * 256, 40 * 4);
+	else {
+		if (value < 0x80 || value > 0xdf)
+			return ;
+		_emu._RAM[0xff46] = value;
+		if (value < 0xa0 || value >= 0xc0)
+			memcpy(_emu._RAM + 0xfe00, _emu._RAM + value * 256, 40 * 4);
+		else
+			memcpy(_emu._RAM + 0xfe00, ram_bank + (value - 0xa0) * 256, 40 * 4);
+	}
 }
 
 void			Memory_controller::write_tac(uint8_t value)
@@ -255,6 +259,19 @@ void	Memory_controller::init(size_t ram_size) {
 	_ROM_BANK = 1;
 }
 
+void	Memory_controller::memcpy(uint8_t *dest, uint8_t *src, uint16_t len)
+{
+	uint8_t		buff[len];
+	uint16_t	low;
+	uint16_t	high;
+	uint16_t	curr;
+
+	curr = 0;
+	low = 0x100 - ((src - _emu._RAM) & 0xff);
+	high = (src - _emu._RAM) >> 8;
+	if (high >= 0x40 && high < 0x80)
+		memcpy(buff + curr, src, low)
+}
 
 Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS}), _debug(debug)
 {

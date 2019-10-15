@@ -253,6 +253,15 @@ void	Emulateur::update_lcd()
 			_RAM[REG_STAT] = (_RAM[REG_STAT] & ~(uint8_t)3) | 0;
 			if (_RAM[REG_STAT] & (1 << 3))
 				_RAM[REG_IF] |= (1 << 1);
+
+			if (cgb.on) {
+				uint8_t hdma5 = _MBC.mem_read(_RAM + REG_HDMA5, 1);
+				if (hdma5 & 0x80) {
+					uint8_t hdma1 = _MBC.mem_read(_RAM + REG_HDMA1, 1);
+					uint8_t hdma3 = _MBC.mem_read(_RAM + REG_HDMA3, 1);
+					memcpy()
+				}
+			}
 		}
 	}
 	if (ly == 144 && line_cycle == 0)

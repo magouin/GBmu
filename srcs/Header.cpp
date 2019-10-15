@@ -15,8 +15,7 @@ Header::Header(const string & file, bool *cgb_on) : _file(file)
 
 	_header = *reinterpret_cast<const struct s_header*>(head);
 
-	// *cgb_on = (_header.cgb_supp_code == 0x80 || _header.cgb_supp_code == 0xc0) ? true : false ;
-	*cgb_on = false;
+	*cgb_on = (_header.cgb_supp_code == 0x80 || _header.cgb_supp_code == 0xc0) ? true : false ;
 	// cout << "Title: " << this->_header.title << endl;
 	// cout << "Cartdrige type: " << cartridge_types[(int)this->_header.cartridge].to_str << endl;
 
