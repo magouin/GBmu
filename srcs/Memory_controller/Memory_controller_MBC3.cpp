@@ -283,6 +283,11 @@ void	Memory_controller_MBC3::init(size_t ram_size) {
 	_RAM_RTC_SELECT = E_RAM;
 	_RAM_RTC_ENABLE = false;
 
+	if (_emu.cgb.on) {
+		_working_ram = new uint8_t[0x6000];
+		_working_ram_bank = 1;
+	}
+
 	std::ifstream fs;
 	fs.open(_emu._save_name, std::fstream::in | ios::binary);
 	if (fs.is_open())

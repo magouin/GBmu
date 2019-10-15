@@ -68,6 +68,7 @@ uint16_t	Memory_controller_MBC2::mem_read(void *addr, int8_t size)
 	}
 	else if ((read_addr = cpu_regs(addr))) ;
 	else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
+	else if (_emu.cgb.on && (read_addr = read_working_ram((uint8_t*)addr))) ;
 	else if ((read_addr = gb_mem(addr))) ;
 	else {
 		printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu._RAM));
@@ -96,6 +97,11 @@ void	Memory_controller_MBC2::save()
 void	Memory_controller_MBC2::init(size_t ram_size) {
 	_ram_size = MBC2_RAM_SIZE;
 	external_ram = _emu._RAM + 0xa000;
+
+	if (_emu.cgb.on) {
+		_working_ram = new uint8_t[0x6000];
+		_working_ram_bank = 1;
+	}
 
 	std::ifstream fs;
 	char	tmp[MBC2_SAV_SIZE];
