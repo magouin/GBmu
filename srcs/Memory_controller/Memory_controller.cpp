@@ -2,21 +2,29 @@
 
 void			Memory_controller::write_div(uint8_t value)
 {
-	_emu.RAM[REG_DIV] = 0;
+	_emu.gb_regs.div = 0;
 }
 
 void			Memory_controller::write_lcdc(uint8_t value)
 {
-	if (!(_emu.RAM[REG_LCDC] & (1 << 5)) && (value & (1 << 5)))
+	struct s_lcdc l;
+
+	l = *(struct s_lcdc *)&value;
+	if (!_emu.gb_regs.lcdc.window && l.window)
 		printf("Windowing on flag activated : %x %x\n", _emu.RAM[REG_WX], _emu.RAM[REG_WY]);
-	if ((_emu.RAM[REG_LCDC] & 0x80) && (!(value & 0x80)))
+	if (_emu.gb_regs.lcdc.on && !l.on)
 		_emu.RAM[REG_LY] = 0;
-	_emu.RAM[REG_LCDC] = value;
+	_emu.gb_regs.lcdc = l;
 }
 
 void			Memory_controller::write_stat(uint8_t value)
 {
-	_emu.RAM[REG_STAT] = (_emu.RAM[REG_STAT] & 3) | (value & 120);
+	uint8_t mode;
+
+	// _emu.RAM[REG_STAT] = (_emu.RAM[REG_STAT] & 3) | (value & 120);
+	mode = _emu.gb_regs.stat.mode;
+	_emu.gb_regs.stat = *(struct s_stat *)&value;
+	_emu.gb_regs.stat.mode = mode;
 }
 
 void			Memory_controller::write_scy(uint8_t value)
@@ -34,13 +42,12 @@ void			Memory_controller::write_ly(uint8_t value)
 	_emu.RAM[REG_LY] = value;
 	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
 	{
-		_emu.RAM[REG_STAT] |= 4;
-		if (_emu.RAM[REG_STAT] & (1 << 6))
-				_emu.RAM[REG_IF] |= (1 << 1);
+		_emu.gb_regs.stat.match_ly = true;
+		if (_emu.gb_regs.stat.imatch_ly)
+				_emu.gb_regs.iflag.lcdc = true;
 	}
 	else
-		_emu.RAM[REG_STAT] &= ~4;
-	// printf("Writing value %x in ly\n", value);
+		_emu.gb_regs.stat.match_ly = false;
 }
 
 void			Memory_controller::write_lyc(uint8_t value)
@@ -48,12 +55,12 @@ void			Memory_controller::write_lyc(uint8_t value)
 	_emu.RAM[REG_LYC] = value;
 	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
 	{
-		_emu.RAM[REG_STAT] |= 4;
-		if (_emu.RAM[REG_STAT] & (1 << 6))
-				_emu.RAM[REG_IF] |= (1 << 1);
+		_emu.gb_regs.stat.match_ly = true;
+		if (_emu.gb_regs.stat.imatch_ly)
+				_emu.gb_regs.iflag.lcdc = true;
 	}
 	else
-		_emu.RAM[REG_STAT] &= ~4;
+		_emu.gb_regs.stat.match_ly = false;
 }
 
 void			Memory_controller::write_dma(uint8_t value)
@@ -82,15 +89,15 @@ void			Memory_controller::write_dma(uint8_t value)
 
 void			Memory_controller::write_tac(uint8_t value)
 {
-	_emu.RAM[REG_TAC] = value;
+	_emu.gb_regs.tac = *(struct s_tac *)&value;
 }
 
 void			Memory_controller::write_key1(uint8_t value)
 {
 	if (value & 1)
 	{
-		_emu.RAM[REG_P1] = 0x30;
-		_emu.RAM[REG_IE] = 0x00;
+		_emu.gb_regs.p1.select = ALL;
+		_emu.gb_regs.ie = {0};
 		_emu.RAM[REG_KEY1] = 0x01;
 	}
 }
@@ -107,15 +114,11 @@ void			Memory_controller::write_svbk(uint8_t value)
 
 void			Memory_controller::read_p1()
 {
-	uint8_t value;
-
 	_emu.gb_regs.p1.out = 0xf;
-	value = _emu.RAM[REG_P1] | 0xf;
-	if (!(value & 0x10))
-		value &= 0xf0 | _emu.input.p14;
-	if (!(value & 0x20))
-		value &= 0xf0 | _emu.input.p15;
-	_emu.RAM[REG_P1] = value;
+	if (_emu.gb_regs.p1.select & P15)
+		_emu.gb_regs.p1.out &= _emu.input.p14;
+	if (_emu.gb_regs.p1.select & P14)
+		_emu.gb_regs.p1.out &= _emu.input.p15;
 }
 
 void		*Memory_controller::cpu_regs(void *addr)

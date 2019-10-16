@@ -17,18 +17,6 @@
 # define IO_SELECT 4
 # define IO_START 8
 
-# define REG_P1		0xff00
-
-# define REG_DIV	0xff04
-# define REG_TIMA	0xff05
-# define REG_TAC	0xff07
-
-# define REG_IF		0xff0f
-# define REG_IE		0xffff
-
-# define REG_LCDC	0xff40
-# define REG_STAT	0xff41
-
 # define REG_SCY	0xff42
 # define REG_SCX	0xff43
 
@@ -93,18 +81,18 @@ struct s_regs {
 
 struct user_input
 {
-	uint8_t p14;
 	uint8_t p15;
+	uint8_t p14;
 };
 
 # define INIT_GB_REGS *reinterpret_cast<struct s_p1 *>(RAM + 0xff00), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff04), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff05), \
 *reinterpret_cast<struct s_tac *>(RAM + 0xff07), \
-*reinterpret_cast<uint8_t *>(RAM + 0xff0f), \
-*reinterpret_cast<uint8_t *>(RAM + 0xffff), \
-*reinterpret_cast<uint8_t *>(RAM + 0xff40), \
-*reinterpret_cast<uint8_t *>(RAM + 0xff41), \
+*reinterpret_cast<struct s_inter *>(RAM + 0xff0f), \
+*reinterpret_cast<struct s_inter *>(RAM + 0xffff), \
+*reinterpret_cast<struct s_lcdc *>(RAM + 0xff40), \
+*reinterpret_cast<struct s_stat *>(RAM + 0xff41), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff42), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff43), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff44), \

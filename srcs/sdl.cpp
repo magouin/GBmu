@@ -89,7 +89,7 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 		else
 			return ;
 		if ((!(gb_regs.p1.select == P14) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(gb_regs.p1.select == P15) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
-			RAM[REG_IF] |= (1 << 4);
+			gb_regs.iflag.io = true;
 		_stop_status = false;
 	}
 	else
