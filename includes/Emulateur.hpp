@@ -96,18 +96,60 @@ struct s_cgb {
 	bool mode_double_speed;
 };
 
+enum e_select {
+	P14,
+	P15
+};
+
+struct __attribute__((__packed__)) s_tac {
+	uint8_t clock_select : 2;
+	uint8_t on : 1;
+	uint8_t unused : 5;
+};
+
+struct __attribute__((__packed__)) s_p1 {
+	uint8_t out : 4;
+	enum e_select select : 2;
+	uint8_t unused : 2;
+};
+
+struct s_gb_regs {
+	struct s_p1		&p1;
+	uint8_t			&div;
+	uint8_t			&tima;
+	struct s_tac	&tac;
+	uint8_t			&iflag;
+	uint8_t			&ie;
+	uint8_t			&lcdc;
+	uint8_t			&stat;
+	uint8_t			&scy;
+	uint8_t			&scx;
+	uint8_t			&ly;
+	uint8_t			&lyc;
+	uint8_t			&wy;
+	uint8_t			&wx;
+	uint8_t			&svbk;
+	uint8_t			&key1;
+	uint8_t			&hdma1;
+	uint8_t			&hdma2;
+	uint8_t			&hdma3;
+	uint8_t			&hdma4;
+	uint8_t			&hdma5;
+};
+
+
 class Emulateur {
 	public:
 		static int create_main_thread(void *ptr);
 
 		// For memory_controller
-		uint8_t				_RAM[0x10000];
-		struct s_regs 		regs;
-		struct user_input	_input;
-		std::string			_ROM;
-		std::string			_save_name;
-		struct s_cgb		cgb;
-
+		uint8_t					RAM[0x10000];
+		struct s_regs 			regs;
+		struct user_input		input;
+		std::string				ROM;
+		std::string				save_name;
+		struct s_cgb			cgb;
+		const struct s_gb_regs	gb_regs;
 
 		Emulateur(std::string file, std::string rom, bool debug=false);
 		~Emulateur(/* args */);
@@ -316,12 +358,15 @@ class Emulateur {
 		void		print_obj(struct s_oam_obj *objs);
 		void		print_bg_tile_line(uint8_t *tile, int x, int y, int h);
 		void		print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h);
+		void		line_round(uint64_t line_cycle, uint8_t ly, bool print);
+		void		vblank_round(uint64_t line_cycle, uint8_t ly, bool print);
+
 
 
 		void		print_bg_line(int y);
 		void		print_window_line(int y);
 		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
-		void		print_objs_line(struct s_oam_obj **objs, int y);
+		void		print_objs_line(int y);
 
 		bool		check_cpu_reg(string param, uint16_t * &addr, uint16_t &val);
 		bool		get_number(string param, uint16_t * &addr, uint16_t &val);
