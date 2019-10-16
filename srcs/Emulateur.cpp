@@ -152,8 +152,29 @@ void Emulateur::exec_instr()
 	}
 }
 
+void	Emulateur::cadence()
+{
+	auto		now = std::chrono::system_clock::now();
+	float		time_to_sleep;
+	static bool t = false;
+
+	time_to_sleep = (((float)_cycle / (float)_frequency) * 1000.0 * 1000.0 - (now - _start_time).count());
+	// printf("time = %d\n", time_to_sleep);
+	if (time_to_sleep > 0)
+	{
+		SDL_Delay(1);
+		t = true;
+	}
+	else
+		t = false;
+// 	{
+// 		printf("%lld\n", time_to_sleep);
+// 	}
+}
+
 int		Emulateur::main_thread()
 {
+	_start_time = std::chrono::system_clock::now();
 	while (true)
 	{
 		if (_reset)
@@ -165,9 +186,12 @@ int		Emulateur::main_thread()
 		if (_current_instr_cycle == 0)
 			interrupt();
 		update_lcd();
-		_cycle = (_cycle + 4) % 70224;
+		_cycle += 4;
 		if (_cycle % 256 == 0)
+		{
+			cadence();
 			_RAM[REG_DIV]++;
+		}
 	}
 }
 
