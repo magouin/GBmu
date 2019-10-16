@@ -259,18 +259,33 @@ void	Memory_controller::init(size_t ram_size) {
 	_ROM_BANK = 1;
 }
 
-void	Memory_controller::memcpy(uint8_t *dest, uint8_t *src, uint16_t len)
+void	Memory_controller::new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len)
 {
-	uint8_t		buff[len];
-	uint16_t	low;
-	uint16_t	high;
-	uint16_t	curr;
+	uint8_t *video_real_addr;
 
-	curr = 0;
-	low = 0x100 - ((src - _emu._RAM) & 0xff);
-	high = (src - _emu._RAM) >> 8;
-	if (high >= 0x40 && high < 0x80)
-		memcpy(buff + curr, src, low)
+	if (video_offset < 0x8000 || video_offset > 0xa000 || src_offset >= 0x8000 || src_offset < 0xa000 || src_offset >= 0xe000)
+		return ;
+	if (video_offset + len >= 0xa000)
+		len = 0xa000 - video_offset;
+
+	if (_video_ram_bank == 1)
+		video_real_addr = _video_external_ram + (video_offset - 0x8000);
+	else
+		video_real_addr = _emu._RAM + video_offset;
+
+	while (len > 0) {
+		if (src_offset < 0x4000)
+			memcpy(video_real_addr, _emu._RAM + src_offset, (len %= 0x1000));
+		if (src_offset < 0x8000)
+			memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), (len %= 0x1000));
+		else if (src_offset >= 0xa000 && src_offset < 0xc000) {
+			if (0xa000 + _ram_size > src_offset) {
+				memcpy(video_real_addr, _emu._RAM + src_offset, (len %= 0x1000));
+			}
+			else
+				memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), (len %= 0x1000));
+		}
+	}
 }
 
 Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS}), _debug(debug)
