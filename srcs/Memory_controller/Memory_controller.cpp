@@ -274,18 +274,34 @@ void	Memory_controller::new_dma(uint16_t video_offset, uint16_t src_offset, uint
 	else
 		video_real_addr = _emu.RAM + video_offset;
 
+	uint16_t tmp;
 	while (len > 0) {
+		tmp = 0x1000 - len % 0x1000;
 		if (src_offset < 0x4000)
-			memcpy(video_real_addr, _emu.RAM + src_offset, (len %= 0x1000));
+			memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
 		if (src_offset < 0x8000)
-			memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), (len %= 0x1000));
+			memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), tmp);
 		else if (src_offset >= 0xa000 && src_offset < 0xc000) {
-			if (0xa000 + _ram_size > src_offset) {
-				memcpy(video_real_addr, _emu.RAM + src_offset, (len %= 0x1000));
+			if (0xa000 + _ram_size > src_offset || !_RAM_ENABLE)
+				memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
+			else {
+				if ((src_offset + tmp) > (0xa000 + _ram_size))
+					len -= (src_offset + tmp) - (0xa000 + _ram_size);
+				memcpy(video_real_addr, ram_bank + (src_offset - 0x4000), tmp);
 			}
-			else
-				memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), (len %= 0x1000));
 		}
+		else if (src_offset < 0xd000)
+			memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
+		else if (src_offset < 0xe000) {
+			if (_working_ram_bank == 1)
+				memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
+			else
+				memcpy(video_real_addr, _working_ram + (_working_ram_bank - 2) * 0x1000, tmp);
+		}
+		else
+			return ;
+		src_offset += tmp;
+		len -= tmp;
 	}
 }
 
