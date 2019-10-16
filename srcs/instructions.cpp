@@ -121,7 +121,7 @@ void	Emulateur::cpl()
 
 void	Emulateur::stop()
 {
-	uint8_t key1 = _MBC.mem_read(_RAM + REG_KEY1, 1);
+	uint8_t key1 = _MBC.mem_read(RAM + REG_KEY1, 1);
 
 	if (cgb.on && key1 & 0x1) {
 		if (cgb.mode_double_speed)
@@ -130,9 +130,9 @@ void	Emulateur::stop()
 			_frequency <<= 1;
 		cgb.mode_double_speed = !cgb.mode_double_speed;
 		key1 = ~key1 & 0x80;
-		_MBC.mem_write(_RAM + REG_KEY1, key1, 1);
+		_MBC.mem_write(RAM + REG_KEY1, key1, 1);
 	}
-	while ((_input.p14 & 0xf) != 0xf || (_input.p15 & 0xf) != 0xf) ;
+	while ((input.p14 & 0xf) != 0xf || (input.p15 & 0xf) != 0xf) ;
 	_stop_status = true;
 }
 
@@ -269,13 +269,13 @@ void	Emulateur::jr(struct s_param *p)
 
 void	Emulateur::ret()
 {
-	regs.PC = _MBC.mem_read(_RAM + regs.SP, 2);
+	regs.PC = _MBC.mem_read(RAM + regs.SP, 2);
 	regs.SP += 2;
 }
 
 void	Emulateur::reti()
 {
-	regs.PC = _MBC.mem_read(_RAM + regs.SP, 2);
+	regs.PC = _MBC.mem_read(RAM + regs.SP, 2);
 	regs.SP += 2;
 	regs.IME = true;
 }
@@ -283,7 +283,7 @@ void	Emulateur::reti()
 void	Emulateur::pop(struct s_param *p)
 {
 	get_param(p);
-	_MBC.mem_write(p->val, _MBC.mem_read(_RAM + regs.SP, 2), 2);
+	_MBC.mem_write(p->val, _MBC.mem_read(RAM + regs.SP, 2), 2);
 	regs.SP += 2;
 }
 
@@ -292,11 +292,11 @@ void	Emulateur::get_param(struct s_param *p)
 	if (p->type == REG)
 		p->val = p->p;
 	else
-		p->val = _RAM + regs.PC - p->s;
+		p->val = RAM + regs.PC - p->s;
 	if (p->deref && p->s == 1)
-		p->val = _RAM + 0xFF00 + _MBC.mem_read(p->val, 1);
+		p->val = RAM + 0xFF00 + _MBC.mem_read(p->val, 1);
 	else if (p->deref && p->s == 2)
-		p->val = _RAM + _MBC.mem_read(p->val, 2);
+		p->val = RAM + _MBC.mem_read(p->val, 2);
 }
 
 void	Emulateur::jp(struct s_param *p)
@@ -308,7 +308,7 @@ void	Emulateur::jp(struct s_param *p)
 void	Emulateur::call(struct s_param *p)
 {
 	get_param(p);
-	_MBC.mem_write(_RAM + regs.SP - 2, regs.PC, 2);
+	_MBC.mem_write(RAM + regs.SP - 2, regs.PC, 2);
 	regs.PC = _MBC.mem_read(p->val, 2);
 	regs.SP -= 2;
 }
@@ -317,7 +317,7 @@ void	Emulateur::push(struct s_param *p)
 {
 	get_param(p);
 	regs.SP -= 2;
-	_MBC.mem_write(_RAM + regs.SP, _MBC.mem_read(p->val, 2), 2);
+	_MBC.mem_write(RAM + regs.SP, _MBC.mem_read(p->val, 2), 2);
 }
 
 void	Emulateur::rst(uint8_t nb)
@@ -326,10 +326,10 @@ void	Emulateur::rst(uint8_t nb)
 		if (cgb.mode_double_speed)
 			_frequency >>= 1;
 		cgb.mode_double_speed = false;
-		_MBC.mem_write(_RAM + REG_KEY1, 0, 1);
+		_MBC.mem_write(RAM + REG_KEY1, 0, 1);
 	}
 	regs.SP -= 2;
-	_MBC.mem_write(_RAM + regs.SP, regs.PC, 2);
+	_MBC.mem_write(RAM + regs.SP, regs.PC, 2);
 	regs.PC = nb * 8;
 }
 
