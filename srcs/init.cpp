@@ -16,10 +16,7 @@ void	Emulateur::init_registers(void)
 	// regs.PC = 0x0000;
 	regs.IME = false;
 
-	RAM[REG_P1] = 0x00; // P1
-	RAM[REG_DIV] = 0x00; // TIMA
-	RAM[0xff06] = 0x00; // TMA 
-	RAM[REG_TAC] = 0x00; // TAC
+	gb_regs.div = 0x00; // TIMA
 	RAM[0xff10] = 0x80; // NR10
 	RAM[0xff11] = 0xbf; // NR11
 	RAM[0xff12] = 0xf3; // NR12
@@ -38,7 +35,7 @@ void	Emulateur::init_registers(void)
 	RAM[0xff24] = 0x77; // NR50
 	RAM[0xff25] = 0xf3; // NR51
 	RAM[0xff26] = 0xf1; // NR52
-	RAM[REG_LCDC] = 0x91; // LCDC
+	RAM[0xff40] = 0x91; // LCDC
 	RAM[REG_SCY] = 0x00; // SCY
 	RAM[REG_SCX] = 0x00; // SCX
 
@@ -50,7 +47,6 @@ void	Emulateur::init_registers(void)
 	RAM[0xff49] = 0xff; // OBP1
 	RAM[REG_WY] = 0x00; // WY
 	RAM[REG_WX] = 0x00; // WX
-	RAM[REG_IE] = 0x00; // IE
 	RAM[REG_KEY1] = 0x00;
 }
 

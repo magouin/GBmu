@@ -42,7 +42,7 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 	{
 		_current_instr_cycle = 0;
 		regs.IME = false;
-		RAM[REG_IF] &= ~iflag;
+		*(uint8_t *)&gb_regs.iflag = *(uint8_t *)&gb_regs.iflag & ~iflag;
 		regs.SP -= 2;
 		_MBC.mem_write(RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
@@ -53,15 +53,15 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 
 void	Emulateur::interrupt(void)
 {
-	if(RAM[REG_IF] & RAM[REG_IE] & 1) // V-Blank
+	if(gb_regs.iflag.vblank && gb_regs.ie.vblank) // V-Blank
 		interrupt_func(0x0040, 1);
-	else if(RAM[REG_IF] & RAM[REG_IE] & 2) // LCD STAT
+	else if(gb_regs.iflag.lcdc && gb_regs.ie.lcdc) // LCD STAT
 		interrupt_func(0x0048, 2);
-	else if(RAM[REG_IF] & RAM[REG_IE] & 4) // Timer
+	else if(gb_regs.iflag.timer && gb_regs.ie.timer) // Timer
 		interrupt_func(0x0050, 4);
-	else if(RAM[REG_IF] & RAM[REG_IE] & 8) // Serial
+	else if(gb_regs.iflag.serial && gb_regs.ie.serial) // Serial
 		interrupt_func(0x0058, 8);
-	else if(RAM[REG_IF] & RAM[REG_IE] & 16) // Joypad
+	else if(gb_regs.iflag.io && gb_regs.ie.io) // Joypad
 		interrupt_func(0x0060, 16);
 }
 
@@ -90,18 +90,18 @@ void	Emulateur::update_tima()
 	if (_tima_delay_interrupt)
 	{
 		_tima_delay_interrupt = false;
-		RAM[REG_TIMA] = RAM[0xFF06];
-		RAM[REG_IF] |= 4;
+		gb_regs.tima = RAM[0xFF06];
+		gb_regs.iflag.timer = true;
 		return ;
 	}
 	if (nb_tick == 0)
-		nb_tick = (1l << (num_to_byte[RAM[REG_TAC] & 0x3]));
+		nb_tick = (1l << (num_to_byte[gb_regs.tac.clock_select]));
 	nb_tick--;
 	if (nb_tick == 0)
 	{
-		if (RAM[REG_TIMA] == 0xff)
+		if (gb_regs.tima == 0xff)
 			_tima_delay_interrupt = true;
-		RAM[REG_TIMA]++;
+		gb_regs.tima++;
 	}
 }
 
@@ -158,7 +158,7 @@ int		Emulateur::main_thread()
 	{
 		if (_reset)
 			emu_init();
-		if (RAM[REG_TAC] & 0x4)
+		if (gb_regs.tac.on)
 			update_tima();
 		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
@@ -167,7 +167,7 @@ int		Emulateur::main_thread()
 		update_lcd();
 		_cycle = (_cycle + 4) % 70224;
 		if (_cycle % 256 == 0)
-			RAM[REG_DIV]++;
+			gb_regs.div++;
 	}
 }
 
