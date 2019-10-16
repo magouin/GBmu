@@ -33,6 +33,8 @@ class Memory_controller {
 		virtual uint16_t	mem_read(void *addr, int8_t size);
 		virtual void		mem_write(void *addr, uint16_t value, int8_t size);
 
+		void	new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len);
+
 		virtual void		save();
 
 	protected:

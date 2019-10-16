@@ -97,5 +97,26 @@ struct user_input
 	uint8_t p15;
 };
 
+# define INIT_GB_REGS *reinterpret_cast<struct s_p1 *>(RAM + 0xff00), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff04), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff05), \
+*reinterpret_cast<struct s_tac *>(RAM + 0xff07), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff0f), \
+*reinterpret_cast<uint8_t *>(RAM + 0xffff), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff40), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff41), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff42), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff43), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff44), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff45), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff4a), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff4b), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff70), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff4d), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff51), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff52), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff53), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff54), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff55)
 
 #endif

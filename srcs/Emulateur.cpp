@@ -6,16 +6,16 @@
 
 const uint8_t Emulateur::_bios[] = DMG_BIOS;
 
-Emulateur::Emulateur(): _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
+Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): _ROM(rom), _save_name(file.substr(0, file.find_last_of('.')) + ".sav"), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom, &cgb.on), _file_name(file), _step_by_step(debug), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): ROM(rom), save_name(file.substr(0, file.find_last_of('.')) + ".sav"), gb_regs({INIT_GB_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom, &cgb.on), _file_name(file), _step_by_step(debug), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 	sdl_init();
 }
 
-Emulateur::Emulateur(const Emulateur & cp):  _cartridge(cp._cartridge), _MBC(cp._MBC)
+Emulateur::Emulateur(const Emulateur & cp): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridge_type()), _MBC(cp._MBC)
 {
 	(void)cp;
 }
@@ -42,9 +42,9 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 	{
 		_current_instr_cycle = 0;
 		regs.IME = false;
-		_RAM[REG_IF] &= ~iflag;
+		RAM[REG_IF] &= ~iflag;
 		regs.SP -= 2;
-		_MBC.mem_write(_RAM + regs.SP, regs.PC, 2);
+		_MBC.mem_write(RAM + regs.SP, regs.PC, 2);
 		regs.PC = addr;
 		if (_step_by_step || check_breakpoint()) debug_mode();
 		if (_trace) {_trace--; print_trace();}
@@ -53,15 +53,15 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 
 void	Emulateur::interrupt(void)
 {
-	if(_RAM[REG_IF] & _RAM[REG_IE] & 1) // V-Blank
+	if(RAM[REG_IF] & RAM[REG_IE] & 1) // V-Blank
 		interrupt_func(0x0040, 1);
-	else if(_RAM[REG_IF] & _RAM[REG_IE] & 2) // LCD STAT
+	else if(RAM[REG_IF] & RAM[REG_IE] & 2) // LCD STAT
 		interrupt_func(0x0048, 2);
-	else if(_RAM[REG_IF] & _RAM[REG_IE] & 4) // Timer
+	else if(RAM[REG_IF] & RAM[REG_IE] & 4) // Timer
 		interrupt_func(0x0050, 4);
-	else if(_RAM[REG_IF] & _RAM[REG_IE] & 8) // Serial
+	else if(RAM[REG_IF] & RAM[REG_IE] & 8) // Serial
 		interrupt_func(0x0058, 8);
-	else if(_RAM[REG_IF] & _RAM[REG_IE] & 16) // Joypad
+	else if(RAM[REG_IF] & RAM[REG_IE] & 16) // Joypad
 		interrupt_func(0x0060, 16);
 }
 
@@ -90,18 +90,18 @@ void	Emulateur::update_tima()
 	if (_tima_delay_interrupt)
 	{
 		_tima_delay_interrupt = false;
-		_RAM[REG_TIMA] = _RAM[0xFF06];
-		_RAM[REG_IF] |= 4;
+		RAM[REG_TIMA] = RAM[0xFF06];
+		RAM[REG_IF] |= 4;
 		return ;
 	}
 	if (nb_tick == 0)
-		nb_tick = (1l << (num_to_byte[_RAM[REG_TAC] & 0x3]));
+		nb_tick = (1l << (num_to_byte[RAM[REG_TAC] & 0x3]));
 	nb_tick--;
 	if (nb_tick == 0)
 	{
-		if (_RAM[REG_TIMA] == 0xff)
+		if (RAM[REG_TIMA] == 0xff)
 			_tima_delay_interrupt = true;
-		_RAM[REG_TIMA]++;
+		RAM[REG_TIMA]++;
 	}
 }
 
@@ -109,9 +109,9 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
-	_instr = &_opcode[_MBC.mem_read(_RAM + regs.PC, 1)];
+	_instr = &_opcode[_MBC.mem_read(RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
-		_instr = &_op203[_MBC.mem_read(_RAM + regs.PC + 1, 1)];
+		_instr = &_op203[_MBC.mem_read(RAM + regs.PC + 1, 1)];
 	if (_debug && (_step_by_step || check_breakpoint())) debug_mode();
 	if (_trace) {_trace--; print_trace();}
 	regs.PC += 1 + _instr->nb_params;
@@ -179,7 +179,7 @@ int		Emulateur::main_thread()
 	{
 		if (_reset)
 			emu_init();
-		if (_RAM[REG_TAC] & 0x4)
+		if (RAM[REG_TAC] & 0x4)
 			update_tima();
 		if (_interrupt_cycle == 0 && _halt_status == false)
 			exec_instr();
@@ -190,7 +190,7 @@ int		Emulateur::main_thread()
 		if (_cycle % 256 == 0)
 		{
 			cadence();
-			_RAM[REG_DIV]++;
+			RAM[REG_DIV]++;
 		}
 	}
 }
