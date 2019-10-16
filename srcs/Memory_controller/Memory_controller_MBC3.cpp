@@ -177,12 +177,12 @@ void		*Memory_controller_MBC3::read_ROM_RAM_regs(uint8_t *addr)
 		return (void*)(rom_bank + (addr - _emu.RAM - 0x4000));
 	else if (addr - _emu.RAM >= 0xa000 && addr - _emu.RAM  < 0xc000)
 	{
-		if (_RAM_RTC_ENABLE) {
-			if (_RAM_RTC_SELECT == E_RTC) {
+		if (_ram_rtc_enable) {
+			if (_ram_rtc_select == E_RTC) {
 				_read_reg_RTC = _RTC.get_register();
 				return (&_read_reg_RTC);
 			}
-			return (void*)(ram_bank + (addr - _emu.RAM - 0xa000));
+			return (void*)(ram_ext_work_bank + (addr - _emu.RAM - 0xa000));
 		}
 	}
 	return (NULL);
@@ -194,21 +194,21 @@ bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 		return (false);
 
 	if (addr - _emu.RAM < 0x2000)
-		_RAM_RTC_ENABLE = ((value & 0xf) == 0xa ? true : false);
+		_ram_rtc_enable = ((value & 0xf) == 0xa ? true : false);
 	else if (addr - _emu.RAM < 0x4000)
 	{
 		if (!value)
 			value = 1;
-		_ROM_BANK = value & 0x7f;
+		_rom_bank_selected = value & 0x7f;
 	}
 	else if (addr - _emu.RAM < 0x6000)
 	{
 		if (value <= 3) {
-			_RAM_RTC_SELECT = E_RAM;
-			_RAM_BANK = value;
+			_ram_rtc_select = E_RAM;
+			_ram_ext_work_bank_to_select = value;
 		}
 		else if (value >= 0x08 && value <= 0x0C) {
-			_RAM_RTC_SELECT = E_RTC;
+			_ram_rtc_select = E_RTC;
 			_RTC.set_register_in_use(value);
 		}
 		else ;
@@ -227,8 +227,8 @@ bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 	}
 	else
 		return (false);
-	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * _ROM_BANK);
-	ram_bank = external_ram + _RAM_BANK * 0x2000;
+	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * _rom_bank_selected);
+	ram_ext_work_bank = ram_ext_work_orig_ptr + _ram_ext_work_bank_to_select * 0x2000;
 	return (true);
 }
 
@@ -236,15 +236,15 @@ bool		Memory_controller_MBC3::write_RAM_regs(uint8_t *addr, uint16_t value, int8
 {
 	if (addr - _emu.RAM  >= 0xA000 && addr - _emu.RAM  < 0xC000)
 	{
-		if (_RAM_RTC_ENABLE && _RAM_RTC_SELECT == E_RTC) {
+		if (_ram_rtc_enable && _ram_rtc_select == E_RTC) {
 			_RTC.set_register((uint8_t)value);
 			return true;
 		}
 		else {
 			if (size == 2)
-				*(uint16_t *)(ram_bank + (addr - _emu.RAM - 0xA000)) = value;
+				*(uint16_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = value;
 			else
-				*(uint8_t *)(ram_bank + (addr - _emu.RAM - 0xA000)) = (uint8_t)value;
+				*(uint8_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = (uint8_t)value;
 			return (true);
 		}
 	}
@@ -265,27 +265,27 @@ void	Memory_controller_MBC3::save()
 		fs.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
 		uint8_t RTC_DH = _RTC.get_DH();
 		fs.write(reinterpret_cast<char *>(&RTC_DH), sizeof(RTC_DH));
-		fs.write((char *)external_ram, _ram_size);
+		fs.write((char *)ram_ext_work_orig_ptr, _ram_size);
 		fs.close();
 	}
 	if (_ram_size > 0)
-		delete external_ram;
+		delete ram_ext_work_orig_ptr;
 }
 
 void	Memory_controller_MBC3::init(size_t ram_size) {
 	_ram_size = ram_size;
 	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000);
-	external_ram = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu.RAM + 0xa000;
-	ram_bank = external_ram;
-	_RAM_ENABLE = false;
-	_ROM_BANK = 1;
-	_RAM_BANK = 0;
-	_RAM_RTC_SELECT = E_RAM;
-	_RAM_RTC_ENABLE = false;
+	ram_ext_work_orig_ptr = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu.RAM + 0xa000;
+	ram_ext_work_bank = ram_ext_work_orig_ptr;
+	_ram_ext_work_enable = false;
+	_rom_bank_selected = 1;
+	_ram_ext_work_bank_to_select = 0;
+	_ram_rtc_select = E_RAM;
+	_ram_rtc_enable = false;
 
 	if (_emu.cgb.on) {
-		_working_ram = new uint8_t[0x6000];
-		_working_ram_bank = 1;
+		_ram_work_bank = new uint8_t[0x6000];
+		_ram_work_bank_selected = 1;
 	}
 
 	std::ifstream fs;
@@ -300,7 +300,7 @@ void	Memory_controller_MBC3::init(size_t ram_size) {
 		fs.read(reinterpret_cast<char *>(&RTC_DH), sizeof(RTC_DH));
 		if (fs.good()) {
 			_RTC.init_timestamp(last_shutdown, old_timestamp, RTC_DH);
-			fs.read((char *)external_ram, _ram_size);
+			fs.read((char *)ram_ext_work_orig_ptr, _ram_size);
 			fs.close();
 		}
 		else {
