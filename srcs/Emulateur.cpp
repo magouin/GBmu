@@ -10,7 +10,7 @@ Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridg
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): ROM(rom), save_name(file.substr(0, file.find_last_of('.')) + ".sav"), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom, &cgb.on), _file_name(file), _step_by_step(debug), gb_regs({INIT_GB_REGS}), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
+Emulateur::Emulateur(std::string file, std::string rom, bool debug): ROM(rom), save_name(file.substr(0, file.find_last_of('.')) + ".sav"), gb_regs({INIT_GB_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom, &cgb.on), _file_name(file), _step_by_step(debug), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 	sdl_init();
 }
@@ -152,8 +152,29 @@ void Emulateur::exec_instr()
 	}
 }
 
+void	Emulateur::cadence()
+{
+	auto		now = std::chrono::system_clock::now();
+	float		time_to_sleep;
+	static bool t = false;
+
+	time_to_sleep = (((float)_cycle / (float)_frequency) * 1000.0 * 1000.0 - (now - _start_time).count());
+	// printf("time = %d\n", time_to_sleep);
+	if (time_to_sleep > 0)
+	{
+		SDL_Delay(1);
+		t = true;
+	}
+	else
+		t = false;
+// 	{
+// 		printf("%lld\n", time_to_sleep);
+// 	}
+}
+
 int		Emulateur::main_thread()
 {
+	_start_time = std::chrono::system_clock::now();
 	while (true)
 	{
 		if (_reset)
@@ -165,9 +186,12 @@ int		Emulateur::main_thread()
 		if (_current_instr_cycle == 0)
 			interrupt();
 		update_lcd();
-		_cycle = (_cycle + 4) % 70224;
+		_cycle += 4;
 		if (_cycle % 256 == 0)
+		{
+			cadence();
 			gb_regs.div++;
+		}
 	}
 }
 

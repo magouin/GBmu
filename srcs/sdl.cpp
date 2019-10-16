@@ -43,7 +43,7 @@ void	Emulateur::sdl_init()
 		fprintf(stderr, "Error on window creation: %s\n", SDL_GetError());
 		exit(1);
 	}
-	if (!(_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)))
+	if (!(_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_PRESENTVSYNC)))
 	{
 		fprintf(stderr, "Error on renderer creation: %s\n", SDL_GetError());
 		exit(1);
@@ -69,6 +69,8 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			printf("_frequency >> 22: %d -> ", _frequency >> 22);
 			_frequency = (0x400000 << freq);
 			printf("%d\n", _frequency >> 22);
+			_start_time = std::chrono::system_clock::now();
+			_cycle = 0;
 		}
 		if (sym == SDLK_UP)
 			input.p14 &= ~IO_UP;
