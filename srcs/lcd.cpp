@@ -236,8 +236,8 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 		if (cgb.on) {
 			uint8_t hdma5 = _MBC.mem_read(RAM + REG_HDMA5, 1);
 			if (hdma5 & 0x80) {
-				uint8_t hdma1 = _MBC.mem_read(RAM + REG_HDMA1, 1);
-				uint8_t hdma3 = _MBC.mem_read(RAM + REG_HDMA3, 1);
+				// uint8_t hdma1 = _MBC.mem_read(RAM + REG_HDMA1, 1);
+				// uint8_t hdma3 = _MBC.mem_read(RAM + REG_HDMA3, 1);
 				// memcpy()
 			}
 		}

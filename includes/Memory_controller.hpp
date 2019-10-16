@@ -22,8 +22,8 @@ struct s_ram_regs {
 
 class Memory_controller {
 	public:
-		uint8_t				*external_ram;
-		uint8_t				*ram_bank;
+		uint8_t				*ram_ext_work_orig_ptr;
+		uint8_t				*ram_ext_work_bank;
 		const uint8_t		*rom_bank;
 
 		Memory_controller(Emulateur &emu, size_t ram_size, bool debug = false);
@@ -33,6 +33,8 @@ class Memory_controller {
 		virtual uint16_t	mem_read(void *addr, int8_t size);
 		virtual void		mem_write(void *addr, uint16_t value, int8_t size);
 
+		void	new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len);
+
 		virtual void		save();
 
 	protected:
@@ -40,15 +42,15 @@ class Memory_controller {
 		const vector<struct s_ram_regs> _ram_regs;
 		size_t	_ram_size;
 
-		bool	_RAM_ENABLE;
-		uint8_t	_ROM_BANK;
-		const uint8_t		_debug;
+		bool			_ram_ext_work_enable;
+		uint8_t			_rom_bank_selected;
+		const uint8_t	_debug;
 
-		uint8_t		*_working_ram;
-		uint8_t		_working_ram_bank;
+		uint8_t		*_ram_work_bank;
+		uint8_t		_ram_work_bank_selected;
 
-		uint8_t		*_video_external_ram;
-		bool		_video_ram_bank;
+		uint8_t		*_ram_video_bank1;
+		bool		_ram_video_bank1_selected;
 
 		virtual void		init(size_t ram_size);
 
@@ -72,9 +74,9 @@ class Memory_controller {
 
 		void	*cpu_regs(void *addr);
 		void	*read_gb_regs(uint8_t *addr);
-		void	*read_working_ram(uint8_t *addr);
+		void	*read_ram_work_bank(uint8_t *addr);
 		void	*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
-		void	*write_working_ram(uint8_t *addr, uint16_t value, int8_t size);
+		void	*write_ram_work_bank(uint8_t *addr, uint16_t value, int8_t size);
 		void	*gb_mem(void *addr);
 
 };
@@ -94,8 +96,8 @@ class Memory_controller_MBC1 : public Memory_controller {
 		Memory_controller_MBC1(Emulateur &emu, size_t ram_size, bool debug);
 
 	private:
-		uint8_t	_ROM_RAM_BANK;
-		uint8_t	_ROM_RAM_SELECT;
+		uint8_t	_rom_ram_bank;
+		uint8_t	_rom_ram_select;
 
 		void	*read_ROM_RAM_regs(uint8_t *addr);
 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
@@ -128,9 +130,9 @@ class Memory_controller_MBC3 : public Memory_controller {
 			E_RTC
 		};
 
-		enum e_ram_rtc_switch	_RAM_RTC_SELECT;
-		bool	_RAM_RTC_ENABLE;
-		uint8_t	_RAM_BANK;
+		enum e_ram_rtc_switch	_ram_rtc_select;
+		bool	_ram_rtc_enable;
+		uint8_t	_ram_ext_work_bank_to_select;
 
 		class RTC {
 			public:
@@ -201,7 +203,7 @@ class Memory_controller_MBC5 : public Memory_controller {
 		Memory_controller_MBC5(Emulateur &emu, size_t ram_size, bool debug);
 
 	private:
-		uint8_t	_RAM_BANK;
+		uint8_t	_ram_ext_work_bank_to_select;
 
 		void	*read_ROM_RAM_regs(uint8_t *addr);
 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
