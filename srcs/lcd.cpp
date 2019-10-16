@@ -91,8 +91,8 @@ void	Emulateur::print_bg_line(int y)
 	uint32_t	id_line;
 	uint32_t	offset_line;
 
-	b_code = RAM + ((RAM[REG_LCDC] & (1 << 3)) ? 0x9c00 : 0x9800);
-	b_data = RAM + (RAM[REG_LCDC] & (1 << 4) ? 0x8000 : 0x9000);
+	b_code = RAM + (gb_regs.lcdc.bg_code_addr ? 0x9c00 : 0x9800);
+	b_data = RAM + (gb_regs.lcdc.bg_data_addr ? 0x8000 : 0x9000);
 	cy = (RAM[REG_SCY] + y) % 256;
 	x = 0;
 	while (x < 21)
@@ -116,8 +116,8 @@ void	Emulateur::print_window_line(int y)
 	uint8_t	code;
 	uint8_t		x;
 
-	b_code = RAM + ((RAM[REG_LCDC] & (1 << 6)) ? 0x9c00 : 0x9800);
-	b_data = RAM + (RAM[REG_LCDC] & (1 << 4) ? 0x8000 : 0x9000);
+	b_code = RAM + (gb_regs.lcdc.window_code_addr ? 0x9c00 : 0x9800);
+	b_data = RAM + (gb_regs.lcdc.bg_data_addr ? 0x8000 : 0x9000);
 	x = 0;
 	while (x < 21)
 	{
@@ -182,7 +182,7 @@ void	Emulateur::print_obj_line(struct s_oam_obj *obj, int off, int size)
 {
 	uint8_t	*tile;
 
-	obj->chrcode &= (RAM[REG_LCDC] & 4 ? ~1 : ~0);
+	obj->chrcode &= (gb_regs.lcdc.obj_size ? ~1 : ~0);
 	tile = RAM + 0x8000 + (obj->chrcode * 0x10);
 	print_obj_tile_line(tile, obj, size, off);
 }
@@ -196,7 +196,7 @@ void	Emulateur::print_objs_line(int y)
 
 	x = 39;
 	nb = 0;
-	max = ((RAM[REG_LCDC] & (1 << 2)) ? 16 : 8);
+	max = (gb_regs.lcdc.obj_size ? 16 : 8);
 	obj = (struct s_oam_obj *)(RAM + 0xfe00);
 	while (x >= 0)
 	{
@@ -215,24 +215,24 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 {
 	if (line_cycle == 0)
 	{
-		RAM[REG_STAT] = (RAM[REG_STAT] & ~(uint8_t)3) | 2;
-		if (RAM[REG_STAT] & (1 << 5))
-				RAM[REG_IF] |= (1 << 1);
+		gb_regs.stat.mode = 2;
+		if (gb_regs.stat.imode2)
+				gb_regs.iflag.lcdc = true;
 	}
 	else if (line_cycle == 172)
-		RAM[REG_STAT] = (RAM[REG_STAT] & ~(uint8_t)3) | 3;
+		gb_regs.stat.mode = 3;
 	else if (line_cycle == 252)
 	{
 		if (print) {
 			print_bg_line(ly);
-			if ((RAM[REG_LCDC] & (1 << 5)) && ly >= RAM[REG_WY])
+			if (gb_regs.lcdc.window && ly >= RAM[REG_WY])
 				print_window_line(ly);
-			if (RAM[REG_LCDC] & 2)
+			if (gb_regs.lcdc.obj_display)
 				print_objs_line(ly);
 		}
-		RAM[REG_STAT] = (RAM[REG_STAT] & ~(uint8_t)3) | 0;
-		if (RAM[REG_STAT] & (1 << 3))
-			RAM[REG_IF] |= (1 << 1);
+		gb_regs.stat.mode = 0;
+		if (gb_regs.stat.imode0)
+			gb_regs.iflag.lcdc = true;
 		if (cgb.on) {
 			uint8_t hdma5 = _MBC.mem_read(RAM + REG_HDMA5, 1);
 			if (hdma5 & 0x80) {
@@ -250,10 +250,10 @@ void	Emulateur::vblank_round(uint64_t line_cycle, uint8_t ly, bool print)
 	{
 		if (print)
 			render();
-		RAM[REG_STAT] = (RAM[REG_STAT] & ~(uint8_t)3) | 1;
-		if (RAM[REG_STAT] & (1 << 4))
-			RAM[REG_IF] |= (1 << 1);
-		RAM[REG_IF] |= 1;
+		gb_regs.stat.mode = 1;
+		if (gb_regs.stat.imode1)
+			gb_regs.iflag.lcdc = true;
+		gb_regs.iflag.vblank = true;
 	}
 }
 
@@ -264,7 +264,7 @@ void	Emulateur::update_lcd()
 	static uint8_t			img = 0;
 	bool					print;
 
-	if (!(RAM[REG_LCDC] & 0x80))
+	if (!gb_regs.lcdc.on)
 	{
 		_lcd_cycle = 0;
 		return ;

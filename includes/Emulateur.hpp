@@ -97,20 +97,52 @@ struct s_cgb {
 };
 
 enum e_select {
-	P14,
-	P15
+	NOT = 0,
+	P14 = 1,
+	P15 = 2,
+	ALL = 3
 };
 
 struct __attribute__((__packed__)) s_tac {
-	uint8_t clock_select : 2;
-	uint8_t on : 1;
-	uint8_t unused : 5;
+	uint8_t			clock_select : 2;
+	bool			on : 1;
+	uint8_t			unused : 5;
 };
 
 struct __attribute__((__packed__)) s_p1 {
-	uint8_t out : 4;
-	enum e_select select : 2;
-	uint8_t unused : 2;
+	uint8_t			out : 4;
+	enum e_select	select : 2;
+	uint8_t			unused : 2;
+};
+
+struct __attribute__((__packed__)) s_inter {
+	bool			vblank : 1;
+	bool			lcdc : 1;
+	bool			timer : 1;
+	bool			serial : 1;
+	bool			io : 1;
+	uint8_t			unused : 3;
+};
+
+struct __attribute__((__packed__)) s_lcdc {
+	bool			bg_display : 1;
+	bool			obj_display : 1;
+	bool			obj_size : 1; // 3
+	bool			bg_code_addr : 1;
+	bool			bg_data_addr : 1; // 5
+	bool			window : 1;
+	bool			window_code_addr : 1; // 7
+	bool			on : 1;
+};
+
+struct __attribute__((__packed__)) s_stat {
+	bool			mode : 2;
+	bool			match_ly : 1;
+	bool			imode0 : 1;
+	bool			imode1 : 1;
+	bool			imode2 : 1;
+	bool			imatch_ly : 1;
+	bool			unused : 1;
 };
 
 struct s_gb_regs {
@@ -118,10 +150,10 @@ struct s_gb_regs {
 	uint8_t			&div;
 	uint8_t			&tima;
 	struct s_tac	&tac;
-	uint8_t			&iflag;
-	uint8_t			&ie;
-	uint8_t			&lcdc;
-	uint8_t			&stat;
+	struct s_inter	&iflag;
+	struct s_inter	&ie;
+	struct s_lcdc	&lcdc;
+	struct s_stat	&stat;
 	uint8_t			&scy;
 	uint8_t			&scx;
 	uint8_t			&ly;
