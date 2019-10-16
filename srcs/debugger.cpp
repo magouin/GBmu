@@ -21,7 +21,7 @@ bool	Emulateur::check_cpu_reg(string param, uint16_t * &addr, uint16_t &val)
 			val = (x % 3 != 2) ? *(uint8_t *)addr : *addr;
 			if (deref)
 			{
-				addr = (uint16_t *)(_RAM + val);
+				addr = (uint16_t *)(RAM + val);
 				val = _MBC.mem_read(addr, 2);
 			}
 			return (true);
@@ -37,9 +37,9 @@ void	Emulateur::print_trace()
 
 	i = -1;
 	printf("A: %02hhX F: %02hhX B: %02hhX C: %02hhX D: %02hhX E: %02hhX H: %02hhX L: %02hhX SP: %04X PC: ", regs.A, regs.F, regs.B, regs.C, regs.D, regs.E, regs.H, regs.L, regs.SP);
-	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
-	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
-	printf("%02X: ", _MBC.mem_read(_RAM + regs.PC + i, 1));
+	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)ROM.c_str()) / 0x4000) : 0), regs.PC);
+	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(RAM + regs.PC + i, 1));
+	printf("%02X: ", _MBC.mem_read(RAM + regs.PC + i, 1));
 	print_instr();
 	if (_trace == 0)
 	{
@@ -76,7 +76,7 @@ bool	Emulateur::get_number(string param, uint16_t * &addr, uint16_t &val)
 	val = hex ? std::stoul(param, nullptr, 16) : (uint16_t)std::stoi(param);
 	if (deref)
 	{
-		addr = (uint16_t *)(_RAM + val);
+		addr = (uint16_t *)(RAM + val);
 		val = _MBC.mem_read(addr, 2);
 	}
 	return (true);
@@ -91,7 +91,7 @@ bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size
 	end = _watchpoints.end();
 	while (it != end)
 	{
-		if ((*it).addr == (addr - _RAM) && ((*it).right & right))
+		if ((*it).addr == (addr - RAM) && ((*it).right & right))
 		{
 			_step_by_step = true;
 			_debug_mode = false;
@@ -205,12 +205,12 @@ void	Emulateur::cmd_examine(vector<string> param, uint8_t size)
 	}
 	else
 		val2 = 16 / size;
-	data = _RAM + val1;
+	data = RAM + val1;
 	x = 0;
 	while (x < val2)
 	{
 		if (x % (16 / size) == 0)
-			printf("0x%04X:", (uint16_t)(data - _RAM));
+			printf("0x%04X:", (uint16_t)(data - RAM));
 		if (size == 1)
 			printf(" %02hhX", *data);
 		else if (size == 2)
@@ -237,7 +237,7 @@ void	Emulateur::cmd_write(vector<string> param, uint8_t size)
 	if (!get_number(param[1], addr, val2))
 		return ;
 	if (!addr)
-		addr = (uint16_t *)(_RAM + val2);
+		addr = (uint16_t *)(RAM + val2);
 	_MBC.mem_write(addr, val1, size);
 }
 
@@ -249,11 +249,11 @@ void	Emulateur::cmd_read(vector<string> param, uint8_t size)
 	if (!get_number(param[1], addr, val))
 		return ;
 	if (size == 1)
-		printf(" 0x%02hhX\n", (uint8_t)_MBC.mem_read(_RAM + val, 1));
+		printf(" 0x%02hhX\n", (uint8_t)_MBC.mem_read(RAM + val, 1));
 	else if (size == 2)
-		printf(" 0x%04hX\n", _MBC.mem_read(_RAM + val, 2));
+		printf(" 0x%04hX\n", _MBC.mem_read(RAM + val, 2));
 	else if (size == 4)
-		printf(" 0x%04hX%04hX\n", _MBC.mem_read(_RAM + val + 2, 2), _MBC.mem_read(_RAM + val, 2));
+		printf(" 0x%04hX%04hX\n", _MBC.mem_read(RAM + val + 2, 2), _MBC.mem_read(RAM + val, 2));
 }
 
 void	Emulateur::cmd_reset(vector<string> param)
@@ -294,9 +294,9 @@ void	Emulateur::print_instr(void)
 	if (_instr->nb_params == 0)
 		printf(_instr->mnemonic, NULL);
 	else if (_instr->nb_params == 1)
-		printf(_instr->mnemonic, _MBC.mem_read(_RAM + regs.PC + 1, 1));
+		printf(_instr->mnemonic, _MBC.mem_read(RAM + regs.PC + 1, 1));
 	else if (_instr->nb_params == 2)
-		printf(_instr->mnemonic, _MBC.mem_read(_RAM + regs.PC + 1, 2));
+		printf(_instr->mnemonic, _MBC.mem_read(RAM + regs.PC + 1, 2));
 }
 
 void	Emulateur::print_regs(void)
@@ -309,16 +309,16 @@ void	Emulateur::print_regs(void)
 	printf("D: %02hhX  E: %02hhX  (DE: %04hX)\n", regs.D, regs.E, regs.DE);
 	printf("H: %02hhX  L: %02hhX  (HL: %04hX)\n", regs.H, regs.L, regs.HL);
 	printf("PC: %04hX  SP: %04X\n", regs.PC, regs.SP);
-	printf("ROM: %02x  RAM: %02x  WRAM: %02X  VRAM: %02X\n", (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000), (uint8_t)(((uint8_t *)_MBC.ram_bank - (uint8_t *)_MBC.external_ram) / 0x2000), (_RAM[0xff70] & 7) ? (_RAM[0xff70] & 7) : 1, _RAM[0xff4f]);
+	printf("ROM: %02x  RAM: %02x  WRAM: %02X  VRAM: %02X\n", (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)ROM.c_str()) / 0x4000), (uint8_t)(((uint8_t *)_MBC.ram_bank - (uint8_t *)_MBC.external_ram) / 0x2000), (RAM[0xff70] & 7) ? (RAM[0xff70] & 7) : 1, RAM[0xff4f]);
 	printf("F: [");
 	regs.Z ? printf("Z") : printf("-");
 	regs.N ? printf("N") : printf("-");
 	regs.HC ? printf("H") : printf("-");
 	regs.CY ? printf("C") : printf("-");
 	printf("]\n");
-	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)_ROM.c_str()) / 0x4000) : 0), regs.PC);
-	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(_RAM + regs.PC + i, 1));
-	printf("%02X\t", _MBC.mem_read(_RAM + regs.PC + i, 1));
+	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)(((uint8_t *)_MBC.rom_bank - (uint8_t *)ROM.c_str()) / 0x4000) : 0), regs.PC);
+	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(RAM + regs.PC + i, 1));
+	printf("%02X\t", _MBC.mem_read(RAM + regs.PC + i, 1));
 	print_instr();
 }
 
