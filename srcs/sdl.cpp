@@ -58,7 +58,6 @@ void	Emulateur::sdl_init()
 void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 {
 	static uint8_t freq = 0;
-	uint8_t			reg_p1 = _RAM[REG_P1];
 
 	if (t == SDL_KEYDOWN)
 	{
@@ -72,45 +71,45 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			printf("%d\n", _frequency >> 22);
 		}
 		if (sym == SDLK_UP)
-			_input.p14 &= ~IO_UP;
+			input.p14 &= ~IO_UP;
 		else if (sym == SDLK_DOWN)
-			_input.p14 &= ~IO_DOWN;
+			input.p14 &= ~IO_DOWN;
 		else if (sym == SDLK_LEFT)
-			_input.p14 &= ~IO_LEFT;
+			input.p14 &= ~IO_LEFT;
 		else if (sym == SDLK_RIGHT)
-			_input.p14 &= ~IO_RIGHT;
+			input.p14 &= ~IO_RIGHT;
 		else if (sym == SDLK_a)
-			_input.p15 &= ~IO_A;
+			input.p15 &= ~IO_A;
 		else if (sym == SDLK_b || sym == SDLK_x)
-			_input.p15 &= ~IO_B;
+			input.p15 &= ~IO_B;
 		else if (sym == SDLK_p)
-			_input.p15 &= ~IO_START;
+			input.p15 &= ~IO_START;
 		else if (sym == SDLK_o)
-			_input.p15 &= ~IO_SELECT;
+			input.p15 &= ~IO_SELECT;
 		else
 			return ;
-		if ((!(reg_p1 & 0x10) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(reg_p1 & 0x20) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
-			_RAM[REG_IF] |= (1 << 4);
+		if ((!(gb_regs.p1.select == P14) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(gb_regs.p1.select == P15) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
+			RAM[REG_IF] |= (1 << 4);
 		_stop_status = false;
 	}
 	else
 	{
 		if (sym == SDLK_UP)
-			_input.p14 |= IO_UP;
+			input.p14 |= IO_UP;
 		else if (sym == SDLK_DOWN)
-			_input.p14 |= IO_DOWN;
+			input.p14 |= IO_DOWN;
 		else if (sym == SDLK_LEFT)
-			_input.p14 |= IO_LEFT;
+			input.p14 |= IO_LEFT;
 		else if (sym == SDLK_RIGHT)
-			_input.p14 |= IO_RIGHT;
+			input.p14 |= IO_RIGHT;
 		else if (sym == SDLK_a)
-			_input.p15 |= IO_A;
+			input.p15 |= IO_A;
 		else if (sym == SDLK_b || sym == SDLK_x)
-			_input.p15 |= IO_B;
+			input.p15 |= IO_B;
 		else if (sym == SDLK_p)
-			_input.p15 |= IO_START;
+			input.p15 |= IO_START;
 		else if (sym == SDLK_o)
-			_input.p15 |= IO_SELECT;
+			input.p15 |= IO_SELECT;
 	}
 }
 
@@ -153,6 +152,8 @@ void	Emulateur::render()
 	static auto								start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point	now;
 	static uint64_t							x = 0;
+	int										w, h;
+	SDL_Texture								*tmp_texture;
 
 	x++;
 	now = std::chrono::system_clock::now();
@@ -163,18 +164,13 @@ void	Emulateur::render()
 		start = now;
 	}
 	SDL_RenderClear(_renderer);
-
 	SDL_LockSurface(_surface);
 	memcpy(_surface->pixels, _pixels_map, sizeof(_pixels_map));
 	SDL_UnlockSurface(_surface);
-
-	SDL_Texture *tmp_texture = SDL_CreateTextureFromSurface(_renderer, _surface);
-	int w, h;
+	tmp_texture = SDL_CreateTextureFromSurface(_renderer, _surface);
 	SDL_GetWindowSize(_window, &w, &h);
 	SDL_Rect rect_window = {0, 0, w, h};
 	SDL_RenderCopy(_renderer, tmp_texture, NULL, &rect_window);
-
 	SDL_RenderPresent(_renderer);
-
 	SDL_DestroyTexture(tmp_texture);
 }
