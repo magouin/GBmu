@@ -42,9 +42,9 @@ class Memory_controller {
 		const vector<struct s_ram_regs> _ram_regs;
 		size_t	_ram_size;
 
-		bool	_RAM_ENABLE;
-		uint8_t	_ROM_BANK;
-		const uint8_t		_debug;
+		bool			_RAM_ENABLE;
+		uint8_t			_ROM_BANK;
+		const uint8_t	_debug;
 
 		uint8_t		*_working_ram;
 		uint8_t		_working_ram_bank;
