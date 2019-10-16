@@ -153,8 +153,9 @@ class Emulateur {
 
 		SDL_Thread		*_main_thread;
 
-		uint32_t	_frequency; // in Hetz
-		bool		_tima_delay_interrupt;
+		uint32_t								_frequency; // in Hetz
+		bool									_tima_delay_interrupt;
+		std::chrono::system_clock::time_point	_start_time;
 
 		bool		_halt_status;
 		bool		_stop_status;
