@@ -183,7 +183,7 @@ class Emulateur {
 		struct s_cgb			cgb;
 		const struct s_gb_regs	gb_regs;
 
-		Emulateur(std::string file, std::string rom, bool debug=false);
+		Emulateur(std::string file, bool debug=false);
 		~Emulateur(/* args */);
 		Emulateur & operator=(const Emulateur & cp);
 
@@ -199,7 +199,7 @@ class Emulateur {
 
 		const Header			_header;
 		std::string				_file_name;
-		static const uint8_t	_bios[];
+		static const uint8_t	_dmg_bios[];
 
 		list<struct s_watch>	_watchpoints;
 		list<struct s_break>	_breakpoints;

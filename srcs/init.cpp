@@ -2,7 +2,10 @@
 
 void	Emulateur::init_registers(void)
 {
-	regs.AF = 0x01B0; // Il faudra faire gaffe a A
+	if (cgb.on)
+		regs.AF = 0x11B0;
+	else
+		regs.AF = 0x01B0;
 	regs.BC = 0x0013;
 	regs.DE = 0x00d8;	
 	regs.HL = 0x014d;
@@ -81,7 +84,7 @@ void Emulateur::emu_init()
 	_halt_status = false;
 	_stop_status = false;
 	memcpy(RAM, ROM.c_str(), 0x8000);
-	// memcpy(RAM, _bios, 0x100);
+	// memcpy(RAM, _dmg_bios, 0x100);
 	_frequency = 0x400000; // Need to change if it is a CGB
 	init_registers();
 
