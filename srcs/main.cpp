@@ -30,20 +30,7 @@ int main(int ac, const char **av)
 		file_name = av[1];
 		debug = false;
 	}
-	ifstream rom_file(file_name, ios_base::in | ios::binary);
-
-	if (rom_file.fail())
-	{
-		perror("Open error");
-		return (2);
-	}
-
-	stringstream rom_stream;
-	rom_stream << rom_file.rdbuf();
-
-	string rom = rom_stream.str();
-
-	Emulateur emu(file_name, rom, debug);
+	Emulateur emu(file_name, debug);
 	emu.emu_start();
 	return (0);
 }
