@@ -25,6 +25,9 @@ class Memory_controller {
 		uint8_t				*ram_ext_work_orig_ptr;
 		uint8_t				*ram_ext_work_bank;
 		const uint8_t		*rom_bank;
+		uint8_t				pal_col_bg[64];
+		uint8_t				pal_col_obj[64];
+		const struct s_bg_atrb		*bg_atrb;
 
 		Memory_controller(Emulateur &emu, size_t ram_size, bool debug = false);
 		~Memory_controller();
@@ -34,6 +37,9 @@ class Memory_controller {
 		virtual void		mem_write(void *addr, uint16_t value, int8_t size);
 
 		void	new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len);
+
+		const struct s_bg_atrb &get_bg_atrb(bool area, uint8_t id) const;
+		const uint8_t			*get_ram_video_bank1(void) const;
 
 		virtual void		save();
 
@@ -46,11 +52,11 @@ class Memory_controller {
 		uint8_t			_rom_bank_selected;
 		const uint8_t	_debug;
 
-		uint8_t		*_ram_work_bank;
+		uint8_t		*_ram_work_bank; // bank 0 -> 0xc000 / 0xd000 ||| bank1 -> 0xd000 / 0xe000 ||| / bank 2 -> 7 in ram_work_bank
 		uint8_t		_ram_work_bank_selected;
 
 		uint8_t		*_ram_video_bank1;
-		bool		_ram_video_bank1_selected;
+		// bool		_ram_video_bank1_selected;
 
 		virtual void		init(size_t ram_size);
 
@@ -62,11 +68,16 @@ class Memory_controller {
 		void	write_ly(uint8_t value);
 		void	write_lyc(uint8_t value);
 		void	write_dma(uint8_t value);
+		void	write_hdma5(uint8_t value);
 		void	write_tac(uint8_t value);
 		void	write_svbk(uint8_t value);
 		void	write_key1(uint8_t value);
+		void	write_bcpd(uint8_t value);
+		void	write_ocpd(uint8_t value);
 
 		void	read_p1(void);
+		void	read_bcpd(void);
+		void	read_ocpd(void);
 
 		virtual void	*read_ROM_RAM_regs(uint8_t *addr) = 0;
 		virtual bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size) = 0;
@@ -75,8 +86,10 @@ class Memory_controller {
 		void	*cpu_regs(void *addr);
 		void	*read_gb_regs(uint8_t *addr);
 		void	*read_ram_work_bank(uint8_t *addr);
+		void	*read_video_bank(uint8_t *addr);
 		void	*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
 		void	*write_ram_work_bank(uint8_t *addr, uint16_t value, int8_t size);
+		void	*write_video_ram(uint8_t *addr, uint16_t value, int8_t size);
 		void	*gb_mem(void *addr);
 
 };

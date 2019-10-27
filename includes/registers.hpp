@@ -100,11 +100,17 @@ struct user_input
 *reinterpret_cast<uint8_t *>(RAM + 0xff4a), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff4b), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff70), \
+*reinterpret_cast<struct s_vbk *>(RAM + 0xff4f), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff4d), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff51), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff52), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff53), \
 *reinterpret_cast<uint8_t *>(RAM + 0xff54), \
-*reinterpret_cast<uint8_t *>(RAM + 0xff55)
+*reinterpret_cast<uint8_t *>(RAM + 0xff55), \
+*reinterpret_cast<struct s_cps *>(RAM + 0xff68), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff69), \
+*reinterpret_cast<struct s_cps *>(RAM + 0xff6a), \
+*reinterpret_cast<uint8_t *>(RAM + 0xff6b)
+
 
 #endif

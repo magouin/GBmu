@@ -1,36 +1,5 @@
 #include <Emulateur.hpp>
 
-uint8_t	Emulateur::color_htor(uint32_t color)
-{
-	return (color >> 24);
-}
-
-uint8_t	Emulateur::color_htog(uint32_t color)
-{
-	return ((color >> 16) & 0xff);
-}
-
-uint8_t	Emulateur::color_htob(uint32_t color)
-{
-	return ((color >> 8) & 0xff);
-}
-
-uint8_t	Emulateur::color_htoa(uint32_t color)
-{
-	return (color & 0xff);
-}
-
-uint32_t Emulateur::color_5_to_8(uint16_t gb_color)
-{
-	uint32_t color_r, color_g, color_b;
-
-	color_r = ((gb_color & 0x001f) * 255) / 31;
-	color_g = ((gb_color & 0x03e0) * 255) / 31;
-	color_b = ((gb_color & 0x7c00) * 255) / 31;
-
-	return ((color_r << 24) | (color_g << 16) | (color_b << 8) | 0xff);
-}
-
 void	Emulateur::sdl_init()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
