@@ -270,6 +270,10 @@ void	Memory_controller_MBC3::save()
 	}
 	if (_ram_size > 0)
 		delete ram_ext_work_orig_ptr;
+	if (_emu.cgb.on) {
+		delete _ram_work_bank;
+		delete _ram_video_bank1;
+	}
 }
 
 void	Memory_controller_MBC3::init(size_t ram_size) {
@@ -282,11 +286,6 @@ void	Memory_controller_MBC3::init(size_t ram_size) {
 	_ram_ext_work_bank_to_select = 0;
 	_ram_rtc_select = E_RAM;
 	_ram_rtc_enable = false;
-
-	if (_emu.cgb.on) {
-		_ram_work_bank = new uint8_t[0x6000];
-		_ram_work_bank_selected = 1;
-	}
 
 	std::ifstream fs;
 	fs.open(_emu.save_name, std::fstream::in | ios::binary);
