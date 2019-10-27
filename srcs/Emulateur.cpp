@@ -4,13 +4,26 @@
 #include <op203.hpp>
 #include <dmg_bios.hpp>
 
-const uint8_t Emulateur::_bios[] = DMG_BIOS;
+const uint8_t Emulateur::_dmg_bios[] = DMG_BIOS;
 
 Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {
 }
 
-Emulateur::Emulateur(std::string file, std::string rom, bool debug): ROM(rom), save_name(file.substr(0, file.find_last_of('.')) + ".sav"), gb_regs({INIT_GB_REGS}), _op203({OP203}), _opcode({OPCODE}), _cv_instrs({CYCLE_VARIABLE_OPCODE}), _deb_cmd({DEB_CMD}), _header(rom, &cgb.on), _file_name(file), _step_by_step(debug), _debug(debug), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
+Emulateur::Emulateur(std::string file, bool debug):
+	ROM(istreambuf_iterator<char>(ifstream(file).rdbuf()), istreambuf_iterator<char>()),
+	save_name(file.substr(0, file.find_last_of('.')) + ".sav"),
+	gb_regs({INIT_GB_REGS}),
+	_op203({OP203}),
+	_opcode({OPCODE}),
+	_cv_instrs({CYCLE_VARIABLE_OPCODE}),
+	_deb_cmd({DEB_CMD}),
+	_header(ROM, &cgb.on),
+	_file_name(file),
+	_step_by_step(debug),
+	_debug(debug),
+	_cartridge(_header.get_cartridge_type()),
+	_MBC(get_memory_controller())
 {
 	sdl_init();
 }
@@ -207,6 +220,7 @@ void	Emulateur::emu_start()
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	emu_init();
+	
 	_main_thread = SDL_CreateThread(&Emulateur::create_main_thread, "main_thread", (void *)this);
 	while (true)
 		update();
