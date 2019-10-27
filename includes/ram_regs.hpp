@@ -85,7 +85,7 @@
 /* 0xFF52 */ (struct s_ram_regs){WR, NULL}, \
 /* 0xFF53 */ (struct s_ram_regs){WR, NULL}, \
 /* 0xFF54 */ (struct s_ram_regs){WR, NULL}, \
-/* 0xFF55 */ (struct s_ram_regs){WR, NULL}, \
+/* 0xFF55 */ (struct s_ram_regs){WR, &Memory_controller::write_hdma5}, \
 /* 0xFF56 */ (struct s_ram_regs){RDWR, NULL}, \
 /* 0xFF57 */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF58 */ (struct s_ram_regs){PROHIB, NULL}, \
@@ -105,9 +105,9 @@
 /* 0xFF66 */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF67 */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF68 */ (struct s_ram_regs){RDWR, NULL}, \
-/* 0xFF69 */ (struct s_ram_regs){RDWR, NULL}, \
+/* 0xFF69 */ (struct s_ram_regs){RDWR, &Memory_controller::write_bcpd}, \
 /* 0xFF6A */ (struct s_ram_regs){RDWR, NULL}, \
-/* 0xFF6B */ (struct s_ram_regs){RDWR, NULL}, \
+/* 0xFF6B */ (struct s_ram_regs){RDWR, &Memory_controller::write_ocpd}, \
 /* 0xFF6C */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF6D */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF6E */ (struct s_ram_regs){PROHIB, NULL}, \

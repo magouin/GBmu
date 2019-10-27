@@ -145,6 +145,24 @@ struct __attribute__((__packed__)) s_stat {
 	bool			unused : 1;
 };
 
+struct __attribute__((__packed__)) s_vbk {
+	bool			bank : 1;
+	uint8_t			unused : 7;
+};
+
+struct __attribute__((__packed__)) s_cps {
+	union {
+		struct {
+			bool	hl : 1;
+			uint8_t	pal_data_nb : 2;
+			uint8_t	pal_nb : 3;
+		};
+		uint8_t		pal_addr : 6;
+	};
+	bool			unused : 1;
+	bool			inc : 1;
+};
+
 struct s_gb_regs {
 	struct s_p1		&p1;
 	uint8_t			&div;
@@ -161,14 +179,29 @@ struct s_gb_regs {
 	uint8_t			&wy;
 	uint8_t			&wx;
 	uint8_t			&svbk;
+	struct s_vbk	&vbk;
 	uint8_t			&key1;
 	uint8_t			&hdma1;
 	uint8_t			&hdma2;
 	uint8_t			&hdma3;
 	uint8_t			&hdma4;
 	uint8_t			&hdma5;
+	struct s_cps	&bcps;
+	uint8_t			&bcpd;
+	struct s_cps	&ocps;
+	uint8_t			&ocpd;
+
 };
 
+struct __attribute__((__packed__)) s_bg_atrb
+{
+	uint8_t				pal_nb : 3;
+	bool				bank_nb : 1;
+	bool				unused : 1;
+	bool				hflip : 1;
+	bool				vflip : 1;
+	bool				prio : 1;
+};
 
 class Emulateur {
 	public:
@@ -388,11 +421,13 @@ class Emulateur {
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
 		void		print_obj(struct s_oam_obj *objs);
-		void		print_bg_tile_line(uint8_t *tile, int x, int y, int h);
-		void		print_obj_tile_line(uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h);
+		void		print_bg_tile_line(const uint8_t *tile, int x, int y, int h);
+		void		print_obj_tile_line(const uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h);
 		void		line_round(uint64_t line_cycle, uint8_t ly, bool print);
 		void		vblank_round(uint64_t line_cycle, uint8_t ly, bool print);
 
+		void		print_bg_tile_line_cgb(const uint8_t *tile, const struct s_bg_atrb &bg, int x, int y, int off);
+		uint32_t	bit_to_color(uint8_t b, uint16_t *pal_addr);
 
 
 		void		print_bg_line(int y);
