@@ -325,7 +325,7 @@ class Emulateur {
 		void	rra();
 		void	daa();
 		void	cpl();
-		void	stop();
+		void	stop(struct s_param *p);
 		void	halt();
 		void	_and(struct s_param *p);
 		void	_or(struct s_param *p);

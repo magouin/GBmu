@@ -119,18 +119,21 @@ void	Emulateur::cpl()
 	regs.N = true;
 }
 
-void	Emulateur::stop()
+void	Emulateur::stop(struct s_param *p)
 {
 	uint8_t key1 = _MBC.mem_read(RAM + REG_KEY1, 1);
+	get_param(p);
 
-	if (cgb.on && key1 & 0x1) {
+	if (p->val)
+		return ;
+	if (cgb.on && (key1 & 0x1)) {
+		printf("switching mode speed\n");
 		if (cgb.mode_double_speed)
 			_frequency >>= 1;
 		else
 			_frequency <<= 1;
 		cgb.mode_double_speed = !cgb.mode_double_speed;
-		key1 = ~key1 & 0x80;
-		_MBC.mem_write(RAM + REG_KEY1, key1, 1);
+		RAM[REG_KEY1] = (~key1) & 0x80;
 	}
 	while ((input.p14 & 0xf) != 0xf || (input.p15 & 0xf) != 0xf) ;
 	_stop_status = true;

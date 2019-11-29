@@ -3,12 +3,19 @@
 void	Emulateur::init_registers(void)
 {
 	if (cgb.on)
-		regs.AF = 0x11B0;
+	{
+		regs.BC = 0x0000;
+		regs.DE = 0x0008;
+		regs.HL = 0x007c;
+		regs.AF = 0x1180;
+	}
 	else
+	{
+		regs.BC = 0x0013;
+		regs.DE = 0x00d8;
+		regs.HL = 0x014d;
 		regs.AF = 0x01B0;
-	regs.BC = 0x0013;
-	regs.DE = 0x00d8;	
-	regs.HL = 0x014d;
+	}
 
 	// regs.AF = 0x1180; // cpu_instr
 	// regs.BC = 0x0000;
@@ -50,7 +57,8 @@ void	Emulateur::init_registers(void)
 	RAM[0xff49] = 0xff; // OBP1
 	RAM[REG_WY] = 0x00; // WY
 	RAM[REG_WX] = 0x00; // WX
-	RAM[REG_KEY1] = 0x00;
+	RAM[REG_KEY1] = 0x7e;
+	RAM[REG_SVBK] = 0xf9;
 }
 
 Memory_controller 	&Emulateur::get_memory_controller() {
@@ -72,7 +80,7 @@ Memory_controller 	&Emulateur::get_memory_controller() {
 
 void Emulateur::emu_init()
 {
-	printf("cgb on -> %s (0x%hhx)\n", cgb.on ? "true" : "false", _header.cgb_supp_code);
+	// printf("cgb on -> %s (0x%hhx)\n", cgb.on ? "true" : "false", _header.cgb_supp_code);
 	if (cgb.on) {
 		cgb.mode_double_speed = false;
 	}

@@ -107,17 +107,17 @@ void			Memory_controller::write_tac(uint8_t value)
 void			Memory_controller::write_key1(uint8_t value)
 {
 	if (value & 1)
-	{
-		_emu.gb_regs.p1.select = ALL;
-		_emu.gb_regs.ie = {0};
-		_emu.RAM[REG_KEY1] = 0x01;
-	}
+		_emu.RAM[REG_KEY1] |= 0x1;
+	else
+		_emu.RAM[REG_KEY1] &= ~1;
 }
 
 void			Memory_controller::write_svbk(uint8_t value)
 {
 	if (_emu.cgb.on) {
-		if (!(value & 0x7)) value++;
+		_emu.RAM[REG_SVBK] = (_emu.RAM[REG_SVBK] & ~7) | (value & 7);
+		if (!(value & 0x7))
+			value++;
 		_ram_work_bank_selected = value & 0x7;
 	}
 	else
@@ -169,8 +169,15 @@ void			Memory_controller::read_ocpd()
 	}
 }
 
-// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+void			Memory_controller::read_vbk()
+{
+	if (_emu.cgb.on) {
+		// printf("Read on VBK\n");
+		_emu.RAM[0xFF4F] = -1 & _emu.gb_regs.vbk.bank;
+	}
+}
 
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 
 void		*Memory_controller::cpu_regs(void *addr)
@@ -192,6 +199,10 @@ void		*Memory_controller::read_gb_regs(uint8_t *addr)
 	}
 	else if (addr == _emu.RAM + 0xff6b) {
 		read_ocpd();
+		return (addr);
+	}
+	else if (addr == _emu.RAM + 0xff4f) {
+		read_vbk();
 		return (addr);
 	}
 	return (NULL);

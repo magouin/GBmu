@@ -1,7 +1,7 @@
 #ifndef OPCODE
 # define OPCODE \
 {0b00000000, "nop\n", 0, {_, _, _, _}, 1, std::bind(&Emulateur::nop, this)}, \
-{0b00000001, "ld bc, $%02X\n", 2, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_BC, &p_nn, 0, 2)}, \
+{0b00000001, "ld bc, $%02hX\n", 2, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_BC, &p_nn, 0, 2)}, \
 {0b00000010, "ld [bc], a\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_BC_D1, &p_A, 0, 1)}, \
 {0b00000011, "inc bc\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::inc, this, &p_BC)}, \
 {0b00000100, "inc b\n", 0, {_, SET, SET_0, SET}, 1, std::bind(&Emulateur::inc, this, &p_B)}, \
@@ -16,7 +16,7 @@
 {0b00001101, "dec c\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_C)}, \
 {0b00001110, "ld c, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_C, &p_n, 0, 1)}, \
 {0b00001111, "rrca\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rrca, this)}, \
-{0b00010000, "stop\n", 0, {_, _, _, _}, 1, std::bind(&Emulateur::stop, this)}, \
+{0b00010000, "stop, $%02hhX\n", 1, {_, _, _, _}, 1, std::bind(&Emulateur::stop, this, &p_n)}, \
 {0b00010001, "ld de, $%02hX\n", 2, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_DE, &p_nn, 0, 2)}, \
 {0b00010010, "ld [de], a\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_DE_D1, &p_A, 0, 1)}, \
 {0b00010011, "inc de\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::inc, this, &p_DE)}, \
