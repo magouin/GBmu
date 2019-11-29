@@ -59,4 +59,5 @@ bool		Memory_controller_MBC5::write_RAM_regs(uint8_t *addr, uint16_t value, int8
 Memory_controller_MBC5::Memory_controller_MBC5(Emulateur &emu, size_t ram_size, bool debug): Memory_controller(emu, ram_size, debug)
 {
 	init(ram_size);
+	_ram_ext_work_bank_to_select = 0;
 }
