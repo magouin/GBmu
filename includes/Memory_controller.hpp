@@ -4,6 +4,11 @@
 # define MBC2_RAM_SIZE 512
 # define MBC2_SAV_SIZE 256
 
+# include <iostream>
+# include <vector>
+
+using namespace std;
+
 class Emulateur;
 
 enum e_right {
@@ -78,6 +83,7 @@ class Memory_controller {
 		void	read_p1(void);
 		void	read_bcpd(void);
 		void	read_ocpd(void);
+		void	read_vbk(void);
 
 		virtual void	*read_ROM_RAM_regs(uint8_t *addr) = 0;
 		virtual bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size) = 0;

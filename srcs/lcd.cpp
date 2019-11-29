@@ -303,7 +303,16 @@ void	Emulateur::update_lcd()
 	uint8_t					ly;
 	static uint8_t			img = 0;
 	bool					print;
+	static bool				increment_lcd_cycle = true;
 
+	if (cgb.mode_double_speed)
+	{
+		printf("ici\n");
+		increment_lcd_cycle = !increment_lcd_cycle;
+		if (!increment_lcd_cycle)
+			return ;
+		return ;
+	}
 	if (!gb_regs.lcdc.on)
 	{
 		_lcd_cycle = 0;
