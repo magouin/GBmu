@@ -43,10 +43,12 @@ class Memory_controller {
 
 		void	new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len);
 
-		const struct s_bg_atrb &get_bg_atrb(bool area, uint8_t id) const;
+		const struct s_bg_atrb &get_bg_atrb(bool area, uint32_t id) const;
 		const uint8_t			*get_ram_video_bank1(void) const;
 
 		virtual void		save();
+		bool				test();
+
 
 	protected:
 		Emulateur &_emu;
@@ -97,7 +99,6 @@ class Memory_controller {
 		void	*write_ram_work_bank(uint8_t *addr, uint16_t value, int8_t size);
 		void	*write_video_ram(uint8_t *addr, uint16_t value, int8_t size);
 		void	*gb_mem(void *addr);
-
 };
 
 // class Memory_controller_ROM : public Memory_controller {
