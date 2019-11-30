@@ -24,7 +24,9 @@ uint32_t		Emulateur::bit_to_color(uint8_t b, uint16_t *pal_addr)
 	uint32_t rez;
 
 	color = pal_addr[b];
-	rez = (0xff << 24) | ((color & 0x1f) << 19) | ((color & 0x3e0) << 6) | ((color & 0x7c00) >> 7);
+	// uint32_t tmp = (((uint8_t *)pal_addr - _MBC.pal_col_bg) / 8) * 0x1f;
+	// return (tmp + (tmp << 8) + (tmp << 16) + 0xff000000);
+	rez = (0xff << 24) | ((color & 0x1f) << 3) | ((color & 0x3e0) << 6) | ((color & 0x7c00) << 9);
 	return (rez);
 }
 
@@ -65,8 +67,8 @@ void	Emulateur::print_bg_tile_line_cgb(const uint8_t *tile, const struct s_bg_at
 	while (w < 8)
 	{
 		p = bit_to_color((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), pal_addr);
-		cx = x - 8 + (bg.hflip ? (7 - w) : w);
-		cy = y - 16 + off;
+		cx = x + (bg.hflip ? (7 - w) : w);
+		cy = y + off;
 		set_pixel(p, cx, cy);
 		w++;
 	}
@@ -121,6 +123,7 @@ void	Emulateur::print_bg_line(int y)
 	uint8_t			x;
 	uint32_t		id_line;
 	uint32_t		offset_line;
+	uint32_t			index;
 
 	b_code = RAM + (gb_regs.lcdc.bg_code_addr ? 0x9c00 : 0x9800);
 	b_data = RAM + (gb_regs.lcdc.bg_data_addr ? 0x8000 : 0x9000);
@@ -130,13 +133,14 @@ void	Emulateur::print_bg_line(int y)
 	{
 		id_line = cy / 8;
 		offset_line = cy % 8;
-		code = b_code[(id_line * 32) + (((RAM[REG_SCX] >> 3) + x) % 32)];
+		index = (id_line * 32) + (((RAM[REG_SCX] >> 3) + x) % 32);
+		code = b_code[index];
 		data = b_data + (code * 16);
 		if (data >= RAM + 0x9800)
 			data -= 0x1000;
 		if (cgb.on)
 		{
-			const struct s_bg_atrb	atrb = _MBC.get_bg_atrb(gb_regs.lcdc.bg_code_addr, code);
+			const struct s_bg_atrb	atrb = _MBC.get_bg_atrb(gb_regs.lcdc.bg_code_addr, index);
 
 			if (atrb.bank_nb)
 				data = _MBC.get_ram_video_bank1() + (data - RAM - 0x8000);
@@ -265,10 +269,10 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 	{
 		if (print) {
 			print_bg_line(ly);
-			// if (gb_regs.lcdc.window && ly >= RAM[REG_WY])
-			// 	print_window_line(ly);
-			// if (gb_regs.lcdc.obj_display)
-			// 	print_objs_line(ly);
+			if (gb_regs.lcdc.window && ly >= RAM[REG_WY])
+				print_window_line(ly);
+			if (gb_regs.lcdc.obj_display)
+				print_objs_line(ly);
 		}
 		gb_regs.stat.mode = 0;
 		if (gb_regs.stat.imode0)
@@ -307,11 +311,9 @@ void	Emulateur::update_lcd()
 
 	if (cgb.mode_double_speed)
 	{
-		printf("ici\n");
 		increment_lcd_cycle = !increment_lcd_cycle;
 		if (!increment_lcd_cycle)
 			return ;
-		return ;
 	}
 	if (!gb_regs.lcdc.on)
 	{

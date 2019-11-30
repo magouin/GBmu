@@ -405,7 +405,7 @@ void	Memory_controller::new_dma(uint16_t video_offset, uint16_t src_offset, uint
 	}
 }
 
-const struct s_bg_atrb	&Memory_controller::get_bg_atrb(bool area, uint8_t id) const {
+const struct s_bg_atrb	&Memory_controller::get_bg_atrb(bool area, uint32_t id) const {
 	return (reinterpret_cast<struct s_bg_atrb*>(_ram_video_bank1 + (area ? 0x1c00 : 0x1800))[id]);
 }
 
@@ -418,12 +418,78 @@ Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug
 {
 	if (_emu.cgb.on) {
 		_ram_work_bank = new uint8_t[0x6000];
+		memset(_ram_work_bank, 0, 0x6000);
 		_ram_work_bank_selected = 1;
 		_ram_video_bank1 = new uint8_t[0x2000];
+		memset(_ram_video_bank1, 0, 0x2000);
 	}
 }
 
 Memory_controller::~Memory_controller() {
+}
+
+bool	Memory_controller::test()
+{
+	int x = 0;
+
+	memset(_ram_video_bank1, 0, 0x2000);
+	memset(_emu.RAM + 0x8000, 0, 0x2000);
+	mem_write(&_emu.gb_regs.vbk, 0, 1);
+	while (x < 0x2000)
+	{
+		mem_write(_emu.RAM + 0x8000 + x, 42, 1);
+		if (*(_emu.RAM + 0x8000 + x) != 42 || *(_ram_video_bank1 + x) != 0)
+			return (false);
+		x++;
+	}
+	x = 0;
+	mem_write(&_emu.gb_regs.vbk, 1, 1);
+	while (x < 0x2000)
+	{
+		mem_write(_emu.RAM + 0x8000 + x, 21, 1);
+		if (*(_emu.RAM + 0x8000 + x) != 42 || *(_ram_video_bank1 + x) != 21)
+			return (false);
+		x++;
+	}
+
+
+	_emu.RAM[0xff68] = 0;
+	memset(pal_col_bg, 0, 64);
+	mem_write(_emu.RAM + 0xff69, 42, 1);
+	if (*pal_col_bg != 42)
+		return (false);
+	mem_write(_emu.RAM + 0xff69, 1, 1);
+	if (*pal_col_bg != 1 && *(pal_col_bg + 1) != 0)
+		return (false);
+	_emu.RAM[0xff68] = 0x80;
+	x = 0;
+	while (x < 64)
+	{
+		mem_write(_emu.RAM + 0xff69, x, 1);
+		if (*(pal_col_bg + x) != x)
+			return (false);
+			x++;
+	}
+
+	_emu.RAM[0xff6a] = 0;
+	memset(pal_col_obj, 0, 64);
+	mem_write(_emu.RAM + 0xff6b, 42, 1);
+	if (*pal_col_obj != 42)
+		return (false);
+	mem_write(_emu.RAM + 0xff6b, 1, 1);
+	if (*pal_col_obj != 1 && *(pal_col_obj + 1) != 0)
+		return (false);
+	_emu.RAM[0xff6a] = 0x80;
+	x = 0;
+	while (x < 64)
+	{
+		mem_write(_emu.RAM + 0xff6b, x, 1);
+		if (*(pal_col_obj + x) != x)
+			return (false);
+			x++;
+	}
+
+	return (true);
 }
 
 Memory_controller &	Memory_controller::operator=(const Memory_controller & cp) {
