@@ -151,14 +151,7 @@ struct __attribute__((__packed__)) s_vbk {
 };
 
 struct __attribute__((__packed__)) s_cps {
-	union {
-		struct {
-			bool	hl : 1;
-			uint8_t	pal_data_nb : 2;
-			uint8_t	pal_nb : 3;
-		};
-		uint8_t		pal_addr : 6;
-	};
+	uint8_t			pal_addr : 6;
 	bool			unused : 1;
 	bool			inc : 1;
 };

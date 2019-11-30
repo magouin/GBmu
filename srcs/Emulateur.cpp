@@ -26,6 +26,8 @@ Emulateur::Emulateur(std::string file, bool debug):
 	_MBC(get_memory_controller())
 {
 	sdl_init();
+	if (!_MBC.test())
+		exit(1);
 }
 
 Emulateur::Emulateur(const Emulateur & cp): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridge_type()), _MBC(cp._MBC)
