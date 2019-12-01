@@ -198,7 +198,7 @@
 {0b11000011, "jp $%02hX\n", 2, {_, _, _, _}, 4, std::bind(&Emulateur::jp, this, &p_nn)}, \
 {0b11000100, "call nz, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11000101, "push bc\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_BC)}, \
-{0b11000110, "add a, $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::add, this, &p_A, &p_n, 1)}, \
+{0b11000110, "add $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::add, this, &p_A, &p_n, 1)}, \
 {0b11000111, "rst $00\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 0)}, \
 {0b11001000, "ret z\n", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11001001, "ret\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, this)}, \

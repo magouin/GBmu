@@ -26,7 +26,7 @@ Emulateur::Emulateur(std::string file, bool debug):
 	_MBC(get_memory_controller())
 {
 	sdl_init();
-	if (!_MBC.test())
+	if (cgb.on && !_MBC.test())
 		exit(1);
 }
 

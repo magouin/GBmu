@@ -106,6 +106,7 @@ void			Memory_controller::write_tac(uint8_t value)
 
 void			Memory_controller::write_key1(uint8_t value)
 {
+	printf("triyng to speed boost\n");
 	if (value & 1)
 		_emu.RAM[REG_KEY1] |= 0x1;
 	else

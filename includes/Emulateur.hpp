@@ -250,6 +250,7 @@ class Emulateur {
 		SDL_Renderer*	_renderer;
 		SDL_Surface*	_surface;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
+		vector<bool>	_screen_prio;
 
 		SDL_Thread		*_main_thread;
 
@@ -378,7 +379,7 @@ class Emulateur {
 		bool		update();
 		void		render();
 
-		void		set_pixel(uint32_t pixel, uint16_t x, uint16_t y);
+		void		set_pixel(uint32_t pixel, uint16_t x, uint16_t y, bool prio);
 		uint8_t		color_htor(uint32_t color);
 		uint8_t		color_htog(uint32_t color);
 		uint8_t		color_htob(uint32_t color);
@@ -403,7 +404,7 @@ class Emulateur {
 		void		print_all_tiles();
 		void		dump_data_tiles();
 		void		fill_input_from_key(SDL_Keycode sym, SDL_EventType t);
-		uint32_t	bit_to_gray(uint8_t b, uint16_t pal_addr);
+		uint32_t	bit_to_gray(uint8_t b, uint16_t *pal_addr);
 		uint8_t		gray_to_bit(uint32_t grey, uint16_t pal_addr);
 		uint8_t		search_bg_pix(int x, int y);
 
@@ -414,18 +415,19 @@ class Emulateur {
 		void		sort_objs(struct s_oam_obj **objs);
 		void		print_objs(struct s_oam_obj **objs);
 		void		print_obj(struct s_oam_obj *objs);
-		void		print_bg_tile_line(const uint8_t *tile, int x, int y, int h);
-		void		print_obj_tile_line(const uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int h);
+		void		print_bg_tile_line(const uint8_t *tile, const struct s_bg_atrb &bg, int x, int y, int h);
+		void		print_obj_tile_line(const uint8_t *tile, struct s_oam_obj &obj, uint8_t size, int h);
 		void		line_round(uint64_t line_cycle, uint8_t ly, bool print);
 		void		vblank_round(uint64_t line_cycle, uint8_t ly, bool print);
 
 		void		print_bg_tile_line_cgb(const uint8_t *tile, const struct s_bg_atrb &bg, int x, int y, int off);
 		uint32_t	bit_to_color(uint8_t b, uint16_t *pal_addr);
+		bool		check_prio(int x, int y);
 
 
 		void		print_bg_line(int y);
 		void		print_window_line(int y);
-		void		print_obj_line(struct s_oam_obj *obj, int off, int size);
+		void		print_obj_line(struct s_oam_obj &obj, int off, int size);
 		void		print_objs_line(int y);
 
 		bool		check_cpu_reg(string param, uint16_t * &addr, uint16_t &val);
