@@ -124,10 +124,8 @@ void	Emulateur::stop(struct s_param *p)
 	uint8_t key1 = _MBC.mem_read(RAM + REG_KEY1, 1);
 	get_param(p);
 
-	if (p->val)
-		return ;
 	if (cgb.on && (key1 & 0x1)) {
-		printf("switching mode speed\n");
+		// printf("switching mode speed\n");
 		if (cgb.mode_double_speed)
 			_frequency >>= 1;
 		else

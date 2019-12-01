@@ -84,6 +84,7 @@ void Emulateur::emu_init()
 	if (cgb.on) {
 		cgb.mode_double_speed = false;
 	}
+	_screen_prio = vector<bool>(GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y, false);
 	_cycle = 0;
 	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
@@ -95,7 +96,7 @@ void Emulateur::emu_init()
 	// memcpy(RAM, _dmg_bios, 0x100);
 	_frequency = 0x400000; // Need to change if it is a CGB
 	init_registers();
-
+	gb_regs.vbk.bank = 0;
 	_lcd_cycle = 0;
 	_interrupt_cycle = 0;
 

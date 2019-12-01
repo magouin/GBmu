@@ -4,11 +4,11 @@
 #include <op203.hpp>
 
 
-uint32_t		Emulateur::bit_to_gray(uint8_t b, uint16_t pal_addr)
+uint32_t		Emulateur::bit_to_gray(uint8_t b, uint16_t *pal_addr)
 {
-	if (b == 0 && pal_addr != 0xff47)
+	if (b == 0 && pal_addr != reinterpret_cast<uint16_t *>(RAM + 0xff47))
 		return (0);
-	b = (RAM[pal_addr] >> ((b & 3) * 2)) & 3;
+	b = (*pal_addr >> ((b & 3) * 2)) & 3;
 	if (b == 0)
 		return (COLOR_DMG_00);
 	if (b == 1)
@@ -22,108 +22,99 @@ uint32_t		Emulateur::bit_to_color(uint8_t b, uint16_t *pal_addr)
 {
 	uint16_t color;
 	uint32_t rez;
+	uint64_t tmp = reinterpret_cast<uint8_t *>(pal_addr) - _MBC.pal_col_obj;
 
+	if (b == 0 && tmp < 64 && tmp >= 0)
+		return (0);
 	color = pal_addr[b];
-	// uint32_t tmp = (((uint8_t *)pal_addr - _MBC.pal_col_bg) / 8) * 0x1f;
-	// return (tmp + (tmp << 8) + (tmp << 16) + 0xff000000);
 	rez = (0xff << 24) | ((color & 0x1f) << 3) | ((color & 0x3e0) << 6) | ((color & 0x7c00) << 9);
 	return (rez);
 }
 
-uint8_t		Emulateur::gray_to_bit(uint32_t grey, uint16_t pal_addr)
+bool		Emulateur::check_prio(int x, int y)
 {
-	int			i;
-	int			b;
-	uint32_t	color;
-
-	if (pal_addr != 0xff47)
-		return (-1);
-	i = 0;
-	while (i < 4)
-	{
-		b = (RAM[pal_addr] >> ((i & 3) * 2)) & 3;
-		if (b == 0) color = COLOR_DMG_00;
-		else if (b == 1) color = COLOR_DMG_01;
-		else if (b == 2) color = COLOR_DMG_10;
-		else color = COLOR_DMG_11;
-		if (grey == color)
-			return (i);
-		i++;
-	}
-	return (-1);
+	return(_screen_prio[x + y * 160]);
 }
 
-void	Emulateur::print_bg_tile_line_cgb(const uint8_t *tile, const struct s_bg_atrb &bg, int x, int y, int off)
+
+void	Emulateur::print_bg_tile_line(const uint8_t *tile, const struct s_bg_atrb &bg, int x, int y, int h)
 {
 	int w;
-	int h;
 	uint32_t p;
 	uint16_t cx, cy;
 	uint16_t *pal_addr;
+	uint8_t		bits;
+	uint32_t	(Emulateur::*bit_conv)(uint8_t , uint16_t *);
 
-	pal_addr = reinterpret_cast<uint16_t *>(_MBC.pal_col_bg + bg.pal_nb * 8);
-	w = 0;
-	h = bg.vflip ? (7 - off) : off;
-	while (w < 8)
+	if (cgb.on)
 	{
-		p = bit_to_color((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), pal_addr);
-		cx = x + (bg.hflip ? (7 - w) : w);
-		cy = y + off;
-		set_pixel(p, cx, cy);
-		w++;
+		pal_addr = reinterpret_cast<uint16_t *>(_MBC.pal_col_bg + bg.pal_nb * 8);
+		bit_conv = &Emulateur::bit_to_color;
+		h = bg.vflip ? (7 - h) : h;
 	}
-}
-
-void	Emulateur::print_bg_tile_line(const uint8_t *tile, int x, int y, int h)
-{
-	int w;
-	uint32_t p;
-	uint16_t cx, cy;
-
+	else
+	{
+		pal_addr = reinterpret_cast<uint16_t *>(RAM + 0xff47);
+		bit_conv = &Emulateur::bit_to_gray;
+	}
 	w = 0;
 	while (w < 8)
 	{
-		p = bit_to_gray((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), 0xff47);
-		cx = x + w;
+		bits = (((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1);
+		p = (this->*bit_conv)(bits, pal_addr);
+		cx = x + (cgb.on && bg.hflip ? (7 - w) : w);
 		cy = y + h;
-		set_pixel(p, cx, cy);
+		set_pixel(p, cx, cy, bits);
 		w++;
 	}
 }
 
-void	Emulateur::print_obj_tile_line(const uint8_t *tile, struct s_oam_obj *obj, uint8_t size, int off)
+void	Emulateur::print_obj_tile_line(const uint8_t *tile, struct s_oam_obj &obj, uint8_t size, int off)
 {
-	int w;
-	int h;
-	uint32_t p;
-	uint16_t cx, cy;
-	uint16_t	pal_addr;
+	int			w;
+	int			h;
+	uint32_t	p;
+	uint16_t	cx, cy;
+	uint16_t	*pal_addr;
+	uint8_t		bits;
+	uint32_t	(Emulateur::*bit_conv)(uint8_t , uint16_t *);
 
-	pal_addr = 0xff48 + obj->mono_pal;
+	if (cgb.on)
+	{
+		bit_conv = &Emulateur::bit_to_color;
+		pal_addr = reinterpret_cast<uint16_t *>(_MBC.pal_col_obj + obj.color_pal * 8);
+	}
+	else
+	{
+		bit_conv = &Emulateur::bit_to_gray;
+		pal_addr = reinterpret_cast<uint16_t *>(RAM + 0xff48 + obj.mono_pal);
+	}
 	w = 0;
-	h = obj->v_flip ? (size - 1 - off) : off;
+	h = obj.v_flip ? (size - 1 - off) : off;
 	while (w < 8)
 	{
-		p = bit_to_gray((((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1), pal_addr);
-		cx = obj->x - 8 + (obj->h_flip ? (7 - w) : w);
-		cy = obj->y - 16 + off;
-		if (p != 0 && (obj->prio == 0 || search_bg_pix(cx, cy) == 0))
-			set_pixel(p, cx, cy);
+		bits = (((tile[h * 2 + 1] >> (7 - w)) << 1) & 2) | ((tile[h * 2] >> (7 - w)) & 1);
+		p = (this->*bit_conv)(bits, pal_addr);
+		cx = obj.x - 8 + (obj.h_flip ? (7 - w) : w);
+		cy = obj.y - 16 + off;
+		if (bits && (obj.prio == 0 || !check_prio(cx, cy)))
+			set_pixel(p, cx, cy, true);
 		w++;
 	}
 }
 
 void	Emulateur::print_bg_line(int y)
 {
-	const uint8_t	*b_code;
-	const uint8_t	*b_data;
-	const uint8_t	*data;
-	uint8_t			code;
-	uint32_t		cy;
-	uint8_t			x;
-	uint32_t		id_line;
-	uint32_t		offset_line;
-	uint32_t			index;
+	const uint8_t			*b_code;
+	const uint8_t			*b_data;
+	const uint8_t			*data;
+	uint8_t					code;
+	uint32_t				cy;
+	uint8_t					x;
+	uint32_t				id_line;
+	uint32_t				offset_line;
+	uint32_t				index;
+	struct s_bg_atrb		atrb;
 
 	b_code = RAM + (gb_regs.lcdc.bg_code_addr ? 0x9c00 : 0x9800);
 	b_data = RAM + (gb_regs.lcdc.bg_data_addr ? 0x8000 : 0x9000);
@@ -140,94 +131,55 @@ void	Emulateur::print_bg_line(int y)
 			data -= 0x1000;
 		if (cgb.on)
 		{
-			const struct s_bg_atrb	atrb = _MBC.get_bg_atrb(gb_regs.lcdc.bg_code_addr, index);
-
+			atrb = _MBC.get_bg_atrb(gb_regs.lcdc.bg_code_addr, index);
 			if (atrb.bank_nb)
 				data = _MBC.get_ram_video_bank1() + (data - RAM - 0x8000);
-			print_bg_tile_line_cgb(data, atrb, x * 8 - (RAM[REG_SCX] & 7), y - offset_line, offset_line);
 		}
-		else
-			print_bg_tile_line(data, x * 8 - (RAM[REG_SCX] & 7), y - offset_line, offset_line);
+		print_bg_tile_line(data, atrb, x * 8 - (RAM[REG_SCX] & 7), y - offset_line, offset_line);
 		x++;
 	}
 }
 
 void	Emulateur::print_window_line(int y)
 {
-	uint8_t	*b_code;
-	uint8_t	*b_data;
-	uint8_t	*data;
-	uint8_t	code;
-	uint8_t		x;
+	const uint8_t		*b_code;
+	const uint8_t		*b_data;
+	const uint8_t		*data;
+	uint8_t				code;
+	uint8_t				x;
+	uint32_t			index;
+	struct s_bg_atrb	atrb;
 
 	b_code = RAM + (gb_regs.lcdc.window_code_addr ? 0x9c00 : 0x9800);
 	b_data = RAM + (gb_regs.lcdc.bg_data_addr ? 0x8000 : 0x9000);
 	x = 0;
 	while (x < 21)
 	{
-		code = b_code[(((y - RAM[REG_WY]) / 8) * 32) + x];
+		index = (((y - RAM[REG_WY]) / 8) * 32) + x;
+		code = b_code[index];
 		data = b_data + (code * 16);
 		if (data >= RAM + 0x9800)
 			data -= 0x1000;
-		print_bg_tile_line(data, x * 8 + RAM[REG_WX] - 7, RAM[REG_WY] + ((y - RAM[REG_WY]) & ~7), (y - RAM[REG_WY]) & 7);
+		if (cgb.on)
+		{
+			atrb = _MBC.get_bg_atrb(gb_regs.lcdc.bg_code_addr, index);
+			if (atrb.bank_nb)
+				data = _MBC.get_ram_video_bank1() + (data - RAM - 0x8000);
+		}
+		print_bg_tile_line(data, atrb, x * 8 + RAM[REG_WX] - 7, RAM[REG_WY] + ((y - RAM[REG_WY]) & ~7), (y - RAM[REG_WY]) & 7);
 		x++;
 	}
 }
 
-uint8_t	Emulateur::search_bg_pix(int x, int y)
+void	Emulateur::print_obj_line(struct s_oam_obj &obj, int off, int size)
 {
-	uint32_t	color;
+	const uint8_t	*tile;
 
-	if (x < 0 || x >= GB_WINDOW_SIZE_X || y < 0 || y >= GB_WINDOW_SIZE_Y)
-		return (0);
-	color = _pixels_map[x + y * GB_WINDOW_SIZE_X];
-	return (gray_to_bit(color, 0xff47));
-}
-
-
-void	Emulateur::sort_objs(struct s_oam_obj **out)
-{
-	int					i_in;
-	int					i_out;
-	int					i_tmp;
-	struct s_oam_obj	*in;
-	bool				used[40] = {false};
-	bool				initialized;
-
-	i_out = 0;
-	in = (struct s_oam_obj *)(RAM + 0xfe00);
-	while (i_out < 40)
-	{
-		i_in = 0;
-		initialized = false;
-		while (i_in < 40)
-		{
-			if (!used[i_in] && !initialized)
-			{
-				initialized = true;
-				out[i_out] = &in[i_in];
-				used[i_in] = true;
-				i_tmp = i_in;
-			}
-			else if (!used[i_in] && out[i_out]->x > in[i_in].x)
-			{
-				used[i_in] = true;
-				used[i_tmp] = false;
-				i_tmp = i_in;
-				out[i_out] = &in[i_in];
-			}
-			i_in++;
-		}
-		i_out++;
-	}
-}
-
-void	Emulateur::print_obj_line(struct s_oam_obj *obj, int off, int size)
-{
-	uint8_t	*tile;
-
-	obj->chrcode &= (gb_regs.lcdc.obj_size ? ~1 : ~0);
-	tile = RAM + 0x8000 + (obj->chrcode * 0x10);
+	obj.chrcode &= (gb_regs.lcdc.obj_size ? ~1 : ~0);
+	if (cgb.on && obj.char_bank)
+		tile = _MBC.get_ram_video_bank1() + (obj.chrcode * 0x10);
+	else
+		tile = RAM + 0x8000 + (obj.chrcode * 0x10);
 	print_obj_tile_line(tile, obj, size, off);
 }
 
@@ -246,7 +198,7 @@ void	Emulateur::print_objs_line(int y)
 	{
 		if (y >= obj[x].y - 16 && y < (obj[x].y - 16 + max))
 		{
-			print_obj_line(&obj[x], y + 16 - obj[x].y, max);
+			print_obj_line(obj[x], y + 16 - obj[x].y, max);
 			nb++;
 		}
 		if (nb == 10)
@@ -309,16 +261,16 @@ void	Emulateur::update_lcd()
 	bool					print;
 	static bool				increment_lcd_cycle = true;
 
-	if (cgb.mode_double_speed)
-	{
-		increment_lcd_cycle = !increment_lcd_cycle;
-		if (!increment_lcd_cycle)
-			return ;
-	}
 	if (!gb_regs.lcdc.on)
 	{
 		_lcd_cycle = 0;
 		return ;
+	}
+	if (cgb.on && cgb.mode_double_speed)
+	{
+		increment_lcd_cycle = !increment_lcd_cycle;
+		if (!increment_lcd_cycle)
+			return ;
 	}
 	line_cycle = _lcd_cycle % 456;
 	ly = _lcd_cycle / 456;
