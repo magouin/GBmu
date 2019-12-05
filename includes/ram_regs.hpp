@@ -1,131 +1,131 @@
 #ifndef RAM_REGS
 # define RAM_REGS \
-/* 0xFF00 */ (struct s_ram_regs){RDWR, &Memory_controller::read_p1, NULL}, \
-/* 0xFF01 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF02 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF03 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_div}, \
-/* REG_DIV */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF06 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* REG_TAC */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_tac}, \
-/* 0xFF08 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF09 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0B */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF0F */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF10 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF11 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF12 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF13 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF14 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF15 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF16 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF17 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF18 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF19 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF1A */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF1B */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF1C */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF1D */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF1E */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF1F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF20 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF21 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF22 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF23 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF24 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF25 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF26 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF27 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF28 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF29 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2B */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF2F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF30 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF31 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF32 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF33 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF34 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF35 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF36 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF37 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF38 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF39 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3B */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF3F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF40 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_lcdc}, \
-/* 0xFF41 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_stat}, \
-/* 0xFF42 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_scy}, \
-/* 0xFF43 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_scx}, \
-/* 0xFF44 */ (struct s_ram_regs){RD, NULL, &Memory_controller::write_ly}, \
-/* 0xFF45 */ (struct s_ram_regs){RDWR, NULL, &Memory_controller::write_lyc}, \
-/* 0xFF46 */ (struct s_ram_regs){WR, NULL, &Memory_controller::write_dma}, \
-/* 0xFF47 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF48 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF49 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF4A */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF4B */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF4C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF4D */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF4E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF4F */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF50 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF51 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF52 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF53 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF54 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF55 */ (struct s_ram_regs){WR, NULL, NULL}, \
-/* 0xFF56 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF57 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF58 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF59 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5B */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF5F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF60 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF61 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF62 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF63 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF64 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF65 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF66 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF67 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF68 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF69 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF6A */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF6B */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF6C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF6D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF6E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF6F */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF70 */ (struct s_ram_regs){RDWR, NULL, NULL}, \
-/* 0xFF71 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF72 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF73 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF74 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF75 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF76 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF77 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF78 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF79 */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7A */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7B */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7C */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7D */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7E */ (struct s_ram_regs){PROHIB, NULL, NULL}, \
-/* 0xFF7F */ (struct s_ram_regs){PROHIB, NULL, NULL}
+{RDWR, &Memory_controller::read_p1, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, &Memory_controller::write_div}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, &Memory_controller::write_tac}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, &Memory_controller::write_lcdc}, \
+{RDWR, NULL, &Memory_controller::write_stat}, \
+{RDWR, NULL, &Memory_controller::write_scy}, \
+{RDWR, NULL, &Memory_controller::write_scx}, \
+{RD, NULL, &Memory_controller::write_ly}, \
+{RDWR, NULL, &Memory_controller::write_lyc}, \
+{WR, NULL, &Memory_controller::write_dma}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{WR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{RDWR, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}, \
+{PROHIB, NULL, NULL}
 #endif

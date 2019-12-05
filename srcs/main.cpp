@@ -4,7 +4,7 @@
 
 using namespace std::placeholders;
 
-int main(int ac, const char **av)
+int main(int ac, char *av[])
 {
 	const char	*file_name;
 	bool		debug;

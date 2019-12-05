@@ -4,6 +4,14 @@
 # define MBC2_RAM_SIZE 512
 # define MBC2_SAV_SIZE 256
 
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
 class Emulateur;
 
 enum e_right {
@@ -146,12 +154,12 @@ class Memory_controller_MBC3 : public Memory_controller {
 
 			private:
 				union {
-					struct __attribute__((__packed__)) {
+					PACK(struct {
 						bool _day_count_9_bit : 1;
 						uint8_t _unused : 5;
 						bool _halt : 1;
 						bool _day_count_cy : 1;
-					};
+					});
 					uint8_t	_RTC_DH;
 				};
 
