@@ -86,13 +86,17 @@ void Emulateur::emu_init()
 
 	_lcd_cycle = 0;
 	_interrupt_cycle = 0;
+	_current_instr_cycle = 0;
 
 	_test = 0;
 	_tima_delay_interrupt = false;
 
-	_isatty = isatty(0);
+	#ifdef __GNUC__
+		_is_a_tty = isatty(0);
+	#else
+		_is_a_tty = _isatty(0);
+	#endif
 	_id_break = 0;
-	_lcd_cycle = 12;
 	_reset = false;
 	_trace = 0;
 }

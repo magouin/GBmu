@@ -8,7 +8,6 @@
 
 using namespace std;
 
-# include <strings.h>
 # include <string.h>
 # include <instructions.hpp>
 # include <Header.hpp>
@@ -16,15 +15,11 @@ using namespace std;
 # include <sdl.hpp>
 # include <vector>
 # include <list>
-# include <SDL2/SDL.h>
 # include <csignal>
 # include <sys/stat.h>
 
 # include <time.h>
-# include <sys/time.h> 
 # include <sys/types.h>
-# include <sys/uio.h>
-# include <unistd.h>
 # include <stdio.h>
 
 # include <algorithm>
@@ -37,6 +32,21 @@ using namespace std;
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
+#ifdef __GNUC__
+# include <strings.h>
+# include <sys/time.h> 
+# include <sys/uio.h>
+# include <unistd.h>
+# include <SDL/SDL2.h>
+# define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+# include <SDL.h>
+# include <io.h>
+# define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
 
 struct s_param_info
 {
@@ -47,7 +57,7 @@ struct s_param_info
 	uint16_t			e;
 };
 
-struct __attribute__((__packed__)) s_oam_obj
+PACK(struct s_oam_obj
 {
 	uint8_t				y;
 	uint8_t				x;
@@ -58,7 +68,7 @@ struct __attribute__((__packed__)) s_oam_obj
 	bool				h_flip : 1;
 	bool				v_flip : 1;
 	bool				prio : 1;
-};
+});
 
 enum e_tile_type
 {
@@ -125,6 +135,7 @@ class Emulateur {
 		uint32_t				_id_break;
 		bool					_step_by_step;
 		bool					_debug_mode;
+		bool					_ei_change;
 
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
@@ -152,7 +163,7 @@ class Emulateur {
 
 		bool		_halt_status;
 		bool		_stop_status;
-		bool		_isatty;
+		bool		_is_a_tty;
 		bool		_reset;
 		int			_test;
 		uint16_t	_trace;

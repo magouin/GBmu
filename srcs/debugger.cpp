@@ -335,7 +335,7 @@ void	Emulateur::debug_mode()
 	_debug_mode = true;
 	while (_debug_mode)
 	{
-		if (_isatty)
+		if (_is_a_tty)
 			printf("> ");
 		if (!std::getline (std::cin, cmd))
 			exit(0);

@@ -206,7 +206,7 @@ void	Memory_controller::init(size_t ram_size) {
 }
 
 
-Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS}), _debug(debug)
+Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS} ), _debug(debug)
 {
 }
 

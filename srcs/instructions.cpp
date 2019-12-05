@@ -464,7 +464,7 @@ void	Emulateur::di()
 
 void	Emulateur::ei()
 {
-	regs.IME = true;
+	_ei_change = true;
 }
 
 void	Emulateur::ccf()

@@ -140,11 +140,13 @@ void Emulateur::exec_instr()
 	_current_instr_cycle--;
 	if (_current_instr_cycle == 0)
 	{
+		printf("_instr = %s\n", _instr->mnemonic);
 		if (!_instr->f)
 		{
 			printf("Bad instruction 0x%02x\n", _instr->opcode);
 			exit(1);
 		}
+		if (_ei_change) {_ei_change = false; regs.IME = true;}
 		if (_exec_current_instr)
 			_instr->f();
 		regs.F &= 0xf0;

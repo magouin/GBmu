@@ -9,13 +9,21 @@
 # include <inline_utils.hpp>
 # include <cartridge.hpp>
 
+#ifdef __GNUC__
+# define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+# define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
 using namespace std;
 
 class Header {
 	static const struct s_cartridge cartridge_types[0xFF];
 
 	private:
-		struct __attribute__((__packed__)) s_header
+		PACK(struct s_header
 		{
 			uint32_t	entrypoint;
 			uint8_t		nin_logo[48];
@@ -32,7 +40,7 @@ class Header {
 			uint8_t		mask_rom_version;
 			uint8_t		header_checksum;
 			uint16_t	global_checksum;
-		};
+		});
 		const string _file;
 		struct s_header _header;
 
