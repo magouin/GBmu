@@ -105,7 +105,6 @@ void Emulateur::emu_init()
 
 	_isatty = isatty(0);
 	_id_break = 0;
-	_lcd_cycle = 12;
 	_reset = false;
 	_trace = 0;
 }

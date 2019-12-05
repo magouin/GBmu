@@ -160,6 +160,7 @@ void Emulateur::exec_instr()
 			printf("Bad instruction 0x%02x\n", _instr->opcode);
 			exit(1);
 		}
+		if (_ei_change) {_ei_change = false; regs.IME = true;}
 		if (_exec_current_instr)
 			_instr->f();
 		regs.F &= 0xf0;

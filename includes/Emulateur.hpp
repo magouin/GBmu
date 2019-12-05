@@ -232,6 +232,7 @@ class Emulateur {
 		uint32_t				_id_break;
 		bool					_step_by_step;
 		bool					_debug_mode;
+		bool					_ei_change;
 
 		uint64_t	_cycle;
 		uint32_t	_lcd_cycle;
