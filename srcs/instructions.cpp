@@ -323,12 +323,6 @@ void	Emulateur::push(struct s_param *p)
 
 void	Emulateur::rst(uint8_t nb)
 {
-	if (cgb.on) {
-		if (cgb.mode_double_speed)
-			_frequency >>= 1;
-		cgb.mode_double_speed = false;
-		_MBC.mem_write(RAM + REG_KEY1, 0, 1);
-	}
 	regs.SP -= 2;
 	_MBC.mem_write(RAM + regs.SP, regs.PC, 2);
 	regs.PC = nb * 8;
@@ -482,7 +476,7 @@ void	Emulateur::di()
 
 void	Emulateur::ei()
 {
-	regs.IME = true;
+	_ei_change = true;
 }
 
 void	Emulateur::ccf()

@@ -262,10 +262,7 @@ void	Emulateur::update_lcd()
 	static bool				increment_lcd_cycle = true;
 
 	if (!gb_regs.lcdc.on)
-	{
-		_lcd_cycle = 0;
 		return ;
-	}
 	if (cgb.on && cgb.mode_double_speed)
 	{
 		increment_lcd_cycle = !increment_lcd_cycle;
@@ -274,8 +271,8 @@ void	Emulateur::update_lcd()
 	}
 	line_cycle = _lcd_cycle % 456;
 	ly = _lcd_cycle / 456;
-	if (line_cycle == 0)
-		_MBC.mem_write(&RAM[REG_LY], ly % 154, 1);
+	if (line_cycle == 380)
+		_MBC.mem_write(&RAM[REG_LY], (ly + 1) % 154, 1);
 	print = !(img % (_frequency >> 22));
 	if (ly < 144)
 		line_round(line_cycle, ly, print);
