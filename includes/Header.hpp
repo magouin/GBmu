@@ -11,7 +11,15 @@
 
 using namespace std;
 
-struct __attribute__((__packed__)) s_header
+#ifdef __GNUC__
+# define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+# define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
+PACK(struct s_header
 {
 	uint32_t	entrypoint;
 	uint8_t		nin_logo[48];
@@ -28,7 +36,7 @@ struct __attribute__((__packed__)) s_header
 	uint8_t		mask_rom_version;
 	uint8_t		header_checksum;
 	uint16_t	global_checksum;
-};
+});
 
 class Header {
 	static const struct s_cartridge cartridge_types[0xFF];
@@ -40,7 +48,7 @@ class Header {
 	public:
 		union {
 			struct s_header _header;
-			struct __attribute__((__packed__))
+			PACK(struct
 			{
 				uint32_t	entrypoint;
 				uint8_t		nin_logo[48];
@@ -57,7 +65,7 @@ class Header {
 				uint8_t		mask_rom_version;
 				uint8_t		header_checksum;
 				uint16_t	global_checksum;
-			};
+			});
 		};
 
 		Header();

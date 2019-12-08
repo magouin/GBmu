@@ -8,7 +8,6 @@
 
 using namespace std;
 
-# include <strings.h>
 # include <string.h>
 # include <instructions.hpp>
 # include <Header.hpp>
@@ -16,15 +15,11 @@ using namespace std;
 # include <sdl.hpp>
 # include <vector>
 # include <list>
-# include <SDL2/SDL.h>
 # include <csignal>
 # include <sys/stat.h>
 
 # include <time.h>
-# include <sys/time.h> 
 # include <sys/types.h>
-# include <sys/uio.h>
-# include <unistd.h>
 # include <stdio.h>
 
 # include <algorithm>
@@ -34,6 +29,20 @@ using namespace std;
 # include <registers.hpp>
 # include <ram_regs.hpp>
 # include <Memory_controller.hpp>
+
+#ifdef __GNUC__
+# include <strings.h>
+# include <SDL2/SDL.h>
+# include <sys/time.h> 
+# include <sys/uio.h>
+# include <unistd.h>
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+# include <SDL.h>
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
 
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
@@ -47,7 +56,7 @@ struct s_param_info
 	uint16_t			e;
 };
 
-struct __attribute__((__packed__)) s_oam_obj
+PACK(struct s_oam_obj
 {
 	uint8_t				y;
 	uint8_t				x;
@@ -58,7 +67,7 @@ struct __attribute__((__packed__)) s_oam_obj
 	bool				h_flip : 1;
 	bool				v_flip : 1;
 	bool				prio : 1;
-};
+});
 
 enum e_tile_type
 {
@@ -103,28 +112,28 @@ enum e_select {
 	ALL = 3
 };
 
-struct __attribute__((__packed__)) s_tac {
+PACK(struct s_tac {
 	uint8_t			clock_select : 2;
 	bool			on : 1;
 	uint8_t			unused : 5;
-};
+});
 
-struct __attribute__((__packed__)) s_p1 {
+PACK(struct  s_p1 {
 	uint8_t			out : 4;
 	enum e_select	select : 2;
 	uint8_t			unused : 2;
-};
+});
 
-struct __attribute__((__packed__)) s_inter {
+PACK(struct s_inter {
 	bool			vblank : 1;
 	bool			lcdc : 1;
 	bool			timer : 1;
 	bool			serial : 1;
 	bool			io : 1;
 	uint8_t			unused : 3;
-};
+});
 
-struct __attribute__((__packed__)) s_lcdc {
+PACK(struct s_lcdc {
 	bool			bg_display : 1;
 	bool			obj_display : 1;
 	bool			obj_size : 1; // 3
@@ -133,9 +142,9 @@ struct __attribute__((__packed__)) s_lcdc {
 	bool			window : 1;
 	bool			window_code_addr : 1; // 7
 	bool			on : 1;
-};
+});
 
-struct __attribute__((__packed__)) s_stat {
+PACK(struct s_stat {
 	bool			mode : 2;
 	bool			match_ly : 1;
 	bool			imode0 : 1;
@@ -143,18 +152,18 @@ struct __attribute__((__packed__)) s_stat {
 	bool			imode2 : 1;
 	bool			imatch_ly : 1;
 	bool			unused : 1;
-};
+});
 
-struct __attribute__((__packed__)) s_vbk {
+PACK(struct s_vbk {
 	bool			bank : 1;
 	uint8_t			unused : 7;
-};
+});
 
-struct __attribute__((__packed__)) s_cps {
+PACK(struct s_cps {
 	uint8_t			pal_addr : 6;
 	bool			unused : 1;
 	bool			inc : 1;
-};
+});
 
 struct s_gb_regs {
 	struct s_p1		&p1;
@@ -186,7 +195,7 @@ struct s_gb_regs {
 
 };
 
-struct __attribute__((__packed__)) s_bg_atrb
+PACK(struct s_bg_atrb
 {
 	uint8_t				pal_nb : 3;
 	bool				bank_nb : 1;
@@ -194,7 +203,7 @@ struct __attribute__((__packed__)) s_bg_atrb
 	bool				hflip : 1;
 	bool				vflip : 1;
 	bool				prio : 1;
-};
+});
 
 class Emulateur {
 	public:
@@ -261,7 +270,7 @@ class Emulateur {
 
 		bool		_halt_status;
 		bool		_stop_status;
-		bool		_isatty;
+		bool		_is_a_tty;
 		bool		_reset;
 		int			_test;
 		uint16_t	_trace;
