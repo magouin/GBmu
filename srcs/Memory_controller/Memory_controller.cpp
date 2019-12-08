@@ -360,7 +360,7 @@ void	Memory_controller::save()
 
 void	Memory_controller::init(size_t ram_size) {
 	_ram_size = ram_size;
-	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000);
+	rom_bank = (const uint8_t*)(_emu.ROM + 0x4000);
 	ram_ext_work_orig_ptr = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu.RAM + 0xa000;
 	ram_ext_work_bank = ram_ext_work_orig_ptr;
 	std::ifstream fs;
