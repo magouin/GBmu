@@ -79,7 +79,7 @@
 /* 0xFF4C */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF4D */ (struct s_ram_regs){RDWR, NULL}, \
 /* 0xFF4E */ (struct s_ram_regs){PROHIB, NULL}, \
-/* 0xFF4F */ (struct s_ram_regs){RDWR, NULL}, \
+/* 0xFF4F */ (struct s_ram_regs){RDWR, &Memory_controller::write_vbk}, \
 /* 0xFF50 */ (struct s_ram_regs){PROHIB, NULL}, \
 /* 0xFF51 */ (struct s_ram_regs){WR, NULL}, \
 /* 0xFF52 */ (struct s_ram_regs){WR, NULL}, \
