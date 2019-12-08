@@ -17,7 +17,7 @@ void	Emulateur::sdl_init()
 		fprintf(stderr, "Error on renderer creation: %s\n", SDL_GetError());
 		exit(1);
 	}
-	if (!(_surface = SDL_CreateRGBSurfaceWithFormat(0, 160, 144, 32, SDL_PIXELFORMAT_RGBA32)))
+	if (!(_surface = SDL_CreateRGBSurface(0, 160, 144, 32, 0Xff, 0xff << 8, 0xff << 16, 0xff << 24)))
 	{
 		fprintf(stderr, "Error on surface creation: %s\n", SDL_GetError());
 		exit(1);

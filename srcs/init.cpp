@@ -1,5 +1,14 @@
 #include <Emulateur.hpp>
 
+#ifdef __GNUC__
+# define ISATTY isatty
+#endif
+
+#ifdef _MSC_VER
+# include <io.h>
+# define ISATTY _isatty
+#endif
+
 void	Emulateur::init_registers(void)
 {
 	if (cgb.on)
@@ -103,7 +112,7 @@ void Emulateur::emu_init()
 	_test = 0;
 	_tima_delay_interrupt = false;
 
-	_isatty = isatty(0);
+	_is_a_tty = ISATTY(0);
 	_id_break = 0;
 	_reset = false;
 	_trace = 0;
