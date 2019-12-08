@@ -227,7 +227,7 @@ bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value)
 	}
 	else
 		return (false);
-	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * _rom_bank_selected);
+	rom_bank = (_emu.ROM + 0x4000 * _rom_bank_selected);
 	ram_ext_work_bank = ram_ext_work_orig_ptr + _ram_ext_work_bank_to_select * 0x2000;
 	return (true);
 }
@@ -275,7 +275,7 @@ void	Memory_controller_MBC3::save()
 
 void	Memory_controller_MBC3::init(size_t ram_size) {
 	_ram_size = ram_size;
-	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000);
+	rom_bank = (_emu.ROM + 0x4000);
 	ram_ext_work_orig_ptr = (_ram_size > 0) ? new uint8_t[_ram_size] : _emu.RAM + 0xa000;
 	ram_ext_work_bank = ram_ext_work_orig_ptr;
 	_ram_ext_work_enable = false;

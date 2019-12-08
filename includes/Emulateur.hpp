@@ -35,6 +35,8 @@ using namespace std;
 # include <ram_regs.hpp>
 # include <Memory_controller.hpp>
 
+#include <fcntl.h>
+
 # define TYPE_FROM_SIZE(size) (size == 1 ? (uint8_t) : (uint16_t))
 
 
@@ -204,7 +206,7 @@ class Emulateur {
 		uint8_t					RAM[0x10000];
 		struct s_regs 			regs;
 		struct user_input		input;
-		std::string				ROM;
+		uint8_t					*ROM;
 		std::string				save_name;
 		struct s_cgb			cgb;
 		const struct s_gb_regs	gb_regs;
@@ -244,8 +246,8 @@ class Emulateur {
 		bool		_exec_current_instr;
 		bool		_debug;
 
-		const struct s_cartridge 	&_cartridge;
-		Memory_controller 			&_MBC;
+		struct s_cartridge			_cartridge;
+		Memory_controller			&_MBC;
 
 		SDL_Window*		_window;
 		SDL_Renderer*	_renderer;
@@ -296,6 +298,7 @@ class Emulateur {
 		Emulateur();
 
 		void	emu_init();
+		uint8_t	*init_ROM(string file);
 		const struct s_cv_instr *get_cv_infos(uint8_t opcode) const;
 		void exec_instr();
 		void update_lcd();

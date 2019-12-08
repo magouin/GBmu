@@ -35,7 +35,7 @@ bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value)
 	}
 	else
 		return (false);
-	rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * _rom_bank_selected);
+	rom_bank = (_emu.ROM + 0x4000 * _rom_bank_selected);
 	ram_ext_work_bank = ram_ext_work_orig_ptr;
 	return (true);
 }

@@ -43,13 +43,13 @@ bool		Memory_controller_MBC1::write_ROM_regs(uint8_t *addr, uint8_t value)
 	if (_rom_ram_select == 0)
 	{
 		id = _rom_bank_selected + (_rom_ram_bank << 5);
-		rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * id);
+		rom_bank = (_emu.ROM + 0x4000 * id);
 		ram_ext_work_bank = ram_ext_work_orig_ptr;
 	}
 	else if (_rom_ram_select == 1)
 	{
 		id = _rom_bank_selected;
-		rom_bank = (const uint8_t*)(_emu.ROM.c_str() + 0x4000 * id);
+		rom_bank = (_emu.ROM + 0x4000 * id);
 		ram_ext_work_bank = ram_ext_work_orig_ptr + _rom_ram_bank * 0x2000;
 	}
 	return (true);

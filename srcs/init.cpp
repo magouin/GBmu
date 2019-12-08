@@ -92,7 +92,7 @@ void Emulateur::emu_init()
 	input.p15 = 0xff;
 	_halt_status = false;
 	_stop_status = false;
-	memcpy(RAM, ROM.c_str(), 0x8000);
+	memcpy(RAM, ROM, 0x8000);
 	// memcpy(RAM, _dmg_bios, 0x100);
 	_frequency = 0x400000; // Need to change if it is a CGB
 	init_registers();

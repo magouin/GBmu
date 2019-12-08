@@ -10,8 +10,19 @@ Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridg
 {
 }
 
+uint8_t	*Emulateur::init_ROM(string file)
+{
+	struct stat		stat;
+	int				fd;
+
+	fstat((fd = open(file.c_str(), O_RDONLY)), &stat);
+	ROM = new uint8_t[stat.st_size];
+	read(fd, ROM, stat.st_size);
+	return (ROM);
+}
+
 Emulateur::Emulateur(std::string file, bool debug):
-	ROM(istreambuf_iterator<char>(ifstream(file).rdbuf()), istreambuf_iterator<char>()),
+	ROM(init_ROM(file)),
 	save_name(file.substr(0, file.find_last_of('.')) + ".sav"),
 	gb_regs({INIT_GB_REGS}),
 	_op203({OP203}),
@@ -37,6 +48,7 @@ Emulateur::Emulateur(const Emulateur & cp): gb_regs({INIT_GB_REGS}), _cartridge(
 
 Emulateur::~Emulateur()
 {
+	delete[] ROM;
 }
 
 Emulateur &	Emulateur::operator=(const Emulateur & cp)

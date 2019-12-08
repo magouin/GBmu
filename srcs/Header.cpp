@@ -5,13 +5,11 @@ const struct s_cartridge Header::cartridge_types[] = {CARTRIDGE_TYPE};
 Header::Header() {
 }
 
-Header::Header(const string & file, bool *cgb_on) : _file(file)
+Header::Header(uint8_t *file, bool *cgb_on) : _file(file)
 {
-	const char	*str;
-	const char	*head;
+	const uint8_t	*head;
 
-	str = file.c_str();
-	head = str + 0x100;
+	head = _file + 0x100;
 
 	_header = *reinterpret_cast<const struct s_header*>(head);
 
@@ -61,7 +59,7 @@ size_t		Header::get_ram_size() const
 	return (0);
 }
 
-const struct s_cartridge &Header::get_cartridge_type() const
+struct s_cartridge Header::get_cartridge_type() const
 {
 	uint16_t i = 0;
 	while (i < 257) {
@@ -71,5 +69,5 @@ const struct s_cartridge &Header::get_cartridge_type() const
 	}
 	printf("Wrong cartridge type\n");
 	exit(EXIT_FAILURE);
-	// return (0);
+	// return ((struct s_cartridge){0});
 }

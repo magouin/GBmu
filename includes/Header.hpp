@@ -35,7 +35,7 @@ class Header {
 
 
 	private:
-		const string _file;
+		const uint8_t *_file;
 
 	public:
 		union {
@@ -61,13 +61,13 @@ class Header {
 		};
 
 		Header();
-		Header(const string & file, bool *cgb_on);
+		Header(uint8_t *file, bool *cgb_on);
 		Header(const Header & cp);
 		~Header();
 		void read_instr(size_t offset);
 		Header & operator=(const Header & cp);
 		size_t get_ram_size(void) const;
-		const struct s_cartridge &get_cartridge_type() const;
+		struct s_cartridge get_cartridge_type() const;
 };
 
 #endif
