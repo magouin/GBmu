@@ -167,28 +167,28 @@ Memory_controller_MBC3::RTC &	Memory_controller_MBC3::RTC::operator=(const Memor
 	return (*this);
 }
 
-void		*Memory_controller_MBC3::read_ROM_RAM_regs(uint8_t *addr)
+uint8_t		*Memory_controller_MBC3::read_ROM_RAM_regs(uint8_t *addr)
 {
 	if (addr < _emu.RAM)
 		return (NULL);
 	if (addr - _emu.RAM < 0x4000)
 		return (addr);
 	else if (addr - _emu.RAM  < 0x8000)
-		return (void*)(rom_bank + (addr - _emu.RAM - 0x4000));
+		return const_cast<uint8_t *>((rom_bank + (addr - _emu.RAM - 0x4000)));
 	else if (addr - _emu.RAM >= 0xa000 && addr - _emu.RAM  < 0xc000)
 	{
 		if (_ram_rtc_enable) {
 			if (_ram_rtc_select == E_RTC) {
 				_read_reg_RTC = _RTC.get_register();
-				return (&_read_reg_RTC);
+				return (reinterpret_cast<uint8_t *>(&_read_reg_RTC));
 			}
-			return (void*)(ram_ext_work_bank + (addr - _emu.RAM - 0xa000));
+			return (ram_ext_work_bank + (addr - _emu.RAM - 0xa000));
 		}
 	}
 	return (NULL);
 }
 
-bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
+bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value)
 {
 	if (addr < _emu.RAM)
 		return (false);
@@ -232,7 +232,7 @@ bool		Memory_controller_MBC3::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 	return (true);
 }
 
-bool		Memory_controller_MBC3::write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size)
+bool		Memory_controller_MBC3::write_RAM_regs(uint8_t *addr, uint8_t value)
 {
 	if (addr - _emu.RAM  >= 0xA000 && addr - _emu.RAM  < 0xC000)
 	{
@@ -241,10 +241,7 @@ bool		Memory_controller_MBC3::write_RAM_regs(uint8_t *addr, uint16_t value, int8
 			return true;
 		}
 		else {
-			if (size == 2)
-				*(uint16_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = value;
-			else
-				*(uint8_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = (uint8_t)value;
+			*(uint8_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = value;
 			return (true);
 		}
 	}
