@@ -113,6 +113,18 @@ void			Memory_controller::write_key1(uint8_t value)
 		_emu.RAM[REG_KEY1] &= ~1;
 }
 
+void			Memory_controller::write_vbk(uint8_t value)
+{
+	if (_emu.cgb.on) {
+		_emu.gb_regs.vbk.bank = value & 1;
+	}
+	else
+	{
+		_emu.gb_regs.vbk.bank = value & 1;
+		_emu.gb_regs.vbk.unused = value & -2;
+	}
+}
+
 void			Memory_controller::write_svbk(uint8_t value)
 {
 	if (_emu.cgb.on) {
@@ -181,14 +193,14 @@ void			Memory_controller::read_vbk()
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 
-void		*Memory_controller::cpu_regs(void *addr)
+uint8_t		*Memory_controller::cpu_regs(uint8_t *addr)
 {
-	if (addr >= &_emu.regs && addr < &_emu.regs + sizeof(_emu.regs))
+	if (addr >= reinterpret_cast<uint8_t *>(&_emu.regs) && addr < reinterpret_cast<uint8_t *>(&_emu.regs) + sizeof(_emu.regs))
 		return (addr);
 	return (NULL);
 }
 
-void		*Memory_controller::read_gb_regs(uint8_t *addr)
+uint8_t		*Memory_controller::read_gb_regs(uint8_t *addr)
 {
 	if (addr == _emu.RAM + 0xff00) {
 		read_p1();
@@ -209,7 +221,7 @@ void		*Memory_controller::read_gb_regs(uint8_t *addr)
 	return (NULL);
 }
 
-void		*Memory_controller::write_gb_regs(uint8_t *addr, uint8_t value, int8_t size)
+uint8_t		*Memory_controller::write_gb_regs(uint8_t *addr, uint8_t value)
 {
 	if (addr < _emu.RAM + 0xff00 || addr > _emu.RAM + 0xff7f)
 		return (NULL);
@@ -219,42 +231,36 @@ void		*Memory_controller::write_gb_regs(uint8_t *addr, uint8_t value, int8_t siz
 	return (addr);
 }
 
-void		*Memory_controller::gb_mem(void *addr)
+uint8_t		*Memory_controller::gb_mem(uint8_t *addr)
 {
 	if (addr < _emu.RAM || addr > _emu.RAM + 0xffff)
 		return (NULL);
 	return (addr);
 }
 
-void		*Memory_controller::write_ram_work_bank(uint8_t *addr, uint16_t value, int8_t size)
+uint8_t		*Memory_controller::write_ram_work_bank(uint8_t *addr, uint8_t value)
 {
 	if (addr < _emu.RAM + 0xd000 || addr > _emu.RAM + 0xdfff)
 		return (NULL);
 	if (_ram_work_bank_selected == 1)
 		return (NULL);
 	uint16_t offset = (_ram_work_bank_selected - 2) * 0x1000;
-	if (size == 1)
-		*(uint8_t *)(_ram_work_bank + offset) = (uint8_t)value;
-	else
-		*(uint16_t *)(_ram_work_bank + offset) = value;
+	*(uint8_t *)(_ram_work_bank + offset) = (uint8_t)value;
 	return (_ram_work_bank + offset);
 }
 
-void		*Memory_controller::write_video_ram(uint8_t *addr, uint16_t value, int8_t size)
+uint8_t		*Memory_controller::write_video_ram(uint8_t *addr, uint8_t value)
 {
 	if (addr < _emu.RAM + 0x8000 || addr > _emu.RAM + 0x9fff)
 		return (NULL);
 	if (_emu.gb_regs.vbk.bank == 0)
 		return (NULL);
 	uint16_t offset = addr - _emu.RAM - 0x8000;
-	if (size == 1)
-		*(uint8_t *)(_ram_video_bank1 + offset) = (uint8_t)value;
-	else
-		*(uint16_t *)(_ram_video_bank1 + offset) = value;
+	*(uint8_t *)(_ram_video_bank1 + offset) = (uint8_t)value;
 	return (_ram_video_bank1 + offset);
 }
 
-void		*Memory_controller::read_ram_work_bank(uint8_t *addr)
+uint8_t		*Memory_controller::read_ram_work_bank(uint8_t *addr)
 {
 	if (addr < _emu.RAM + 0xd000 || addr > _emu.RAM + 0xdfff)
 		return (NULL);
@@ -263,7 +269,7 @@ void		*Memory_controller::read_ram_work_bank(uint8_t *addr)
 	return (_ram_work_bank + (_ram_work_bank_selected - 2) * 0x1000);
 }
 
-void		*Memory_controller::read_video_bank(uint8_t *addr)
+uint8_t		*Memory_controller::read_video_bank(uint8_t *addr)
 {
 	if (addr < _emu.RAM + 0x8000 || addr > _emu.RAM + 0x9fff)
 		return (NULL);
@@ -272,47 +278,52 @@ void		*Memory_controller::read_video_bank(uint8_t *addr)
 	return (_ram_video_bank1 + (addr - _emu.RAM - 0x8000));
 }
 
-uint16_t	Memory_controller::mem_read(void *addr, int8_t size)
+uint8_t	Memory_controller::mem_read(uint8_t *addr)
 {
-	void	*read_addr = NULL;
+	uint8_t	*read_addr = NULL;
 
-	if ((read_addr = read_ROM_RAM_regs((uint8_t*)addr))) ;
+	if ((read_addr = read_ROM_RAM_regs(addr))) ;
 	else {
 		if (_debug)
-			_emu.check_watchpoint((uint8_t *)addr, RD, size);
+			_emu.check_watchpoint((uint8_t *)addr, RD);
 		if ((read_addr = cpu_regs(addr))) ;
-		else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
-		else if (_emu.cgb.on && (read_addr = read_ram_work_bank((uint8_t*)addr))) ;
-		else if (_emu.cgb.on && (read_addr = read_video_bank((uint8_t*)addr))) ;
+		else if ((read_addr = read_gb_regs(addr))) ;
+		else if (_emu.cgb.on && (read_addr = read_ram_work_bank(addr))) ;
+		else if (_emu.cgb.on && (read_addr = read_video_bank(addr))) ;
 		else if ((read_addr = gb_mem(addr))) ;
 		else {
 			printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu.RAM));
 			return (0);
 		}
 	}
-	if (size == 2)
-		return (*(uint16_t *)read_addr);
-	else
-		return (*(uint8_t *)read_addr);
+	return (*read_addr);
 }
 
-void		Memory_controller::mem_write(void *addr, uint16_t value, int8_t size)
+uint16_t	Memory_controller::mem_read(void *addr, uint8_t size)
+{
+	uint16_t ret = mem_read(reinterpret_cast<uint8_t *>(addr));
+	if (size == 2)
+		ret += mem_read(reinterpret_cast<uint8_t *>(addr) + 1) << 8;
+	return (ret);
+}
+
+void		Memory_controller::mem_write(uint8_t *addr, uint8_t value)
 {
 	void	*write_addr;
 
 	if ((write_addr = cpu_regs(addr))) ;
 	else {
 		if (_debug)
-			_emu.check_watchpoint((uint8_t *)addr, WR, size);
-		if (write_ROM_regs((uint8_t*)addr, value, size))
+			_emu.check_watchpoint((uint8_t *)addr, WR);
+		if (write_ROM_regs(addr, value))
 			return ;
-		else if (write_RAM_regs((uint8_t*)addr, value, size))
+		else if (write_RAM_regs(addr, value))
 			return ;
-		else if (write_gb_regs((uint8_t *)addr, value, size))
+		else if (write_gb_regs(addr, value))
 			return ;
-		else if (_emu.cgb.on && write_ram_work_bank((uint8_t *)addr, value, size))
+		else if (_emu.cgb.on && write_ram_work_bank(addr, value))
 			return ;
-		else if (_emu.cgb.on && write_video_ram((uint8_t *)addr, value, size))
+		else if (_emu.cgb.on && write_video_ram(addr, value))
 			return ;
 		else if ((write_addr = gb_mem(addr))) ;
 		else {
@@ -320,10 +331,14 @@ void		Memory_controller::mem_write(void *addr, uint16_t value, int8_t size)
 			return ;
 		} 
 	}
+	*addr = value;
+}
+
+void		Memory_controller::mem_write(void *addr, uint16_t value, int8_t size)
+{
+	mem_write(reinterpret_cast<uint8_t *>(addr), value);
 	if (size == 2)
-		*(uint16_t *)addr = value;
-	else
-		*(uint8_t *)addr = (uint8_t)value;
+		mem_write(reinterpret_cast<uint8_t *>(addr) + 1, value >> 8);
 }
 
 void	Memory_controller::save()

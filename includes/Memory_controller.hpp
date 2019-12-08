@@ -38,12 +38,14 @@ class Memory_controller {
 		~Memory_controller();
 		Memory_controller & operator=(const Memory_controller & cp);
 
-		virtual uint16_t	mem_read(void *addr, int8_t size);
-		virtual void		mem_write(void *addr, uint16_t value, int8_t size);
+		virtual uint8_t		mem_read(uint8_t *addr);
+		uint16_t			mem_read(void *addr, uint8_t size);
+		virtual void		mem_write(uint8_t *addr, uint8_t value);
+		void				mem_write(void *addr, uint16_t value, int8_t size);
 
 		void	new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len);
 
-		const struct s_bg_atrb &get_bg_atrb(bool area, uint32_t id) const;
+		const struct s_bg_atrb	&get_bg_atrb(bool area, uint32_t id) const;
 		const uint8_t			*get_ram_video_bank1(void) const;
 
 		virtual void		save();
@@ -56,7 +58,7 @@ class Memory_controller {
 		size_t	_ram_size;
 
 		bool			_ram_ext_work_enable;
-		uint8_t			_rom_bank_selected;
+		uint16_t		_rom_bank_selected;
 		const uint8_t	_debug;
 
 		uint8_t		*_ram_work_bank; // bank 0 -> 0xc000 / 0xd000 ||| bank1 -> 0xd000 / 0xe000 ||| / bank 2 -> 7 in ram_work_bank
@@ -78,6 +80,7 @@ class Memory_controller {
 		void	write_hdma5(uint8_t value);
 		void	write_tac(uint8_t value);
 		void	write_svbk(uint8_t value);
+		void	write_vbk(uint8_t value);
 		void	write_key1(uint8_t value);
 		void	write_bcpd(uint8_t value);
 		void	write_ocpd(uint8_t value);
@@ -87,18 +90,18 @@ class Memory_controller {
 		void	read_ocpd(void);
 		void	read_vbk(void);
 
-		virtual void	*read_ROM_RAM_regs(uint8_t *addr) = 0;
-		virtual bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size) = 0;
-		virtual bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size) = 0;
+		virtual uint8_t	*read_ROM_RAM_regs(uint8_t *addr) = 0;
+		virtual bool	write_ROM_regs(uint8_t *addr, uint8_t value) = 0;
+		virtual bool	write_RAM_regs(uint8_t *addr, uint8_t value) = 0;
 
-		void	*cpu_regs(void *addr);
-		void	*read_gb_regs(uint8_t *addr);
-		void	*read_ram_work_bank(uint8_t *addr);
-		void	*read_video_bank(uint8_t *addr);
-		void	*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
-		void	*write_ram_work_bank(uint8_t *addr, uint16_t value, int8_t size);
-		void	*write_video_ram(uint8_t *addr, uint16_t value, int8_t size);
-		void	*gb_mem(void *addr);
+		uint8_t	*cpu_regs(uint8_t *addr);
+		uint8_t	*read_gb_regs(uint8_t *addr);
+		uint8_t	*read_ram_work_bank(uint8_t *addr);
+		uint8_t	*read_video_bank(uint8_t *addr);
+		uint8_t	*write_gb_regs(uint8_t *addr, uint8_t value);
+		uint8_t	*write_ram_work_bank(uint8_t *addr, uint8_t value);
+		uint8_t	*write_video_ram(uint8_t *addr, uint8_t value);
+		uint8_t	*gb_mem(uint8_t *addr);
 };
 
 // class Memory_controller_ROM : public Memory_controller {
@@ -106,7 +109,7 @@ class Memory_controller {
 // 		using Memory_controller::Memory_controller;
 
 // 	private:
-// 		void	*read_ROM_RAM_regs(uint8_t *addr);
+// 		uint8_t	*read_ROM_RAM_regs(uint8_t *addr);
 // 		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
 // 		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
 // };
@@ -119,22 +122,23 @@ class Memory_controller_MBC1 : public Memory_controller {
 		uint8_t	_rom_ram_bank;
 		uint8_t	_rom_ram_select;
 
-		void	*read_ROM_RAM_regs(uint8_t *addr);
-		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
-		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
+		uint8_t	*read_ROM_RAM_regs(uint8_t *addr);
+		bool	write_ROM_regs(uint8_t *addr, uint8_t value);
+		bool	write_RAM_regs(uint8_t *addr, uint8_t value);
 };
 
 class Memory_controller_MBC2 : public Memory_controller {
 	public:
 		Memory_controller_MBC2(Emulateur &emu, size_t ram_size, bool debug);
-		uint16_t	mem_read(void *addr, int8_t size);
+		uint8_t		mem_read(uint8_t *addr);
+		// uint16_t	mem_read(void *addr, uint8_t size);
 		void		init(size_t ram_size);
 		void		save();
 
 	private:
-		void	*read_ROM_RAM_regs(uint8_t *addr);
-		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
-		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
+		uint8_t	*read_ROM_RAM_regs(uint8_t *addr);
+		bool	write_ROM_regs(uint8_t *addr, uint8_t value);
+		bool	write_RAM_regs(uint8_t *addr, uint8_t value);
 };
 
 
@@ -213,9 +217,9 @@ class Memory_controller_MBC3 : public Memory_controller {
 		RTC _RTC;
 		uint16_t	_read_reg_RTC;
 
-		void	*read_ROM_RAM_regs(uint8_t *addr);
-		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
-		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
+		uint8_t	*read_ROM_RAM_regs(uint8_t *addr);
+		bool	write_ROM_regs(uint8_t *addr, uint8_t value);
+		bool	write_RAM_regs(uint8_t *addr, uint8_t value);
 };
 
 class Memory_controller_MBC5 : public Memory_controller {
@@ -225,9 +229,9 @@ class Memory_controller_MBC5 : public Memory_controller {
 	private:
 		uint8_t	_ram_ext_work_bank_to_select;
 
-		void	*read_ROM_RAM_regs(uint8_t *addr);
-		bool	write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size);
-		bool	write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
+		uint8_t	*read_ROM_RAM_regs(uint8_t *addr);
+		bool	write_ROM_regs(uint8_t *addr, uint8_t value);
+		bool	write_RAM_regs(uint8_t *addr, uint8_t value);
 };
 
 #endif
