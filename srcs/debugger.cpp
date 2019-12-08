@@ -82,7 +82,7 @@ bool	Emulateur::get_number(string param, uint16_t * &addr, uint16_t &val)
 	return (true);
 }
 
-bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size)
+bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right)
 {
 	list<s_watch>::iterator it;
 	list<s_watch>::iterator end;

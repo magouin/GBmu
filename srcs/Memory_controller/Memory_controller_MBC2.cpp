@@ -1,23 +1,23 @@
 #include <Emulateur.hpp>
 
-void		*Memory_controller_MBC2::read_ROM_RAM_regs(uint8_t *addr)
+uint8_t		*Memory_controller_MBC2::read_ROM_RAM_regs(uint8_t *addr)
 {
 	if (addr < _emu.RAM)
 		return (NULL);
 	if (addr - _emu.RAM < 0x4000)
 		return (addr);
 	else if (addr - _emu.RAM  < 0x8000)
-		return (void*)(rom_bank + (addr - _emu.RAM - 0x4000));
+		return const_cast<uint8_t *>(rom_bank + (addr - _emu.RAM - 0x4000));
 	else if (addr - _emu.RAM >= 0xa000 && addr - _emu.RAM <= 0xa1ff)
 	{
 		if (_ram_ext_work_enable)
-			return (void*)(ram_ext_work_bank + (addr - _emu.RAM - 0xa000));
+			return (ram_ext_work_bank + (addr - _emu.RAM - 0xa000));
 		return (NULL);
 	}
 	else return (NULL);
 }
 
-bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value, int8_t size)
+bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value)
 {
 	if (addr < _emu.RAM)
 		return (false);
@@ -40,46 +40,42 @@ bool		Memory_controller_MBC2::write_ROM_regs(uint8_t *addr, uint8_t value, int8_
 	return (true);
 }
 
-bool		Memory_controller_MBC2::write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size)
+bool		Memory_controller_MBC2::write_RAM_regs(uint8_t *addr, uint8_t value)
 {
 	if (addr - _emu.RAM >= 0xA000 && addr - _emu.RAM <= 0xa1ff)
 	{
-		if (size == 2)
-			*(uint16_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = value & 0x0f0f;
-		else
-			*(uint8_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = (uint8_t)value & 0x0f;
+		*(uint8_t *)(ram_ext_work_bank + (addr - _emu.RAM - 0xA000)) = value & 0x0f;
 		return (true);
 	}
 	return (false);
 }
 
-uint16_t	Memory_controller_MBC2::mem_read(void *addr, int8_t size)
+uint8_t	Memory_controller_MBC2::mem_read(uint8_t *addr)
 {
-	void	*read_addr = NULL;
+	uint8_t	*read_addr = NULL;
 
-	_emu.check_watchpoint((uint8_t *)addr, RD, size);
-	if ((read_addr = read_ROM_RAM_regs((uint8_t*)addr))) {
+	_emu.check_watchpoint((uint8_t *)addr, RD);
+	if ((read_addr = read_ROM_RAM_regs(addr))) {
 		if ((uint8_t*)addr - _emu.RAM >= 0xa000 && (uint8_t*)addr - _emu.RAM <= 0xa1ff) {
-			if (size == 2)
-				return ((*(uint16_t *)read_addr) & 0x0f0f);
-			else
-				return ((*(uint8_t *)read_addr) & 0x0f);
+			return ((*(uint8_t *)read_addr) & 0x0f);
 		}
 	}
 	else if ((read_addr = cpu_regs(addr))) ;
-	else if ((read_addr = read_gb_regs((uint8_t*)addr))) ;
-	else if (_emu.cgb.on && (read_addr = read_ram_work_bank((uint8_t*)addr))) ;
-	else if (_emu.cgb.on && (read_addr = read_video_bank((uint8_t*)addr))) ;
+	else if ((read_addr = read_gb_regs(addr))) ;
+	else if (_emu.cgb.on && (read_addr = read_ram_work_bank(addr))) ;
+	else if (_emu.cgb.on && (read_addr = read_video_bank(addr))) ;
 	else if ((read_addr = gb_mem(addr))) ;
 	else {
 		printf("GBmu: warning: Invalid read at 0x%hx", (uint16_t)((uint8_t *)addr - _emu.RAM));
 		return (0);
 	}
-	if (size == 2)
-		return (*(uint16_t *)read_addr);
-	else
-		return (*(uint8_t *)read_addr);
+	return (*read_addr);
 }
+
+// uint16_t	Memory_controller_MBC2::mem_read(void *addr, uint8_t size);
+// {
+
+// }
 
 void	Memory_controller_MBC2::save()
 {
