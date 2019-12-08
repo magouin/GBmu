@@ -223,7 +223,7 @@ class Emulateur {
 		Emulateur & operator=(const Emulateur & cp);
 
 		void	emu_start();
-		bool	check_watchpoint(uint8_t *addr, enum e_right right, uint8_t size);
+		bool	check_watchpoint(uint8_t *addr, enum e_right right);
 		bool	check_breakpoint();
 
 	private:
@@ -369,14 +369,6 @@ class Emulateur {
 		Emulateur(const Emulateur & cp);
 		void		init_registers(void);
 		bool		check_rules(enum e_cond cond);
-
-		void		*cpu_regs(void *addr);
-		void		*read_gb_regs(uint8_t *addr);
-		void		*write_gb_regs(uint8_t *addr, uint8_t value, int8_t size);
-		void		*read_ROM_RAM_regs(uint8_t *addr);
-		bool		write_ROM_regs(uint8_t *addr, uint8_t value, int8_t sizek);
-		bool		write_RAM_regs(uint8_t *addr, uint16_t value, int8_t size);
-		void		*gb_mem(void *addr);
 
 		void		sdl_init();
 
