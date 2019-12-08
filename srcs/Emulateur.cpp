@@ -12,12 +12,20 @@ Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridg
 
 uint8_t	*Emulateur::init_ROM(string file)
 {
-	struct stat		stat;
-	int				fd;
+	size_t	size;
+	std::ifstream t(file, std::ifstream::in | std::ios::binary);
 
-	fstat((fd = open(file.c_str(), O_RDONLY)), &stat);
-	ROM = new uint8_t[stat.st_size];
-	read(fd, ROM, stat.st_size);
+	if (!t.is_open())
+	{
+		perror(file.c_str());
+		exit(EXIT_FAILURE);
+	}
+
+	t.seekg(0, t.end);
+	size = t.tellg();
+	t.seekg(0, t.beg);
+	ROM = new uint8_t[size];
+	t.read(reinterpret_cast<char*>(ROM), size);
 	return (ROM);
 }
 
