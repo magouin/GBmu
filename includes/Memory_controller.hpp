@@ -7,6 +7,14 @@
 # include <iostream>
 # include <vector>
 
+#ifdef __GNUC__
+# define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+# define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
 using namespace std;
 
 class Emulateur;
@@ -27,12 +35,12 @@ struct s_ram_regs {
 
 class Memory_controller {
 	public:
-		uint8_t				*ram_ext_work_orig_ptr;
-		uint8_t				*ram_ext_work_bank;
-		const uint8_t		*rom_bank;
+		uint8_t				*ram_ext_work_orig_ptr = NULL;
+		uint8_t				*ram_ext_work_bank = NULL;
+		const uint8_t		*rom_bank = NULL;
 		uint8_t				pal_col_bg[64];
 		uint8_t				pal_col_obj[64];
-		const struct s_bg_atrb		*bg_atrb;
+		const struct s_bg_atrb		*bg_atrb = NULL;
 
 		Memory_controller(Emulateur &emu, size_t ram_size, bool debug = false);
 		~Memory_controller();
@@ -178,12 +186,12 @@ class Memory_controller_MBC3 : public Memory_controller {
 
 			private:
 				union {
-					struct __attribute__((__packed__)) {
+					PACK(struct {
 						bool _day_count_9_bit : 1;
 						uint8_t _unused : 5;
 						bool _halt : 1;
 						bool _day_count_cy : 1;
-					};
+					});
 					uint8_t	_RTC_DH;
 				};
 
