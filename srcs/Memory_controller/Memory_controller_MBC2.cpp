@@ -54,7 +54,7 @@ uint8_t	Memory_controller_MBC2::mem_read(uint8_t *addr)
 {
 	uint8_t	*read_addr = NULL;
 
-	_emu.check_watchpoint((uint8_t *)addr, RD);
+	_emu.check_watchpoint((uint8_t *)addr, RD, 0);
 	if ((read_addr = read_ROM_RAM_regs(addr))) {
 		if ((uint8_t*)addr - _emu.RAM >= 0xa000 && (uint8_t*)addr - _emu.RAM <= 0xa1ff) {
 			return ((*(uint8_t *)read_addr) & 0x0f);
