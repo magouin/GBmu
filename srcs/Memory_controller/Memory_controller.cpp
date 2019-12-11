@@ -128,6 +128,7 @@ void			Memory_controller::write_vbk(uint8_t value)
 void			Memory_controller::write_svbk(uint8_t value)
 {
 	if (_emu.cgb.on) {
+		value = (value & 7) ? value : (value | 1);
 		_emu.RAM[REG_SVBK] = (_emu.RAM[REG_SVBK] & ~7) | (value & 7);
 		if (!(value & 0x7))
 			value++;
@@ -285,7 +286,7 @@ uint8_t	Memory_controller::mem_read(uint8_t *addr)
 	if ((read_addr = read_ROM_RAM_regs(addr))) ;
 	else {
 		if (_debug)
-			_emu.check_watchpoint((uint8_t *)addr, RD);
+			_emu.check_watchpoint((uint8_t *)addr, RD, 0);
 		if ((read_addr = cpu_regs(addr))) ;
 		else if ((read_addr = read_gb_regs(addr))) ;
 		else if (_emu.cgb.on && (read_addr = read_ram_work_bank(addr))) ;
@@ -314,7 +315,7 @@ void		Memory_controller::mem_write(uint8_t *addr, uint8_t value)
 	if ((write_addr = cpu_regs(addr))) ;
 	else {
 		if (_debug)
-			_emu.check_watchpoint((uint8_t *)addr, WR);
+			_emu.check_watchpoint((uint8_t *)addr, WR, value);
 		if (write_ROM_regs(addr, value))
 			return ;
 		else if (write_RAM_regs(addr, value))

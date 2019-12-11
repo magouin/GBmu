@@ -225,7 +225,7 @@ class Emulateur {
 		Emulateur & operator=(const Emulateur & cp);
 
 		void	emu_start();
-		bool	check_watchpoint(uint8_t *addr, enum e_right right);
+		bool	check_watchpoint(uint8_t *addr, enum e_right right, uint8_t new_val);
 		bool	check_breakpoint();
 
 	private:
