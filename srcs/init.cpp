@@ -68,6 +68,7 @@ void	Emulateur::init_registers(void)
 	RAM[REG_WX] = 0x00; // WX
 	RAM[REG_KEY1] = 0x7e;
 	RAM[REG_SVBK] = 0xf9;
+	RAM[REG_HDMA5] = 0x0;
 }
 
 Memory_controller 	&Emulateur::get_memory_controller() {
@@ -101,7 +102,9 @@ void Emulateur::emu_init()
 	input.p15 = 0xff;
 	_halt_status = false;
 	_stop_status = false;
+	memset(RAM, 0xff, 0x10000);
 	memcpy(RAM, ROM, 0x8000);
+	memset(RAM + 0xC000, 0x00, 0x2000);
 	// memcpy(RAM, _dmg_bios, 0x100);
 	_frequency = 0x400000; // Need to change if it is a CGB
 	init_registers();

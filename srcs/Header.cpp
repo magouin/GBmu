@@ -62,6 +62,7 @@ size_t		Header::get_ram_size() const
 struct s_cartridge Header::get_cartridge_type() const
 {
 	uint16_t i = 0;
+
 	while (i < 257) {
 		if (cartridge_types[i].id == (int)this->_header.cartridge)
 			return (cartridge_types[i]);

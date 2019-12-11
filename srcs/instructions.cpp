@@ -131,7 +131,7 @@ void	Emulateur::stop(struct s_param *p)
 		else
 			_frequency <<= 1;
 		cgb.mode_double_speed = !cgb.mode_double_speed;
-		RAM[REG_KEY1] = (~key1) & 0x80;
+		RAM[REG_KEY1] = 0x7e | (cgb.mode_double_speed ? 0x80 : 0x0);
 	}
 	while ((input.p14 & 0xf) != 0xf || (input.p15 & 0xf) != 0xf) ;
 	_stop_status = true;

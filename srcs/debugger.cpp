@@ -94,11 +94,11 @@ bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right, uint8_t new_
 		if ((*it).addr == (addr - RAM) && ((*it).right & right))
 		{
 			if (right == WR)
-				printf("Hit watchpoint at 0x%hX: (new value = 0x%02hhX, old value = 0x%02hhX)\n", it->addr, new_val, static_cast<uint8_t>(_MBC.mem_read(addr, 1)));
+				printf("Hit watchpoint at 0x%08hX: (new value = 0x%08hhX, old value = 0x%08hhX)\n", it->addr, new_val, static_cast<uint8_t>(_MBC.mem_read(addr, 1)));
 			_step_by_step = true;
 			_debug_mode = false;
-			printf("Exec: ");
-			print_instr();
+			// printf("Exec: ");
+			// print_instr();
 			return (true);
 		}
 		it++;
@@ -114,7 +114,7 @@ void	Emulateur::cmd_watchpoint(vector<string> param, enum e_right right)
 	if (!get_number(param[1], addr, val))
 		return ;
 	_watchpoints.push_front({_id_break, val, right});
-	printf("Added watchpoint %d at 0x%04hX\n", _id_break, val);
+	// printf("Added watchpoint %d at 0x%04hX\n", _id_break, val);
 	_id_break++;
 }
 
@@ -314,14 +314,20 @@ void	Emulateur::print_regs(void)
 	printf("ROM: %02X  RAM: %02X  WRAM: %02X  VRAM: %02X\n", (uint8_t)((_MBC.rom_bank - ROM) / 0x4000),
 															 (uint8_t)(((uint8_t *)_MBC.ram_ext_work_bank - (uint8_t *)_MBC.ram_ext_work_orig_ptr) / 0x2000),
 															 (RAM[0xff70] & 7) ? (RAM[0xff70] & 7) : 1,
-															 RAM[0xff4f]);
+															 gb_regs.vbk.bank);
 	printf("F: [");
 	regs.Z ? printf("Z") : printf("-");
 	regs.N ? printf("N") : printf("-");
 	regs.HC ? printf("H") : printf("-");
 	regs.CY ? printf("C") : printf("-");
 	printf("]\n");
-	printf("%02X:%04X:  ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)((_MBC.rom_bank - ROM) / 0x4000) : 0), regs.PC);
+	if (regs.PC >= 0x4000 && regs.PC < 0x8000)
+		printf("%02X", (uint8_t)((_MBC.rom_bank - ROM) / 0x4000));
+	else if (regs.PC >= 0xd000 && regs.PC < 0xe000)
+		printf("%02X", _MBC.ram_work_bank_selected);
+	else
+		printf("%02X", 0);
+	printf(":%04X:  ", regs.PC);
 	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(RAM + regs.PC + i, 1));
 	printf("%02X\t", _MBC.mem_read(RAM + regs.PC + i, 1));
 	print_instr();
