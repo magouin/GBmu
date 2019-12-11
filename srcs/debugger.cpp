@@ -82,7 +82,7 @@ bool	Emulateur::get_number(string param, uint16_t * &addr, uint16_t &val)
 	return (true);
 }
 
-bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right)
+bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right, uint8_t new_val)
 {
 	list<s_watch>::iterator it;
 	list<s_watch>::iterator end;
@@ -93,6 +93,8 @@ bool	Emulateur::check_watchpoint(uint8_t *addr, enum e_right right)
 	{
 		if ((*it).addr == (addr - RAM) && ((*it).right & right))
 		{
+			if (right == WR)
+				printf("Hit watchpoint at 0x%hX: (new value = 0x%02hhX, old value = 0x%02hhX)\n", it->addr, new_val, static_cast<uint8_t>(_MBC.mem_read(addr, 1)));
 			_step_by_step = true;
 			_debug_mode = false;
 			printf("Exec: ");
