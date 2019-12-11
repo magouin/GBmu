@@ -161,9 +161,9 @@ void			Memory_controller::write_ocpd(uint8_t value)
 void			Memory_controller::read_p1()
 {
 	_emu.gb_regs.p1.out = 0xf;
-	if (_emu.gb_regs.p1.select & P15)
+	if ((*reinterpret_cast<uint8_t*>(&_emu.gb_regs.p1) >> 4) & P15)
 		_emu.gb_regs.p1.out &= _emu.input.p14;
-	if (_emu.gb_regs.p1.select & P14)
+	if ((*reinterpret_cast<uint8_t*>(&_emu.gb_regs.p1) >> 4) & P14)
 		_emu.gb_regs.p1.out &= _emu.input.p15;
 }
 
