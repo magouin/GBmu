@@ -7,7 +7,7 @@
 {0b00000100, "inc b\n", 0, {_, SET, SET_0, SET}, 1, std::bind(&Emulateur::inc, this, &p_B)}, \
 {0b00000101, "dec b\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_B)}, \
 {0b00000110, "ld b, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_B, &p_n, 0, 1)}, \
-{0b00000111, "rlca\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rlca, this)}, \
+{0b00000111, "rlc\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rlca, this)}, \
 {0b00001000, "ld [$%02hX], sp\n", 2, {_, _, _, _}, 5, std::bind(&Emulateur::ld, this, &p_nn_D2, &p_SP, 0, 2)}, \
 {0b00001001, "add hl, bc\n", 0, {SET, SET, SET_0, _}, 2, std::bind(&Emulateur::add, this, &p_HL, &p_BC, 2)}, \
 {0b00001010, "ld a, [bc]\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_BC_D1, 0, 1)}, \
@@ -23,15 +23,15 @@
 {0b00010100, "inc d\n", 0, {_, SET, SET_0, SET}, 1, std::bind(&Emulateur::inc, this, &p_D)}, \
 {0b00010101, "dec d\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_D)}, \
 {0b00010110, "ld d, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_D, &p_n, 0, 1)}, \
-{0b00010111, "rla\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rla, this)}, \
-{0b00011000, "jr $%02hhX\n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::jr, this, &p_e)}, \
+{0b00010111, "rl\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rla, this)}, \
+{0b00011000, "jr, $%02hhX\n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::jr, this, &p_e)}, \
 {0b00011001, "add hl, de\n", 0, {SET, SET, SET_0, _}, 2, std::bind(&Emulateur::add, this, &p_HL, &p_DE, 2)}, \
 {0b00011010, "ld a, [de]\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_DE_D1, 0, 1)}, \
 {0b00011011, "dec de\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::dec, this, &p_DE)}, \
 {0b00011100, "inc e\n", 0, {_, SET, SET_0, SET}, 1, std::bind(&Emulateur::inc, this, &p_E)}, \
 {0b00011101, "dec e\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_E)}, \
 {0b00011110, "ld e, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_E, &p_n, 0, 1)}, \
-{0b00011111, "rra\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rra, this)}, \
+{0b00011111, "rr\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rra, this)}, \
 {0b00100000, "jr nz, $%02hhX\n", 1, {_, _, _, _}, 0, std::bind(&Emulateur::jr, this, &p_e)}, \
 {0b00100001, "ld hl, $%02hX\n", 2, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_HL, &p_nn, 0, 2)}, \
 {0b00100010, "ld [hl+], a\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_HL_D1, &p_A, 1, 1)}, \
@@ -199,14 +199,14 @@
 {0b11000100, "call nz, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11000101, "push bc\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::push, this, &p_BC)}, \
 {0b11000110, "add $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::add, this, &p_A, &p_n, 1)}, \
-{0b11000111, "rst $00\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 0)}, \
+{0b11000111, "rst\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 0)}, \
 {0b11001000, "ret z\n", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11001001, "ret\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, this)}, \
 {0b11001010, "jp z, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
 {0b11001011, "op203\n", 0, {SET, SET, SET, SET}, 0}, \
 {0b11001100, "call z, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001101, "call $%02hX\n", 2, {_, _, _, _}, 6, std::bind(&Emulateur::call, this, &p_nn)}, \
-{0b11001110, "adc a, $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, this, &p_n)}, \
+{0b11001110, "adc $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, this, &p_n)}, \
 {0b11001111, "rst $08\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 1)}, \
 {0b11010000, "ret nc\n", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11010001, "pop de\n", 0, {_, _, _, _}, 3, std::bind(&Emulateur::pop, this, &p_DE)}, \

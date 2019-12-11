@@ -38,6 +38,7 @@ class Memory_controller {
 		uint8_t				*ram_ext_work_orig_ptr = NULL;
 		uint8_t				*ram_ext_work_bank = NULL;
 		const uint8_t		*rom_bank = NULL;
+		uint8_t				ram_work_bank_selected;
 		uint8_t				pal_col_bg[64];
 		uint8_t				pal_col_obj[64];
 		const struct s_bg_atrb		*bg_atrb = NULL;
@@ -70,7 +71,6 @@ class Memory_controller {
 		const uint8_t	_debug;
 
 		uint8_t		*_ram_work_bank; // bank 0 -> 0xc000 / 0xd000 ||| bank1 -> 0xd000 / 0xe000 ||| / bank 2 -> 7 in ram_work_bank
-		uint8_t		_ram_work_bank_selected;
 
 		uint8_t		*_ram_video_bank1;
 		// bool		_ram_video_bank1_selected;

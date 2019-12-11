@@ -34,10 +34,11 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_test++;
 		else if (sym == SDLK_h)
 		{
-			freq = (1 + freq) % 5;
-			printf("_frequency >> 22: %d -> ", _frequency >> 22);
-			_frequency = (0x400000 << freq);
-			printf("%d\n", _frequency >> 22);
+			freq = (1 + freq) % 4;
+			// freq = (1 + freq) % 5;
+			printf("_frequency >> 22: %d -> ", _frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80))));
+			_frequency = (0x400000 << (freq + (cgb.on && (gb_regs.key1 & 0x80))));
+			printf("%d\n", (_frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80)))));
 			_start_time = std::chrono::system_clock::now();
 			_cycle = 0;
 		}
@@ -134,6 +135,7 @@ void	Emulateur::render()
 	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > 1000)
 	{
 		printf("FPS: %lld\n", x);
+		// printf("FPS: %lld\n", x + x * (cgb.on && (gb_regs.key1 & 0x80)));
 		x = 0;
 		start = now;
 	}
