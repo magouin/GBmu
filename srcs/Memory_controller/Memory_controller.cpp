@@ -13,7 +13,10 @@ void			Memory_controller::write_lcdc(uint8_t value)
 	if (!_emu.gb_regs.lcdc.window && l.window)
 		printf("Windowing on flag activated : %x %x\n", _emu.RAM[REG_WX], _emu.RAM[REG_WY]);
 	if (_emu.gb_regs.lcdc.on && !l.on)
+	{
 		_emu.RAM[REG_LY] = 0;
+		_emu.lcd_cycle = 0;
+	}
 	_emu.gb_regs.lcdc = l;
 }
 
@@ -39,7 +42,21 @@ void			Memory_controller::write_scx(uint8_t value)
 
 void			Memory_controller::write_ly(uint8_t value)
 {
-	_emu.RAM[REG_LY] = value;
+	_emu.RAM[REG_LY] = 0;
+	_emu.lcd_cycle = 0;
+	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
+	{
+		_emu.gb_regs.stat.match_ly = true;
+		if (_emu.gb_regs.stat.imatch_ly)
+				_emu.gb_regs.iflag.lcdc = true;
+	}
+	else
+		_emu.gb_regs.stat.match_ly = false;
+}
+
+void			Memory_controller::inc_ly(uint8_t ly)
+{
+	_emu.RAM[REG_LY] = ly;
 	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
 	{
 		_emu.gb_regs.stat.match_ly = true;
@@ -90,12 +107,19 @@ void			Memory_controller::write_dma(uint8_t value)
 void			Memory_controller::write_hdma5(uint8_t value)
 {
 	if (_emu.cgb.on) {
-		_emu.RAM[REG_HDMA5] = value;
-		if (!(_emu.RAM[REG_HDMA5] & 0x80)) {
-			// printf("Gen purp DMA\n");
-			new_dma(*reinterpret_cast<uint16_t *>(_emu.RAM + REG_HDMA3), *reinterpret_cast<uint16_t *>(_emu.RAM + REG_HDMA1), (_emu.RAM[REG_HDMA5] + 1) * 16);
-			_emu.RAM[REG_HDMA5] = 0xFF;
+		if (_emu.gb_regs.hdma5 & 0x80) {
+			if (!(value & 0x80)){
+				new_dma(_emu.gb_regs.hdma3 << 8 | (_emu.gb_regs.hdma4 & 0xf0), _emu.gb_regs.hdma1 << 8 | (_emu.gb_regs.hdma2 & 0xf0), (value + 1) * 16);
+				_emu.gb_regs.hdma5 = 0xFF;
+			}
+			else {
+				_emu.src_dma = (_emu.gb_regs.hdma1 << 8) | (_emu.gb_regs.hdma2 & 0xf0);
+				_emu.dst_dma = (((_emu.gb_regs.hdma3 & 0x1f) << 8) | (_emu.gb_regs.hdma4 & 0xf0));
+				_emu.gb_regs.hdma5 = (value & 0x7f);
+			}
 		}
+		else if (_emu.gb_regs.hdma5 & 0x80 && !(value & 0x80))
+			_emu.gb_regs.hdma5 = 0xFF;
 	}
 }
 
@@ -106,20 +130,13 @@ void			Memory_controller::write_tac(uint8_t value)
 
 void			Memory_controller::write_key1(uint8_t value)
 {
-	printf("triyng to speed boost\n");
 	_emu.RAM[REG_KEY1] = (_emu.RAM[REG_KEY1] & 0x80) | 0x7e | (value & 1);
 }
 
 void			Memory_controller::write_vbk(uint8_t value)
 {
-	if (_emu.cgb.on) {
-		_emu.gb_regs.vbk.bank = value & 1;
-	}
-	else
-	{
-		_emu.gb_regs.vbk.bank = value & 1;
-		_emu.gb_regs.vbk.unused = value & -2;
-	}
+	_emu.gb_regs.vbk.unused = 127;
+	_emu.gb_regs.vbk.bank = value & 1;
 }
 
 void			Memory_controller::write_svbk(uint8_t value)
@@ -155,6 +172,11 @@ void			Memory_controller::write_ocpd(uint8_t value)
 	}
 }
 
+void			Memory_controller::write_n52(uint8_t value)
+{
+	_emu.RAM[0xff26] = 0;
+}
+
 void			Memory_controller::read_p1()
 {
 	_emu.gb_regs.p1.out = 0xf;
@@ -183,10 +205,11 @@ void			Memory_controller::read_ocpd()
 
 void			Memory_controller::read_vbk()
 {
-	if (_emu.cgb.on) {
-		// printf("Read on VBK\n");
-		_emu.RAM[0xFF4F] = -1 & _emu.gb_regs.vbk.bank;
-	}
+}
+
+void			Memory_controller::read_if()
+{
+	_emu.RAM[0xFF0F] |= 0xE0;
 }
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -215,6 +238,10 @@ uint8_t		*Memory_controller::read_gb_regs(uint8_t *addr)
 	}
 	else if (addr == _emu.RAM + 0xff4f) {
 		read_vbk();
+		return (addr);
+	}
+	else if (addr == _emu.RAM + 0xff0f) {
+		read_if();
 		return (addr);
 	}
 	return (NULL);
@@ -373,51 +400,43 @@ void	Memory_controller::init(size_t ram_size) {
 	_rom_bank_selected = 1;
 }
 
-void	Memory_controller::new_dma(uint16_t video_offset, uint16_t src_offset, uint16_t len)
+uint8_t	*Memory_controller::get_ptr_from_off(uint16_t src_offset)
 {
-	uint8_t *video_real_addr;
-
-
-	// printf("video_offset = %hx, src_offset = %hx, len = %hx\n", video_offset, src_offset, len);
-	if (video_offset < 0x8000 || video_offset > 0xa000 || (src_offset >= 0x8000 && src_offset < 0xa000) || src_offset >= 0xe000)
-		return ;
-	// printf("NEW DMA\n");
-	if (video_offset + len >= 0xa000)
-		len = 0xa000 - video_offset;
-
-	if (_emu.gb_regs.vbk.bank)
-		video_real_addr = _ram_video_bank1 + (video_offset - 0x8000);
+	if (src_offset < 0x4000)
+		return (_emu.RAM + src_offset);
+	else if (src_offset < 0x8000)
+		return (_emu.ROM + src_offset);
+	else if (src_offset < 0xC000)
+		return (ram_ext_work_bank + (src_offset - 0xa000));
+	else if (src_offset < 0xd000 || ram_work_bank_selected == 1)
+		return (_emu.RAM + src_offset);
 	else
-		video_real_addr = _emu.RAM + video_offset;
+		return (_ram_work_bank + (ram_work_bank_selected - 2) * 0x1000 + (src_offset - 0xd000));
 
-	uint16_t tmp;
+}
+
+void	Memory_controller::new_dma(uint16_t dst_offset, uint16_t src_offset, uint16_t len)
+{
+	uint8_t *dst_real_addr;
+	uint8_t *src_real_addr;
+	uint16_t tmp = 0xa000 - dst_offset;	
+
+	if ((src_offset >= 0x8000 && src_offset < 0xa000) || src_offset >= 0xe000 || dst_offset < 0x8000 || dst_offset >= 0xa000)
+		return ;
+	if (_emu.gb_regs.vbk.bank)
+		dst_real_addr = _ram_video_bank1 + (dst_offset - 0x8000);
+	else
+		dst_real_addr = _emu.RAM + dst_offset;
+	len = std::min(tmp, len);
+	tmp = 0x1000 - src_offset % 0x1000;
 	while (len > 0) {
-		tmp = 0x1000 - len % 0x1000;
-		if (src_offset < 0x4000)
-			memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
-		if (src_offset < 0x8000)
-			memcpy(video_real_addr, rom_bank + (src_offset - 0x4000), tmp);
-		else if (src_offset >= 0xa000 && src_offset < 0xc000) {
-			if (0xa000 + _ram_size > src_offset || !_ram_ext_work_enable)
-				memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
-			else {
-				if ((src_offset + tmp) > (0xa000 + _ram_size))
-					len -= (src_offset + tmp) - (0xa000 + _ram_size);
-				memcpy(video_real_addr, ram_ext_work_bank + (src_offset - 0x4000), tmp);
-			}
-		}
-		else if (src_offset < 0xd000)
-			memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
-		else if (src_offset < 0xe000) {
-			if (ram_work_bank_selected == 1)
-				memcpy(video_real_addr, _emu.RAM + src_offset, tmp);
-			else
-				memcpy(video_real_addr, _ram_work_bank + (ram_work_bank_selected - 2) * 0x1000, tmp);
-		}
-		else
-			return ;
+		tmp = std::min(tmp, len);
+		src_real_addr = get_ptr_from_off(src_offset);
+		memcpy(dst_real_addr, src_real_addr, tmp);
 		src_offset += tmp;
+		dst_offset += tmp;
 		len -= tmp;
+		tmp = 0x1000;
 	}
 }
 
@@ -434,11 +453,13 @@ Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug
 {
 	if (_emu.cgb.on) {
 		_ram_work_bank = new uint8_t[0x6000];
-		memset(_ram_work_bank, 0xf4, 0x6000);
+		for (int x = 0; x < 0x6000; x++)
+			_ram_work_bank[x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;
 		ram_work_bank_selected = 1;
 		_ram_video_bank1 = new uint8_t[0x2000];
-		memset(_ram_video_bank1, 0xf4, 0x2000);
-	}
+		for (int x = 0; x < 0x2000; x++)
+			_ram_video_bank1[x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;
+		}
 }
 
 Memory_controller::~Memory_controller() {
@@ -512,3 +533,5 @@ Memory_controller &	Memory_controller::operator=(const Memory_controller & cp) {
 	(void)cp;
 	return (*this);
 }
+
+

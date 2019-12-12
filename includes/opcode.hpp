@@ -15,7 +15,7 @@
 {0b00001100, "inc c\n", 0, {_, SET, SET_0, SET}, 1, std::bind(&Emulateur::inc, this, &p_C)}, \
 {0b00001101, "dec c\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_C)}, \
 {0b00001110, "ld c, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_C, &p_n, 0, 1)}, \
-{0b00001111, "rrca\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rrca, this)}, \
+{0b00001111, "rrc\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rrca, this)}, \
 {0b00010000, "stop, $%02hhX\n", 1, {_, _, _, _}, 1, std::bind(&Emulateur::stop, this, &p_n)}, \
 {0b00010001, "ld de, $%02hX\n", 2, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_DE, &p_nn, 0, 2)}, \
 {0b00010010, "ld [de], a\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_DE_D1, &p_A, 0, 1)}, \
@@ -24,7 +24,7 @@
 {0b00010101, "dec d\n", 0, {_, SET, SET_1, SET}, 1, std::bind(&Emulateur::dec, this, &p_D)}, \
 {0b00010110, "ld d, $%02hhX\n", 1, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_D, &p_n, 0, 1)}, \
 {0b00010111, "rl\n", 0, {SET, SET_0, SET_0, SET_0}, 1, std::bind(&Emulateur::rla, this)}, \
-{0b00011000, "jr, $%02hhX\n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::jr, this, &p_e)}, \
+{0b00011000, "jr $%02hhX\n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::jr, this, &p_e)}, \
 {0b00011001, "add hl, de\n", 0, {SET, SET, SET_0, _}, 2, std::bind(&Emulateur::add, this, &p_HL, &p_DE, 2)}, \
 {0b00011010, "ld a, [de]\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_A, &p_DE_D1, 0, 1)}, \
 {0b00011011, "dec de\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::dec, this, &p_DE)}, \
@@ -223,7 +223,7 @@
 {0b11011100, "call c, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11011101, "NOT AN INSTRUCTION [0b11011101]\n", 0, {_, _, _, _}, 1, NULL}, \
 {0b11011110, "sbc $%02hhX\n", 1, {SET, SET, SET_1, SET}, 2, std::bind(&Emulateur::sbc, this, &p_n)}, \
-{0b11011111, "rst %18\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 3)}, \
+{0b11011111, "rst $18\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::rst, this, 3)}, \
 {0b11100000, "ld [$FF%02hhX], a\n", 1, {_, _, _, _}, 3, std::bind(&Emulateur::ld, this, &p_n_D, &p_A, 0, 1)}, \
 {0b11100001, "pop hl\n", 0, {_, _, _, _}, 3, std::bind(&Emulateur::pop, this, &p_HL)}, \
 {0b11100010, "ld [c], a\n", 0, {_, _, _, _}, 2, std::bind(&Emulateur::ld, this, &p_C_D, &p_A, 0, 1)}, \

@@ -60,6 +60,7 @@ class Memory_controller {
 		virtual void		save();
 		bool				test();
 
+		void				inc_ly(uint8_t ly);
 
 	protected:
 		Emulateur &_emu;
@@ -92,11 +93,14 @@ class Memory_controller {
 		void	write_key1(uint8_t value);
 		void	write_bcpd(uint8_t value);
 		void	write_ocpd(uint8_t value);
+		void	write_n52(uint8_t value);
 
 		void	read_p1(void);
 		void	read_bcpd(void);
 		void	read_ocpd(void);
 		void	read_vbk(void);
+		void	read_if(void);
+
 
 		virtual uint8_t	*read_ROM_RAM_regs(uint8_t *addr) = 0;
 		virtual bool	write_ROM_regs(uint8_t *addr, uint8_t value) = 0;
@@ -110,6 +114,8 @@ class Memory_controller {
 		uint8_t	*write_ram_work_bank(uint8_t *addr, uint8_t value);
 		uint8_t	*write_video_ram(uint8_t *addr, uint8_t value);
 		uint8_t	*gb_mem(uint8_t *addr);
+
+		uint8_t	*get_ptr_from_off(uint16_t src_offset);
 };
 
 // class Memory_controller_ROM : public Memory_controller {

@@ -36,24 +36,6 @@ void	Emulateur::init_registers(void)
 	regs.IME = false;
 
 	gb_regs.div = 0x00; // TIMA
-	RAM[0xff10] = 0x80; // NR10
-	RAM[0xff11] = 0xbf; // NR11
-	RAM[0xff12] = 0xf3; // NR12
-	RAM[0xff14] = 0xbf; // NR14
-	RAM[0xff16] = 0x3f; // NR21
-	RAM[0xff17] = 0x00; // NR22
-	RAM[0xff19] = 0xbf; // NR24
-	RAM[0xff1a] = 0x7f; // NR30
-	RAM[0xff1b] = 0xff; // NR31
-	RAM[0xff1c] = 0x9f; // NR32
-	RAM[0xff1e] = 0xbf; // NR33
-	RAM[0xff20] = 0xff; // NR41
-	RAM[0xff21] = 0x00; // NR42
-	RAM[0xff22] = 0x00; // NR43
-	RAM[0xff23] = 0xbf; // NR30
-	RAM[0xff24] = 0x77; // NR50
-	RAM[0xff25] = 0xf3; // NR51
-	RAM[0xff26] = 0xf1; // NR52
 	RAM[0xff40] = 0x91; // LCDC
 	RAM[REG_SCY] = 0x00; // SCY
 	RAM[REG_SCX] = 0x00; // SCX
@@ -69,6 +51,9 @@ void	Emulateur::init_registers(void)
 	RAM[REG_KEY1] = 0x7e;
 	RAM[REG_SVBK] = 0xf9;
 	RAM[REG_HDMA5] = 0x0;
+	RAM[0xff0f] = 0xE0;
+	gb_regs.tac.on = 0;
+	gb_regs.tac.clock_select = 0;
 }
 
 Memory_controller 	&Emulateur::get_memory_controller() {
@@ -104,12 +89,14 @@ void Emulateur::emu_init()
 	_stop_status = false;
 	memset(RAM, 0xff, 0x10000);
 	memcpy(RAM, ROM, 0x8000);
-	memset(RAM + 0xC000, 0x00, 0x2000);
+	for (int x = 0; x < 0x2000; x++)
+		RAM[0xc000 + x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;
+	// memset(RAM + 0xC000, 0x00, 0x2000);
 	// memcpy(RAM, _dmg_bios, 0x100);
 	_frequency = 0x400000; // Need to change if it is a CGB
 	init_registers();
 	gb_regs.vbk.bank = 0;
-	_lcd_cycle = 0;
+	lcd_cycle = 0;
 	_interrupt_cycle = 0;
 
 	_test = 0;
@@ -119,5 +106,6 @@ void Emulateur::emu_init()
 	_id_break = 0;
 	_reset = false;
 	_trace = 0;
+	_transition = 0;
 }
 

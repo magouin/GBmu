@@ -234,10 +234,12 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 			gb_regs.iflag.lcdc = true;
 		if (cgb.on) {
 			uint8_t hdma5 = _MBC.mem_read(RAM + REG_HDMA5, 1);
-			if (hdma5 & 0x80) {
-				// printf("H Blank DMA\n");
-				_MBC.new_dma(_MBC.mem_read(RAM + REG_HDMA3, 2), _MBC.mem_read(RAM + REG_HDMA1, 2), 16);
-				_MBC.mem_write(RAM + REG_HDMA5, hdma5 - 1, 1);
+			if (!(hdma5 & 0x80)) {
+				printf("H Blank DMA\n");
+				_MBC.new_dma(dst_dma, src_dma, 16);
+				RAM[REG_HDMA5]--;
+				dst_dma += 16;
+				src_dma += 16;
 			}
 		}
 	}
@@ -272,16 +274,16 @@ void	Emulateur::update_lcd()
 		if (!increment_lcd_cycle)
 			return ;
 	}
-	line_cycle = _lcd_cycle % 456;
-	ly = _lcd_cycle / 456;
-	if (line_cycle == 380)
-		_MBC.mem_write(&RAM[REG_LY], (ly + 1) % 154, 1);
+	line_cycle = lcd_cycle % 456;
+	ly = lcd_cycle / 456;
+	if (line_cycle == 0)
+		_MBC.inc_ly(ly);
 	print = !(img % (_frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80)))));
-	if (ly < 144)
+	if (ly < 144 && gb_regs.lcdc.on)
 		line_round(line_cycle, ly, print);
 	else
 		vblank_round(line_cycle, ly, print);
-	if (_lcd_cycle + 4 == 70224)
+	if (lcd_cycle + 4 == 70224)
 		img = (img + 1) % 6;
-	_lcd_cycle = (_lcd_cycle + 4) % 70224;
+	lcd_cycle = (lcd_cycle + 4) % 70224;
 }

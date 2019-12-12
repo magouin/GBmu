@@ -40,7 +40,6 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			_frequency = (0x400000 << (freq + (cgb.on && (gb_regs.key1 & 0x80))));
 			printf("%d\n", (_frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80)))));
 			_start_time = std::chrono::system_clock::now();
-			_cycle = 0;
 		}
 		if (sym == SDLK_UP)
 			input.p14 &= ~IO_UP;
