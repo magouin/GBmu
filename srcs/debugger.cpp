@@ -37,7 +37,13 @@ void	Emulateur::print_trace()
 
 	i = -1;
 	printf("A: %02hhX F: %02hhX B: %02hhX C: %02hhX D: %02hhX E: %02hhX H: %02hhX L: %02hhX SP: %04X PC: ", regs.A, regs.F, regs.B, regs.C, regs.D, regs.E, regs.H, regs.L, regs.SP);
-	printf("%02X:%04X | ", (regs.PC >= 0x4000 && regs.PC < 0x8000 ? (uint8_t)((_MBC.rom_bank - ROM) / 0x4000) : 0), regs.PC);
+	if (regs.PC >= 0x4000 && regs.PC < 0x8000)
+		printf("%02X", (uint8_t)((_MBC.rom_bank - ROM) / 0x4000));
+	else if (regs.PC >= 0xd000 && regs.PC < 0xe000)
+		printf("%02X", _MBC.ram_work_bank_selected);
+	else
+		printf("%02X", 0);
+	printf(":%04X | ", regs.PC);
 	while (++i < _instr->nb_params) printf("%02X", _MBC.mem_read(RAM + regs.PC + i, 1));
 	printf("%02X: ", _MBC.mem_read(RAM + regs.PC + i, 1));
 	print_instr();

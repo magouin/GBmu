@@ -36,7 +36,7 @@
 {RDWR, NULL}, \
 {WR, NULL}, \
 {RDWR, NULL}, \
-{RDWR, NULL}, \
+{RDWR, &Memory_controller::write_n52}, \
 {RDWR, NULL}, \
 {RDWR, NULL}, \
 {PROHIB, NULL}, \
@@ -77,9 +77,9 @@
 {RDWR, NULL}, \
 {RDWR, NULL}, \
 {PROHIB, NULL}, \
-{RDWR, NULL}, \
+{RDWR, &Memory_controller::write_key1}, \
 {PROHIB, NULL}, \
-{RDWR, NULL}, \
+{RDWR, &Memory_controller::write_vbk}, \
 {PROHIB, NULL}, \
 {WR, NULL}, \
 {WR, NULL}, \

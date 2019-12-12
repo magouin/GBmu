@@ -296,7 +296,6 @@ void	Memory_controller_MBC3::init(size_t ram_size) {
 		fs.read(reinterpret_cast<char *>(&RTC_DH), sizeof(RTC_DH));
 		if (fs.good()) {
 			_RTC.init_timestamp(last_shutdown, old_timestamp, RTC_DH);
-			printf("ici\n");
 			fs.read((char *)ram_ext_work_orig_ptr, _ram_size);
 			fs.close();
 		}
