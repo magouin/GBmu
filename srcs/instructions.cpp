@@ -140,6 +140,7 @@ void	Emulateur::stop(struct s_param *p)
 void	Emulateur::halt()
 {
 	_halt_status = true;
+	_transition = 2;
 }
 
 void	Emulateur::_and(struct s_param *p)

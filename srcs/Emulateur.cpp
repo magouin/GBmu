@@ -71,7 +71,10 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 	if (!regs.IME)
 		return ;
 	if (_interrupt_cycle == 0)
-		_interrupt_cycle = 5;
+	{
+		_transition = 2;
+		_interrupt_cycle = 6;
+	}
 	_interrupt_cycle--;
 	if (_interrupt_cycle == 0)
 	{
@@ -167,9 +170,6 @@ void	Emulateur::get_instr()
 
 void Emulateur::exec_instr()
 {
-	if (_halt_status)
-		return ;
-
 	if (_current_instr_cycle == 0)
 		get_instr();
 	_current_instr_cycle--;
@@ -217,14 +217,20 @@ int		Emulateur::main_thread()
 			emu_init();
 		if (gb_regs.tac.on)
 			update_tima();
-		if (_interrupt_cycle == 0 && _halt_status == false)
-			exec_instr();
 		if (_current_instr_cycle == 0)
 			interrupt();
+		if (_transition)
+		{
+			_transition--;
+			_opcode[0].f();
+		}
+		else if (_interrupt_cycle == 0 && _halt_status == false)
+			exec_instr();
 		update_lcd();
 		_cycle += 4;
-		if (_cycle % 256 == 0)
+		if (_cycle == 256)
 		{
+			_cycle = 0;
 			cadence();
 			gb_regs.div++;
 		}

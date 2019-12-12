@@ -227,6 +227,12 @@ class Emulateur {
 		void	emu_start();
 		bool	check_watchpoint(uint8_t *addr, enum e_right right, uint8_t new_val);
 		bool	check_breakpoint();
+		void	debug_mode();
+
+		uint32_t	lcd_cycle;
+
+		uint16_t	src_dma;
+		uint16_t	dst_dma;
 
 	private:
 		const vector<struct s_instr_params>	_op203;
@@ -244,9 +250,9 @@ class Emulateur {
 		bool					_step_by_step;
 		bool					_debug_mode;
 		bool					_ei_change;
+		uint8_t					_transition;
 
 		uint64_t	_cycle;
-		uint32_t	_lcd_cycle;
 
 		const s_instr_params	*_instr;
 
@@ -319,7 +325,6 @@ class Emulateur {
 		Memory_controller 	&get_memory_controller();
 
 		void	get_instr();
-		void	debug_mode();
 		void	print_instr(void);
 
 		void	nop();
