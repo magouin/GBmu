@@ -405,7 +405,7 @@ uint8_t	*Memory_controller::get_ptr_from_off(uint16_t src_offset)
 	if (src_offset < 0x4000)
 		return (_emu.RAM + src_offset);
 	else if (src_offset < 0x8000)
-		return (_emu.ROM + src_offset);
+		return (const_cast<uint8_t *>(rom_bank + (src_offset - 0x4000)));
 	else if (src_offset < 0xC000)
 		return (ram_ext_work_bank + (src_offset - 0xa000));
 	else if (src_offset < 0xd000 || ram_work_bank_selected == 1)
@@ -419,8 +419,9 @@ void	Memory_controller::new_dma(uint16_t dst_offset, uint16_t src_offset, uint16
 {
 	uint8_t *dst_real_addr;
 	uint8_t *src_real_addr;
-	uint16_t tmp = 0xa000 - dst_offset;	
+	uint16_t tmp = 0xa000 - dst_offset;
 
+	dst_offset += ((dst_offset < 0x8000) ? 0x8000 : 0x0);
 	if ((src_offset >= 0x8000 && src_offset < 0xa000) || src_offset >= 0xe000 || dst_offset < 0x8000 || dst_offset >= 0xa000)
 		return ;
 	if (_emu.gb_regs.vbk.bank)
@@ -428,7 +429,7 @@ void	Memory_controller::new_dma(uint16_t dst_offset, uint16_t src_offset, uint16
 	else
 		dst_real_addr = _emu.RAM + dst_offset;
 	len = std::min(tmp, len);
-	tmp = 0x1000 - src_offset % 0x1000;
+	tmp = 0x1000 - (src_offset & 0xfff);
 	while (len > 0) {
 		tmp = std::min(tmp, len);
 		src_real_addr = get_ptr_from_off(src_offset);

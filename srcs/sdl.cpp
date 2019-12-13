@@ -112,13 +112,9 @@ bool	Emulateur::update()
 	return (true);
 }
 
-void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y, bool prio)
+void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 {
-	if (x >= 0 && x < GB_WINDOW_SIZE_X && y >= 0 && y < GB_WINDOW_SIZE_Y)
-	{
-		_pixels_map[y * GB_WINDOW_SIZE_X + x] = pixel;
-		_screen_prio[x + 160 * y] = prio;
-	}
+	_pixels_map[y * GB_WINDOW_SIZE_X + x] = pixel;
 }
 
 void	Emulateur::render()

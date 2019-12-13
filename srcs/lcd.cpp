@@ -64,7 +64,12 @@ void	Emulateur::print_bg_tile_line(const uint8_t *tile, const struct s_bg_atrb &
 		p = (this->*bit_conv)(bits, pal_addr);
 		cx = x + (cgb.on && bg.hflip ? (7 - w) : w);
 		cy = y + (cgb.on && bg.vflip ? (7 - h) : h);
-		set_pixel(p, cx, cy, bits);
+		if (cx < GB_WINDOW_SIZE_X && cy < GB_WINDOW_SIZE_Y)
+		{
+			_screen_prio[cx + cy * 160] = (bits ? true : false);
+			_bg_prio[cx + cy * 160] = (cgb.on ? bg.prio : false);
+			set_pixel(p, cx, cy);
+		}
 		w++;
 	}
 }
@@ -97,8 +102,9 @@ void	Emulateur::print_obj_tile_line(const uint8_t *tile, struct s_oam_obj &obj, 
 		p = (this->*bit_conv)(bits, pal_addr);
 		cx = obj.x - 8 + (obj.h_flip ? (7 - w) : w);
 		cy = obj.y - 16 + off;
-		if (bits && (obj.prio == 0 || !check_prio(cx, cy)))
-			set_pixel(p, cx, cy, true);
+		if (cx < GB_WINDOW_SIZE_X && cy < GB_WINDOW_SIZE_Y)
+			if (bits && ((!obj.prio && !_bg_prio[cx + cy *160]) || !check_prio(cx, cy)))
+				set_pixel(p, cx, cy);
 		w++;
 	}
 }
@@ -221,26 +227,25 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 		gb_regs.stat.mode = 3;
 	else if (line_cycle == 252)
 	{
-		if (print) {
-			if (gb_regs.lcdc.window && ly >= RAM[REG_WY])
-				print_window_line(ly);
-			else
-				print_bg_line(ly);
-			if (gb_regs.lcdc.obj_display)
-				print_objs_line(ly);
-		}
 		gb_regs.stat.mode = 0;
 		if (gb_regs.stat.imode0)
 			gb_regs.iflag.lcdc = true;
 		if (cgb.on) {
 			uint8_t hdma5 = _MBC.mem_read(RAM + REG_HDMA5, 1);
 			if (!(hdma5 & 0x80)) {
-				printf("H Blank DMA\n");
+				// printf("H Blank DMA\n");
 				_MBC.new_dma(dst_dma, src_dma, 16);
 				RAM[REG_HDMA5]--;
 				dst_dma += 16;
 				src_dma += 16;
 			}
+		}
+		if (print) {
+			print_bg_line(ly);
+			if (gb_regs.lcdc.window && ly >= RAM[REG_WY])
+				print_window_line(ly);
+			if (gb_regs.lcdc.obj_display)
+				print_objs_line(ly);
 		}
 	}
 }

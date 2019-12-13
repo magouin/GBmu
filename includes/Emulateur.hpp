@@ -147,7 +147,7 @@ PACK(struct s_lcdc {
 });
 
 PACK(struct s_stat {
-	bool			mode : 2;
+	uint8_t			mode : 2;
 	bool			match_ly : 1;
 	bool			imode0 : 1;
 	bool			imode1 : 1;
@@ -269,6 +269,7 @@ class Emulateur {
 		SDL_Surface*	_surface;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
 		vector<bool>	_screen_prio;
+		vector<bool>	_bg_prio;
 
 		SDL_Thread		*_main_thread;
 
@@ -389,7 +390,7 @@ class Emulateur {
 		bool		update();
 		void		render();
 
-		void		set_pixel(uint32_t pixel, uint16_t x, uint16_t y, bool prio);
+		void		set_pixel(uint32_t pixel, uint16_t x, uint16_t y);
 		uint8_t		color_htor(uint32_t color);
 		uint8_t		color_htog(uint32_t color);
 		uint8_t		color_htob(uint32_t color);
