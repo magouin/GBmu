@@ -80,6 +80,7 @@ void Emulateur::emu_init()
 		cgb.mode_double_speed = false;
 	}
 	_screen_prio = vector<bool>(GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y, false);
+	_bg_prio = vector<bool>(GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y, false);
 	_cycle = 0;
 	regs.IME = true;
 	memset(_pixels_map, (uint8_t)0xff, sizeof(_pixels_map));
@@ -88,6 +89,7 @@ void Emulateur::emu_init()
 	_halt_status = false;
 	_stop_status = false;
 	memset(RAM, 0xff, 0x10000);
+	memset(RAM + 0xff00, 0x00, 0x80);
 	memcpy(RAM, ROM, 0x8000);
 	for (int x = 0; x < 0x2000; x++)
 		RAM[0xc000 + x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;
