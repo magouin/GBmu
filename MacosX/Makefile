@@ -14,7 +14,7 @@ SRC_NAME =	main.cpp \
 			init.cpp \
 			debugger.cpp
 
-INC_PATH = ./includes/
+INC_PATH = ../incs/
 OBJ_PATH = ./obj/
 
 NAME = ./GBmu
@@ -27,7 +27,7 @@ DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter
 # 
 ROOT = ${CURDIR}
 
-LIB_PATH = $(ROOT)/libs
+LIB_PATH = $(ROOT)/../libs
 
 SDL2_PATH		= $(LIB_PATH)/SDL2-2.0.10
 SDL2			= $(SDL2_PATH)/build/.libs/libSDL2.a
@@ -37,7 +37,7 @@ LIBFLAGS		= -L $(SDL2_PATH)/build/.libs -l SDL2
 # libSDL2-2.0.0.dylib
 # libSDL2.dylib
 
-SRC_PATH = ./srcs/
+SRC_PATH = ../srcs/
 
 OBJ_NAME = $(SRC_NAME:.cpp=.o)
 
