@@ -1,7 +1,6 @@
 *
 !/srcs
 !/incs
-!/MacosX/libs
 !/MacosX/Makefile
 !/Windows/Release
 !/Windows/x64
