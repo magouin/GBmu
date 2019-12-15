@@ -24,10 +24,10 @@ CC = /usr/bin/clang++
 #CFLAGS = -Wall -Werror -Wextra -g
 CFLAGS =  -std=c++11 -Wall -Wextra
 DFLAGS = -g -Wno-missing-field-initializers -Wno-unused-parameter
-# 
+
 ROOT = ${CURDIR}
 
-LIB_PATH = $(ROOT)/../libs
+LIB_PATH = $(ROOT)/libs
 
 SDL2_PATH		= $(LIB_PATH)/SDL2-2.0.10
 SDL2			= $(SDL2_PATH)/build/.libs/libSDL2.a
