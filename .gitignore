@@ -1,5 +1,6 @@
 *
 !/Qt
+!/roms/*.{gb, gbc}
 !/srcs
 !/incs
 !/MacosX/Makefile
