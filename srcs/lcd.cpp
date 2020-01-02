@@ -195,22 +195,15 @@ void	Emulateur::print_objs_line(int y)
 {
 	int x;
 	int max;
-	int nb;
 	struct s_oam_obj *obj;
 
 	x = 39;
-	nb = 0;
 	max = (gb_regs.lcdc.obj_size ? 16 : 8);
 	obj = (struct s_oam_obj *)(RAM + 0xfe00);
 	while (x >= 0)
 	{
 		if (y >= obj[x].y - 16 && y < (obj[x].y - 16 + max))
-		{
 			print_obj_line(obj[x], y + 16 - obj[x].y, max);
-			nb++;
-		}
-		if (nb == 10)
-			return ;
 		x--;
 	}
 }

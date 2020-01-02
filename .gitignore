@@ -1,4 +1,5 @@
 *
+!/Qt
 !/srcs
 !/incs
 !/MacosX/Makefile
@@ -8,4 +9,3 @@
 !/Windows/packages
 !/Windows/Gbmu.*
 !/ressources
-!/Qt
