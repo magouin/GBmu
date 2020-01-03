@@ -12,14 +12,16 @@ class DebugWindow : public QMainWindow
 {
 		Q_OBJECT
 	public:
-		DebugWindow(QProcess &process, QWidget *parent = nullptr);
+        ~DebugWindow();
+        DebugWindow(QString fileName, QWidget *parent = nullptr);
 
 	public slots:
 		void			readOutput();
 		void			writeInput();
+        void            close_window();
 
 	private:
-		QProcess		&_process;
+        QProcess		*_process;
 		QLabel			*_label;
 		QString			_output;
 		QVBoxLayout		*_layout;
