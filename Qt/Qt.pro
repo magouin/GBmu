@@ -47,9 +47,9 @@ FORMS += \
 
 TARGET = GBmu
 
-win32:INCLUDEPATH += "$$_PRO_FILE_PWD_\\.."
-unix:INCLUDEPATH += "$$_PRO_FILE_PWD_/.."
+win32:DESTDIR = "$$_PRO_FILE_PWD_\\.."
+unix:DESTDIR = "$$_PRO_FILE_PWD_/.."
 
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+target.path = $$DESTDIR
+message($$target.path)
+!isEmpty($$target.path): INSTALLS += target
