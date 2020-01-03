@@ -13,7 +13,6 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
     _input = new QLineEdit(_window);
 	_layout->addWidget(_label);
 	_layout->addWidget(_input);
-	_output = "RAS";
 
     connect(_process, SIGNAL(readyReadStandardOutput()), this, SLOT(readOutput()));
 	connect(_input, SIGNAL(returnPressed()), this, SLOT(writeInput()));
