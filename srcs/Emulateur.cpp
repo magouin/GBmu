@@ -147,6 +147,11 @@ void	Emulateur::get_instr()
 {
 	const struct s_cv_instr	*cvi;
 
+	if (cgb.bios && regs.PC == 0x100)
+	{
+		cgb.bios = false;
+		memcpy(RAM, ROM, 0x8000);
+	}
 	_instr = &_opcode[_MBC.mem_read(RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[_MBC.mem_read(RAM + regs.PC + 1, 1)];
