@@ -28,6 +28,7 @@ using namespace std;
 
 # include <registers.hpp>
 # include <ram_regs.hpp>
+# include <bios.hpp>
 # include <Memory_controller.hpp>
 
 #include <fcntl.h>
@@ -104,6 +105,7 @@ struct s_watch {
 
 struct s_cgb {
 	bool on;
+	bool bios;
 	bool mode_double_speed;
 };
 

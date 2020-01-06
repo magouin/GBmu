@@ -31,7 +31,7 @@ void	Emulateur::init_registers(void)
 	// regs.DE = 0x0008;
 	// regs.HL = 0x007c;
 	regs.SP = 0xfffe;
-	regs.PC = 0x0100;
+	regs.PC = 0x0000;
 	// regs.PC = 0x0000;
 	regs.IME = false;
 
@@ -76,6 +76,7 @@ Memory_controller 	&Emulateur::get_memory_controller() {
 void Emulateur::emu_init()
 {
 	// printf("cgb on -> %s (0x%hhx)\n", cgb.on ? "true" : "false", _header.cgb_supp_code);
+	cgb.bios = true;
 	if (cgb.on) {
 		cgb.mode_double_speed = false;
 	}
@@ -90,7 +91,16 @@ void Emulateur::emu_init()
 	_stop_status = false;
 	memset(RAM, 0xff, 0x10000);
 	memset(RAM + 0xff00, 0x00, 0x80);
-	memcpy(RAM, ROM, 0x8000);
+	if (cgb.on) {
+		memcpy(RAM, CGB_BIOS, 0x900);
+		// memcpy(RAM + 0x100, CGB_BIOS, 0x900);
+	}
+	else
+	{
+		// memcpy(RAM + 0x100, DMG_BIOS, 0x100);
+		memcpy(RAM, DMG_BIOS, 0x100);
+	}
+	memcpy(RAM + 0x100, ROM + 0x100, 0x100);
 	for (int x = 0; x < 0x2000; x++)
 		RAM[0xc000 + x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;
 	// memset(RAM + 0xC000, 0x00, 0x2000);

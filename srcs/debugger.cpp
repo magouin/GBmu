@@ -3,8 +3,8 @@
 
 bool	Emulateur::check_cpu_reg(string param, uint16_t * &addr, uint16_t &val)
 {
-	static const string		cpu_regs[] = {"a", "f", "af", "b", "c", "bc", "d", "e", "de", "h", "l", "hl"};
-	static const int8_t		cpu_off[] = {1, -1, -2, 0, -2, -3, -1, -3, -4, -2, -4, -5};
+	static const string		cpu_regs[] = {"a", "f", "af", "b", "c", "bc", "d", "e", "de", "h", "l", "hl", "sp", "pc"};
+	static const int8_t		cpu_off[] = {1, 0, 0, 3, 2, 2, 5, 4, 4, 7, 6, 6, 8, 10};
 	uint8_t					x = 0;
 	bool					deref = false;
 
@@ -13,12 +13,12 @@ bool	Emulateur::check_cpu_reg(string param, uint16_t * &addr, uint16_t &val)
 		deref = true;
 		param.erase(param.begin(), param.begin() + 1);
 	}
-	while (x < 12)
+	while (x < (sizeof(cpu_regs) / 8))
 	{
 		if (cpu_regs[x] == param)
 		{
-			addr = (uint16_t *)((uint8_t *)&regs + x + cpu_off[x]);
-			val = (x % 3 != 2) ? *(uint8_t *)addr : *addr;
+			addr = (uint16_t *)((uint8_t *)&regs + cpu_off[x]);
+			val = (param.size() == 1) ? *(uint8_t *)addr : *addr;
 			if (deref)
 			{
 				addr = (uint16_t *)(RAM + val);
@@ -347,6 +347,8 @@ void	Emulateur::debug_mode()
 	regex			regex("\\s+");
 	size_t			i;
 
+	if (cgb.bios)
+		return ;
 	if (!_debug_mode)
 		print_regs();
 	_debug_mode = true;
