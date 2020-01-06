@@ -1,12 +1,11 @@
-*
+**/*
 !/Qt
 !/roms/*.{gb, gbc}
 !/srcs
 !/incs
 !/MacosX/Makefile
-!/Windows/Release
-!/Windows/x64
 !/Windows/packages.config
 !/Windows/packages
-!/Windows/Gbmu.*
+!/Windows/Gbmu.{sln, vcxproj*}
+!/install-windows.ps1
 !/ressources
