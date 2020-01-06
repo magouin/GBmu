@@ -8,4 +8,5 @@
 !/Windows/packages
 !/Windows/Gbmu.{sln, vcxproj*}
 !/install-windows.ps1
+!/install-unix.sh
 !/ressources
