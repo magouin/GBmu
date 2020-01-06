@@ -16,17 +16,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-win32:PATH = "$$_PRO_FILE_PWD_\\"
-unix:PATH = "$$_PRO_FILE_PWD_/"
-
-win32:EXEC_PATH = "$$_PRO_FILE_PWD_\\..\\Windows\\GBmu.exe"
 unix:EXEC_PATH = "$$_PRO_FILE_PWD_/../MacosX/GBmu"
+win32:EXEC_PATH = "$$_PRO_FILE_PWD_/../Windows/GBmu"
 
-win32:ROM_PATH = "$$_PRO_FILE_PWD_\\..\\roms"
-unix:ROM_PATH = "$$_PRO_FILE_PWD_/../roms"
+ROM_PATH = "$$_PRO_FILE_PWD_/../roms"
 
-VPATH += $$absolute_path("srcs", $$PATH)
-INC_PATH = $$absolute_path("incs", $$PATH)
+VPATH += $$absolute_path("srcs", $$_PRO_FILE_PWD_)
+INC_PATH = $$absolute_path("incs", $$_PRO_FILE_PWD_)
 
 DEFINES += EXEC_PATH=\\\"$$EXEC_PATH\\\"
 DEFINES += ROM_PATH=\\\"$$ROM_PATH\\\"
@@ -47,8 +43,7 @@ FORMS += \
 
 TARGET = GBmu
 
-win32:DESTDIR = "$$_PRO_FILE_PWD_\\.."
-unix:DESTDIR = "$$_PRO_FILE_PWD_/.."
+DESTDIR = "$$_PRO_FILE_PWD_/.."
 
 target.path = $$DESTDIR
 message($$target.path)
