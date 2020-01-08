@@ -244,7 +244,6 @@ class Emulateur {
 
 		const Header			_header;
 		std::string				_file_name;
-		static const uint8_t	_dmg_bios[];
 
 		list<struct s_watch>	_watchpoints;
 		list<struct s_break>	_breakpoints;
