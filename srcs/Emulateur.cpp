@@ -200,7 +200,6 @@ void	Emulateur::cadence()
 	static bool t = false;
 
 	time_to_sleep = (((float)_cycle / (float)_frequency) * 1000.0 * 1000.0 - (now - _start_time).count());
-	// printf("time = %d\n", time_to_sleep);
 	if (time_to_sleep > 0)
 	{
 		SDL_Delay(1);
@@ -208,9 +207,6 @@ void	Emulateur::cadence()
 	}
 	else
 		t = false;
-// 	{
-// 		printf("%lld\n", time_to_sleep);
-// 	}
 }
 
 int		Emulateur::main_thread()

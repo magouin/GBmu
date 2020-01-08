@@ -7,6 +7,13 @@
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QLineEdit>
+#include <QGridLayout>
+#include <QSpinBox>
+#include <functional>
+
+#include <hexspinbox.h>
+
+using namespace std;
 
 class DebugWindow : public QMainWindow
 {
@@ -14,6 +21,7 @@ class DebugWindow : public QMainWindow
 	public:
         ~DebugWindow();
         DebugWindow(QString fileName, QWidget *parent = nullptr);
+        void reg_update(int, QString, int);
 
 	public slots:
 		void			readOutput();
@@ -21,12 +29,14 @@ class DebugWindow : public QMainWindow
         void            close_window();
 
 	private:
-        QProcess		*_process;
-		QLabel			*_label;
-		QString			_output;
-		QVBoxLayout		*_layout;
-		QLineEdit		*_input;
-		QWidget			*_window;
+        QProcess             *_process;
+        QLabel               *_label;
+        QVBoxLayout          *_vlayout;
+        QGridLayout          *_gridlayout;
+        QLineEdit            *_input;
+        QWidget              *_window;
+        QWidget              *_registers;
+        QList<QSpinBox *>    _regs_values;
 };
 
 #endif // DEBUGWINDOW_H

@@ -203,7 +203,7 @@
 {0b11001000, "ret z\n", 0, {_, _, _, _}, 0, std::bind(&Emulateur::ret, this)}, \
 {0b11001001, "ret\n", 0, {_, _, _, _}, 4, std::bind(&Emulateur::ret, this)}, \
 {0b11001010, "jp z, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::jp, this, &p_nn)}, \
-{0b11001011, "op203\n", 0, {SET, SET, SET, SET}, 0}, \
+{0b11001011, "op203\n", 0, {SET, SET, SET, SET}, 0, NULL}, \
 {0b11001100, "call z, $%02hX\n", 2, {_, _, _, _}, 0, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001101, "call $%02hX\n", 2, {_, _, _, _}, 6, std::bind(&Emulateur::call, this, &p_nn)}, \
 {0b11001110, "adc $%02hhX\n", 1, {SET, SET, SET_0, SET}, 2, std::bind(&Emulateur::adc, this, &p_n)}, \

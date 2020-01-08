@@ -37,6 +37,8 @@ SOURCES += \
 HEADERS += \
     $$absolute_path("debugwindow.h", $$INC_PATH) \
     $$absolute_path("mainwindow.h", $$INC_PATH) \
+    $$absolute_path("hexspinbox.h", $$INC_PATH) \
+    incs/hexspinbox.h
 
 FORMS += \
     forms/mainwindow.ui

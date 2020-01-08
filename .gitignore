@@ -1,5 +1,7 @@
 **/*
-!/Qt
+!/Qt/incs
+!/Qt/srcs
+!/Qt/Qt.pro
 !/roms/*.{gb, gbc}
 !/srcs
 !/incs

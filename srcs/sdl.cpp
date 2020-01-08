@@ -130,7 +130,6 @@ void	Emulateur::render()
 	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > 1000)
 	{
 		printf("FPS: %lld\n", x);
-		// printf("FPS: %lld\n", x + x * (cgb.on && (gb_regs.key1 & 0x80)));
 		x = 0;
 		start = now;
 	}

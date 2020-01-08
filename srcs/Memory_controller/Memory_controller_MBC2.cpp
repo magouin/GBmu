@@ -96,6 +96,7 @@ void	Memory_controller_MBC2::save()
 }
 
 void	Memory_controller_MBC2::init(size_t ram_size) {
+	(void)ram_size;
 	_ram_size = MBC2_RAM_SIZE;
 	ram_ext_work_orig_ptr = _emu.RAM + 0xa000;
 
