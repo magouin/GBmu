@@ -10,6 +10,9 @@
 #include <QGridLayout>
 #include <QSpinBox>
 #include <functional>
+#include <QResource>
+#include <QFile>
+#include <QTemporaryFile>
 
 #include <hexspinbox.h>
 

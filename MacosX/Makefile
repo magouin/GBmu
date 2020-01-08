@@ -31,7 +31,7 @@ LIB_PATH = $(ROOT)/libs
 SDL2_PATH		= $(LIB_PATH)/SDL2-2.0.10
 SDL2			= $(SDL2_PATH)/build/.libs/libSDL2.a
 SDL2_ARCHIVE 	= SDL2-2.0.10.tar.gz
-LIBFLAGS		= -L $(SDL2_PATH)/build/.libs -l SDL2
+LIBFLAGS		= `$(SDL2_PATH)/sdl2-config --static-libs | cut -f3- -d ' '`
 # LIBFLAGS		= -L $(SDL2_PATH)/build/.libs ./libs/SDL2-2.0.10/build/.libs/libSDL2-2.0.0.dylib
 # libSDL2-2.0.0.dylib
 # libSDL2.dylib
@@ -61,7 +61,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.cpp
 	$(CC) $(CFLAGS) $(DFLAGS) $(INC) -o $@ -c $<
 
 $(NAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(DFLAGS) $(INC) $(LIBFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) $(INC) $(SDL2) $(LIBFLAGS) $^ -o $@
 
 clean:
 	/bin/rm -f $(OBJ)

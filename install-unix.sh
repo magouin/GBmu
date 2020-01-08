@@ -1,6 +1,4 @@
 make -C MacosX
-make clean -C MacosX
+rcc -binary Qt/resources.qrc -o Qt/resources.rcc
 qmake Qt
 make
-make clean 
-rm -rf Makefile
