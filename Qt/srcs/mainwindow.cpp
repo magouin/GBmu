@@ -49,6 +49,22 @@ void MainWindow::run_emu()
     {
         QProcess *process = new QProcess(this);
         QStringList args = {fileName};
-        process->start(EXEC_PATH, args, QIODevice::ReadWrite | QIODevice::Text);
+        QResource::registerResource("resources.rcc");
+
+        QFile f(":/bin");
+        int x;
+        char tmp[8192];
+        QTemporaryFile file;
+
+        if (file.open() && f.open(QIODevice::ReadOnly))
+        {
+            file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadOther | QFileDevice::ReadGroup |
+                                QFileDevice::ExeOwner | QFileDevice::ExeOther | QFileDevice::ExeGroup);
+            while ((x = f.read(tmp, 8192)))
+                file.write(tmp, x);
+        }
+        file.close();
+        process->start(file.fileName(), args, QIODevice::ReadWrite | QIODevice::Text);
+        process->waitForStarted(30000);
     }
 }

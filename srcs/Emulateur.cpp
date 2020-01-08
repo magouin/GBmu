@@ -2,9 +2,6 @@
 #include <debugger.hpp>
 #include <opcode.hpp>
 #include <op203.hpp>
-#include <dmg_bios.hpp>
-
-const uint8_t Emulateur::_dmg_bios[] = DMG_BIOS;
 
 Emulateur::Emulateur(): gb_regs({INIT_GB_REGS}), _cartridge(_header.get_cartridge_type()), _MBC(get_memory_controller())
 {

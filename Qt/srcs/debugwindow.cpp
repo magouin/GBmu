@@ -10,29 +10,18 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
     QResource::registerResource("resources.rcc");
 
     QFile f(":/bin");
-    if (f.exists())
-        printf("Trouver\n");
-    else
-        printf("Pas trouver\n");
     int x;
     char tmp[8192];
     QTemporaryFile file;
 
     if (file.open() && f.open(QIODevice::ReadOnly))
     {
-        qDebug() << "ici" << endl;
         file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadOther | QFileDevice::ReadGroup |
                             QFileDevice::ExeOwner | QFileDevice::ExeOther | QFileDevice::ExeGroup);
         while ((x = f.read(tmp, 8192)))
-        {
             file.write(tmp, x);
-            printf("%d ", x);
-        }
     }
-    printf("filename = %s\n", file.fileName().toStdString().c_str());
-    printf("filename = %s\n", fileName.toStdString().c_str());
     file.close();
-    file.setAutoRemove(false);
     _process->start(file.fileName(), args, QIODevice::ReadWrite | QIODevice::Text);
     _window = new QWidget(this);
     _registers = new QWidget(_window);
@@ -91,6 +80,7 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	setCentralWidget(_window);
     _window->setLayout(_vlayout);
     setAttribute(Qt::WA_DeleteOnClose);
+    _process->waitForStarted(30000);
 }
 
 void    DebugWindow::close_window()

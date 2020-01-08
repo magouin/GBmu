@@ -24,7 +24,6 @@ ROM_PATH = "$$_PRO_FILE_PWD_/../roms"
 VPATH += $$absolute_path("srcs", $$_PRO_FILE_PWD_)
 INC_PATH = $$absolute_path("incs", $$_PRO_FILE_PWD_)
 
-DEFINES += EXEC_PATH=\\\"$$EXEC_PATH\\\"
 DEFINES += ROM_PATH=\\\"$$ROM_PATH\\\"
 
 INCLUDEPATH += $$INC_PATH
