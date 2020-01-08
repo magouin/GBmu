@@ -118,6 +118,7 @@ time_t	Memory_controller_MBC3::RTC::get_timestamp_gb(void) {
 }
 
 void	Memory_controller_MBC3::RTC::init_timestamp(std::time_t last_shutdown, std::time_t old_timestamp, uint8_t RTC_DH) {
+	(void)RTC_DH;
 	_real_timestamp = std::time(nullptr);
 	time_t elapse_time = _real_timestamp - last_shutdown;
 	_timestamp_gb = old_timestamp + elapse_time;

@@ -91,15 +91,10 @@ void Emulateur::emu_init()
 	_stop_status = false;
 	memset(RAM, 0xff, 0x10000);
 	memset(RAM + 0xff00, 0x00, 0x80);
-	if (cgb.on) {
+	if (cgb.on)
 		memcpy(RAM, CGB_BIOS, 0x900);
-		// memcpy(RAM + 0x100, CGB_BIOS, 0x900);
-	}
 	else
-	{
-		// memcpy(RAM + 0x100, DMG_BIOS, 0x100);
 		memcpy(RAM, DMG_BIOS, 0x100);
-	}
 	memcpy(RAM + 0x100, ROM + 0x100, 0x100);
 	for (int x = 0; x < 0x2000; x++)
 		RAM[0xc000 + x] = (x & 8) ^ ((x >> 8) & 8) ? 0x00 : 0xff;

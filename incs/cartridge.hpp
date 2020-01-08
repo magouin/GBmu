@@ -38,7 +38,7 @@ struct s_cartridge {
 {6, std::string("MBC2+BATTERY"), CT_MBC2, CTA_BATTERY}, \
 {8, std::string("ROM+RAM"), CT_ROM, CTA_RAM}, \
 {9, std::string("ROM+RAM+BATTERY"), CT_ROM, CTA_RAM | CTA_BATTERY}, \
-{11, std::string("MMM01"), CT_MMM01}, \
+{11, std::string("MMM01"), CT_MMM01, 0}, \
 {12, std::string("MMM01+RAM"), CT_MMM01, CTA_RAM}, \
 {13, std::string("MMM01+RAM+BATTERY"), CT_MMM01, CTA_RAM | CTA_BATTERY}, \
 {15, std::string("MBC3+TIMER+BATTERY"), CT_MBC3, CTA_BATTERY | CTA_TIMER}, \

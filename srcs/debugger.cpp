@@ -159,11 +159,13 @@ void	Emulateur::cmd_print(vector<string> param, uint8_t base)
 
 void	Emulateur::cmd_info(vector<string> param)
 {
+	(void)param;
 	print_regs();
 }
 
 void	Emulateur::cmd_quit(vector<string> param)
 {
+	(void)param;
 	printf("QUITTING\n");
 	quit();
 }
@@ -266,17 +268,20 @@ void	Emulateur::cmd_read(vector<string> param, uint8_t size)
 
 void	Emulateur::cmd_reset(vector<string> param)
 {
+	(void)param;
 	_reset = true;
 }
 
 void	Emulateur::cmd_continue(vector<string> param)
 {
+	(void)param;
 	_step_by_step = false;
 	_debug_mode = false;
 }
 
 void	Emulateur::cmd_next(vector<string> param)
 {
+	(void)param;
 	_step_by_step = true;
 	_debug_mode = false;
 }
@@ -294,6 +299,7 @@ void	Emulateur::cmd_delete(vector<string> param)
 
 void	Emulateur::cmd_help(vector<string> param)
 {
+	(void)param;
 	printf(USAGE);
 }
 

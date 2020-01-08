@@ -2,6 +2,7 @@
 
 void			Memory_controller::write_div(uint8_t value)
 {
+	(void)value;
 	_emu.gb_regs.div = 0;
 }
 
@@ -32,16 +33,19 @@ void			Memory_controller::write_stat(uint8_t value)
 
 void			Memory_controller::write_scy(uint8_t value)
 {
+	(void)value;
 	_emu.RAM[REG_SCY] = value;
 }
 
 void			Memory_controller::write_scx(uint8_t value)
 {
+	(void)value;
 	_emu.RAM[REG_SCX] = value;
 }
 
 void			Memory_controller::write_ly(uint8_t value)
 {
+	(void)value;
 	_emu.RAM[REG_LY] = 0;
 	_emu.lcd_cycle = 0;
 	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
@@ -174,6 +178,7 @@ void			Memory_controller::write_ocpd(uint8_t value)
 
 void			Memory_controller::write_n52(uint8_t value)
 {
+	(void)value;
 	_emu.RAM[0xff26] = 0;
 }
 
@@ -452,6 +457,7 @@ const uint8_t			*Memory_controller::get_ram_video_bank1(void) const {
 
 Memory_controller::Memory_controller(Emulateur &emu, size_t ram_size, bool debug): _emu(emu), _ram_regs({RAM_REGS}), _debug(debug)
 {
+	(void)ram_size;
 	if (_emu.cgb.on) {
 		_ram_work_bank = new uint8_t[0x6000];
 		for (int x = 0; x < 0x6000; x++)
