@@ -1,24 +1,16 @@
 **/*
-!/Qt
-!/Qt/incs
-!/Qt/incs/*
-!/Qt/srcs
-!/Qt/srcs/*
+!*/
+!/Qt/incs/**
+!/Qt/srcs/**
 !/Qt/Qt.pro
-!/roms
 !/roms/*.{gb, gbc}
-!/srcs
 !/srcs/**
-!/incs
-!/incs/*
-!/MacosX
+!/incs/**
 !/MacosX/Makefile
-!/Windows
 !/Windows/packages.config
 !/Windows/packages
 !/Windows/packages/**
 !/Windows/Gbmu.{sln, vcxproj*}
 !/install-windows.ps1
 !/install-unix.sh
-!/ressources
 !/ressources/**
