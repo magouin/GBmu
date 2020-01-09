@@ -3,7 +3,8 @@
 !/Qt/incs/**
 !/Qt/srcs/**
 !/Qt/Qt.pro
-!/Qt/resources.qrc
+!/Qt/windows_resources.qrc
+!/Qt/unix_resources.qrc
 !/roms/*.{gb, gbc}
 !/srcs/**
 !/incs/**
