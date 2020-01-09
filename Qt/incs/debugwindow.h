@@ -17,8 +17,6 @@
 
 #include <hexspinbox.h>
 
-using namespace std;
-
 class DebugWindow : public QMainWindow
 {
 		Q_OBJECT

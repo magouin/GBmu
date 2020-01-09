@@ -90,8 +90,8 @@ void    DebugWindow::close_window()
 
 void    DebugWindow::reg_update(int val, QString reg, int size)
 {
-    qDebug() << QString("w/"+ QString::number(size) +" ") + reg + QString::number(val);
-    _process->write((QString("w/"+ QString::number(size) +" ") + reg + QString::number(val)).toStdString().c_str());
+    qDebug() << QString("w/" + QString::number(size) + " ") + reg + QString::number(val);
+    _process->write((QString("w/" + QString::number(size) + " ") + reg + QString::number(val) + '\n').toStdString().c_str());
 }
 
 DebugWindow::~DebugWindow()
@@ -131,6 +131,7 @@ void DebugWindow::readOutput()
     bool                ok;
 
     printf("search\n");
+    qDebug() << "Received: [" << output << "]";
     QRegularExpression re("A: (?<A>[A-F0-9]{2})  F: (?<F>[A-F0-9]{2})  \\(AF: [A-F0-9]{4}\\)");
     QRegularExpressionMatch match = re.match(output);
     if (match.hasMatch()) {
@@ -189,6 +190,9 @@ void DebugWindow::readOutput()
 void DebugWindow::writeInput()
 {
     printf("writting: %s", (_input->text().toStdString() + '\n').c_str());
-    _process->write((_input->text().toStdString() + '\n').c_str());
+    if (_input->text().toStdString().empty())
+        printf("nb = %lld\n", _process->write("n\n"));
+    else
+        printf("nb = %lld\n", _process->write((_input->text().toStdString() + '\n').c_str()));
 	_input->clear();
 }
