@@ -28,7 +28,8 @@ DEFINES += ROM_PATH=\\\"$$ROM_PATH\\\"
 
 INCLUDEPATH += $$INC_PATH
 
-RESOURCES += "$$_PRO_FILE_PWD_/resources.qrc"
+win:RESOURCES += "$$_PRO_FILE_PWD_/windows_resources.qrc"
+unix:RESOURCES += "$$_PRO_FILE_PWD_/unix_resources.qrc"
 
 SOURCES += \
     debugwindow.cpp \
