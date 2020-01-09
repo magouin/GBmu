@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QTemporaryFile>
 #include <QRegularExpression>
+#include <QTextEdit>
 
 #include <hexspinbox.h>
 
@@ -23,7 +24,7 @@ class DebugWindow : public QMainWindow
 	public:
         ~DebugWindow();
         DebugWindow(QString fileName, QWidget *parent = nullptr);
-        void reg_update(int, QString, int);
+        void reg_update(int, QString, int, int);
 
 	public slots:
 		void			readOutput();
@@ -32,7 +33,7 @@ class DebugWindow : public QMainWindow
 
 	private:
         QProcess             *_process;
-        QLabel               *_label;
+        QTextEdit            *_label;
         QVBoxLayout          *_vlayout;
         QGridLayout          *_gridlayout;
         QLineEdit            *_input;
