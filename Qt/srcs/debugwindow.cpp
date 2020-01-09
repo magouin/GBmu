@@ -99,13 +99,96 @@ DebugWindow::~DebugWindow()
     _process->kill();
 }
 
+/*uint16_t get_hex_from_string(string str)
+{
+    uint16_t parsedValue;
+
+    if (str[0] >= '0' && str[0] <= '9')
+        parsedValue = (str[0] - '0') * 0x10;
+    else if (str[0] >= 'F' && str[0] <= 'F')
+        parsedValue = (str[0] - 'A' + 10) * 0x10;
+    else if (str[0] >= 'a' && str[0] <= 'f')
+        parsedValue = (str[0] - 'a' + 10) * 0x10;
+    else
+        parsedValue = 0;
+    printf("parsedValue = %x\n", parsedValue);
+    if (str[1] >= '0' && str[1] <= '9')
+        parsedValue += (str[1] - '0');
+    else if (str[1] >= 'A' && str[1] <= 'F')
+        parsedValue += (str[1] - 'A' + 10);
+    else if (str[1] >= 'a' && str[1] <= 'f')
+        parsedValue += (str[1] - 'a' + 10);
+    else
+        parsedValue = 0;
+    printf("parsedValue = %x\n", parsedValue);
+    return (parsedValue);
+}*/
+
 void DebugWindow::readOutput()
 {
-//	_label->setText(((QProcess *)sender())->readAllStandardOutput());
+    QByteArray output = _process->readAllStandardOutput();
+    uint16_t            parsedValue;
+    bool                ok;
+
+    printf("search\n");
+    QRegularExpression re("A: (?<A>[A-F0-9]{2})  F: (?<F>[A-F0-9]{2})  \\(AF: [A-F0-9]{4}\\)");
+    QRegularExpressionMatch match = re.match(output);
+    if (match.hasMatch()) {
+        QString qstr = match.captured("A");
+        parsedValue = qstr.toUInt(&ok, 16);
+        _regs_values[0]->setValue(parsedValue);
+        qstr = match.captured("F");
+        parsedValue = parsedValue * 256 + qstr.toUInt(&ok, 16);
+        _regs_values[1]->setValue(qstr.toUInt(&ok, 16));
+        _regs_values[2]->setValue(parsedValue);    
+    }
+    re = QRegularExpression("B: (?<B>[A-F0-9]{2})  C: (?<C>[A-F0-9]{2})  \\(BC: [A-F0-9]{4}\\)");
+    match = re.match(output);
+    if (match.hasMatch()) {
+        QString qstr = match.captured("B");
+        parsedValue = qstr.toUInt(&ok, 16);
+        _regs_values[3]->setValue(parsedValue);
+        qstr = match.captured("C");
+        parsedValue = parsedValue * 256 + qstr.toUInt(&ok, 16);
+        _regs_values[4]->setValue(qstr.toUInt(&ok, 16));
+        _regs_values[5]->setValue(parsedValue);    
+    }
+    re = QRegularExpression("D: (?<D>[A-F0-9]{2})  E: (?<E>[A-F0-9]{2})  \\(DE: [A-F0-9]{4}\\)");
+    match = re.match(output);
+    if (match.hasMatch()) {
+        QString qstr = match.captured("D");
+        parsedValue = qstr.toUInt(&ok, 16);
+        _regs_values[6]->setValue(parsedValue);
+        qstr = match.captured("E");
+        parsedValue = parsedValue * 256 + qstr.toUInt(&ok, 16);
+        _regs_values[7]->setValue(qstr.toUInt(&ok, 16));
+        _regs_values[8]->setValue(parsedValue);    
+    }
+    re = QRegularExpression("H: (?<H>[A-F0-9]{2})  L: (?<L>[A-F0-9]{2})  \\(HL: [A-F0-9]{4}\\)");
+    match = re.match(output);
+    if (match.hasMatch()) {
+        QString qstr = match.captured("H");
+        parsedValue = qstr.toUInt(&ok, 16);
+        _regs_values[9]->setValue(parsedValue);
+        qstr = match.captured("L");
+        parsedValue = parsedValue * 256 + qstr.toUInt(&ok, 16);
+        _regs_values[10]->setValue(qstr.toUInt(&ok, 16));
+        _regs_values[11]->setValue(parsedValue);    
+    }
+    re = QRegularExpression("PC: (?<PC>[A-F0-9]{4})  SP: (?<SP>[A-F0-9]{4})");
+    match = re.match(output);
+    if (match.hasMatch()) {
+        printf("ici\n");
+        QString qstr = match.captured("PC");
+        _regs_values[12]->setValue(qstr.toUInt(&ok, 16));
+        qstr = match.captured("SP");
+        _regs_values[13]->setValue(qstr.toUInt(&ok, 16));
+    }
 }
 
 void DebugWindow::writeInput()
 {
-    _process->write((_input->text().toStdString() + "\n").c_str());
+    printf("writting: %s", (_input->text().toStdString() + '\n').c_str());
+    _process->write((_input->text().toStdString() + '\n').c_str());
 	_input->clear();
 }

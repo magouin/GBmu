@@ -13,6 +13,7 @@
 #include <QResource>
 #include <QFile>
 #include <QTemporaryFile>
+#include <QRegularExpression>
 
 #include <hexspinbox.h>
 
