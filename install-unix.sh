@@ -1,4 +1,5 @@
 make -C MacosX
-rcc -binary Qt/resources.qrc -o Qt/resources.rcc
+rcc -o Qt/windows_resources.rcc -binary Qt/windows_resources.qrc
+rcc -o Qt/unix_resources.rcc -binary Qt/unix_resources.qrc
 qmake Qt
 make
