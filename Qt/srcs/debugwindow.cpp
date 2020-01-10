@@ -70,10 +70,12 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 
 
 	_input = new QLineEdit(_window);
+	_next_instr = new QLabel(_window);
 	_label = new QTextEdit(_window);
-	_label->setFont({ "Monospace" });
+	_label->setFont({ "Courier" });
 	_label->setReadOnly(true);
 	_vlayout->addWidget(_registers);
+	_vlayout->addWidget(_next_instr);
 	_vlayout->addWidget(_label);
 	_vlayout->addWidget(_input);
 
@@ -81,6 +83,7 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	connect(_input, SIGNAL(returnPressed()), this, SLOT(writeInput()));
 	connect(_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(close_window()));
 
+	_next_instr->setText("Next Instruction :\n");
 	setCentralWidget(_window);
 	_window->setLayout(_vlayout);
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -127,12 +130,16 @@ void DebugWindow::readOutput()
 										QRegularExpression("B: (?<B>[A-F0-9]{2})  C: (?<C>[A-F0-9]{2})  \\(BC: [A-F0-9]{4}\\)"),
 										QRegularExpression("D: (?<D>[A-F0-9]{2})  E: (?<E>[A-F0-9]{2})  \\(DE: [A-F0-9]{4}\\)"),
 										QRegularExpression("H: (?<H>[A-F0-9]{2})  L: (?<L>[A-F0-9]{2})  \\(HL: [A-F0-9]{4}\\)")};
+	QRegularExpression next("(?<NEXT>[A-F0-9]{2}:[A-F0-9]{4}:  [A-F0-9]{2}.*)$");
 	QList<const char*> regs = {"A", "F", "B", "C", "D", "E", "H", "L"};
 	int x = 0;
-	QRegularExpression r("(A: [A-F0-9]{2}  F: [A-F0-9]{2}  \\(AF: [A-F0-9]{4}\\)\n)?(B: [A-F0-9]{2}  C: [A-F0-9]{2}  \\(BC: [A-F0-9]{4}\\)\n)?(D: [A-F0-9]{2}  E: [A-F0-9]{2}  \\(DE: [A-F0-9]{4}\\)\n)?(H: [A-F0-9]{2}  L: [A-F0-9]{2}  \\(HL: [A-F0-9]{4}\\)\n)?(PC: [A-F0-9]{4}  SP: [A-F0-9]{4}\n)?(ROM: [A-F0-9]{2}  RAM: [A-F0-9]{2}  WRAM: [A-F0-9]{2}  VRAM: [A-F0-9]{2}\n)?(F: \\[[Z-][N-][H-][C-]\\]\n)(?<NOREG>.*)$");
+	QRegularExpression r("(A: [A-F0-9]{2}  F: [A-F0-9]{2}  \\(AF: [A-F0-9]{4}\\)\n)?(B: [A-F0-9]{2}  C: [A-F0-9]{2}  \\(BC: [A-F0-9]{4}\\)\n)?(D: [A-F0-9]{2}  E: [A-F0-9]{2}  \\(DE: [A-F0-9]{4}\\)\n)?(H: [A-F0-9]{2}  L: [A-F0-9]{2}  \\(HL: [A-F0-9]{4}\\)\n)?(PC: [A-F0-9]{4}  SP: [A-F0-9]{4}\n)?(ROM: [A-F0-9]{2}  RAM: [A-F0-9]{2}  WRAM: [A-F0-9]{2}  VRAM: [A-F0-9]{2}\n)?(F: \\[[Z-][N-][H-][C-]\\]\n)?(?<NEXT>[A-F0-9]{2}:[A-F0-9]{4}:  [A-F0-9]{2}[^\n]*)?(?<NOREG>.*)$");
 	r.setPatternOptions(QRegularExpression::MultilineOption | QRegularExpression::DotMatchesEverythingOption);
 	QRegularExpressionMatch m = r.match(output);
 	_label->setText(m.captured("NOREG"));
+	QRegularExpressionMatch mnext = next.match(output);
+	_next_instr->setText("Next Instruction :\n" + mnext.captured("NEXT"));
+
 	while (x < 3)
 	{
 		QRegularExpressionMatch match = res[x].match(output);

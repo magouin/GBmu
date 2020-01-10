@@ -40,6 +40,7 @@ class DebugWindow : public QMainWindow
         QWidget              *_window;
         QWidget              *_registers;
         QList<QSpinBox *>    _regs_values;
+        QLabel               *_next_instr;
 };
 
 #endif // DEBUGWINDOW_H

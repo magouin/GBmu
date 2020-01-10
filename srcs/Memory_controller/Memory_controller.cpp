@@ -11,8 +11,6 @@ void			Memory_controller::write_lcdc(uint8_t value)
 	struct s_lcdc l;
 
 	l = *(struct s_lcdc *)&value;
-	if (!_emu.gb_regs.lcdc.window && l.window)
-		printf("Windowing on flag activated : %x %x\n", _emu.RAM[REG_WX], _emu.RAM[REG_WY]);
 	if (_emu.gb_regs.lcdc.on && !l.on)
 	{
 		_emu.RAM[REG_LY] = 0;
