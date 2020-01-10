@@ -270,6 +270,8 @@ void	Emulateur::cmd_reset(vector<string> param)
 {
 	(void)param;
 	_reset = true;
+	_step_by_step = false;
+	_debug_mode = false;
 }
 
 void	Emulateur::cmd_continue(vector<string> param)
@@ -295,6 +297,22 @@ void	Emulateur::cmd_delete(vector<string> param)
 		return ;
 	_breakpoints.remove_if([id](struct s_break b){ return b.id == id; });
 	_watchpoints.remove_if([id](struct s_watch w){ return w.id == id; });
+}
+
+void	Emulateur::cmd_frame(vector<string> param)
+{
+	(void)param;
+	_exec_frame = true;
+	_step_by_step = false;
+	_debug_mode = false;
+}
+
+void	Emulateur::cmd_second(vector<string> param)
+{
+	(void)param;
+	_exec_second = true;
+	_step_by_step = false;
+	_debug_mode = false;
 }
 
 void	Emulateur::cmd_help(vector<string> param)

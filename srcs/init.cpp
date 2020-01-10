@@ -114,5 +114,8 @@ void Emulateur::emu_init()
 	_reset = false;
 	_trace = 0;
 	_transition = 0;
+
+	_exec_frame = false;
+	_exec_second = false;
 }
 

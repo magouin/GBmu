@@ -261,6 +261,8 @@ class Emulateur {
 		uint8_t		_interrupt_cycle;
 		bool		_exec_current_instr;
 		bool		_debug;
+		bool		_exec_frame;
+		bool		_exec_second;
 
 		struct s_cartridge			_cartridge;
 		Memory_controller			&_MBC;
@@ -459,7 +461,8 @@ class Emulateur {
 		void		cmd_watchpoint(vector<string> param, enum e_right right);
 		void		cmd_write(vector<string> param, uint8_t size);
 		void		cmd_examine(vector<string> param, uint8_t size);
-
+		void		cmd_frame(vector<string> param);
+		void		cmd_second(vector<string> param);
 };
 
 #endif

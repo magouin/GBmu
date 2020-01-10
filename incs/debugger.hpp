@@ -36,7 +36,9 @@
 {"watch/w", TWO, bind(&Emulateur::cmd_watchpoint, this, placeholders::_1, WR)},\
 {"x/1", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 1)},\
 {"x/2", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 2)},\
-{"x/4", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 4)}
+{"x/4", TWO | THREE, bind(&Emulateur::cmd_examine, this, placeholders::_1, 4)}, \
+{"second", ONE, bind(&Emulateur::cmd_second, this, placeholders::_1)}, \
+{"frame", ONE, bind(&Emulateur::cmd_frame, this, placeholders::_1)}
 
 # define USAGE "Generic commands:\n\
 b          Set a breakpoint\n\
@@ -73,7 +75,9 @@ watch/r    Set a read watchpoint\n\
 watch/w    Set a write watchpoint\n\
 x/1        Examine bytes at a specified offset\n\
 x/2        Examine halfwords at a specified offset\n\
-x/4        Examine words at a specified offset\n"
+x/4        Examine words at a specified offset\n\
+second     Second advance\n\
+frame      Frame advance\n"
 
 #endif
 

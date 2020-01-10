@@ -57,6 +57,8 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			input.p15 &= ~IO_START;
 		else if (sym == SDLK_o)
 			input.p15 &= ~IO_SELECT;
+		else if (sym == SDLK_y)
+			_step_by_step = true;
 		else
 			return ;
 		if ((!(gb_regs.p1.select == P14) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(gb_regs.p1.select == P15) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
@@ -119,14 +121,31 @@ void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 
 void	Emulateur::render()
 {
-	static auto								start = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point	now;
-	static uint64_t							x = 0;
-	int										w, h;
-	SDL_Texture								*tmp_texture;
+	static auto										start = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point			now;
+	static std::chrono::system_clock::time_point	exec;
+	static uint64_t									x = 0;
+	int												w, h;
+	SDL_Texture										*tmp_texture;
 
 	x++;
+	if (_exec_frame)
+	{
+		_exec_frame = false;
+		_step_by_step = true;
+	}
 	now = std::chrono::system_clock::now();
+	if (_exec_second)
+	{
+		_exec_second = false;
+		exec = now;
+	}
+	else if (exec != std::chrono::system_clock::time_point() &&
+		std::chrono::duration_cast<std::chrono::milliseconds>(now - exec).count() > 1000)
+	{
+		_step_by_step = true;
+		exec = std::chrono::system_clock::time_point();
+	}
 	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > 1000)
 	{
 		printf("FPS: %lld\n", x);
