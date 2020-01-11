@@ -9,18 +9,20 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	QStringList args = {"-d", fileName};
 	QResource::registerResource("resources.rcc");
 
-	QFile f(":/bin_unix");
 	int x;
 	char tmp[8192];
 	QTemporaryFile file;
 
-	if (!f.exists())
-	{
-		f = QFile(":/bin_win");
-		std::ifstream src(":/dll", std::ios::binary);
-		std::ofstream dst(QDir::tempPath() + "SDL2.dll", std::ios::binary);
-		dst << src.rdbuf();
-	}
+	#ifdef _MSC_VER
+		QFile f(":/bin_win");
+		QFile dll(QDir::tempPath() + "SDL2.dll");
+		while ((x = f.read(tmp, 8192)))
+			dll.write(tmp, x);
+	#endif
+
+	#ifdef __GNUC__
+		QFile f(":/bin_unix");
+	#endif
 	if (!f.exists())
 		exit(2);
 	if (file.open() && f.open(QIODevice::ReadOnly))
