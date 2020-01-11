@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource>
-    <file alias="bin">../Windows/GBmu.exe</file>
+    <file alias="bin_win">../Windows/GBmu.exe</file>
+    <file alias="dll">../Windows/SDL2.dll</file>
 </qresource>
 </RCC>
