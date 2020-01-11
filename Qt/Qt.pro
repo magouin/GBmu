@@ -2,7 +2,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11 -static
+CONFIG += c++11 -static console
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -26,9 +26,11 @@ INC_PATH = $$absolute_path("incs", $$_PRO_FILE_PWD_)
 
 DEFINES += ROM_PATH=\\\"$$ROM_PATH\\\"
 
+win32:DEFINES += "WINDOS=1"
+
 INCLUDEPATH += $$INC_PATH
 
-win:RESOURCES += "$$_PRO_FILE_PWD_/windows_resources.qrc"
+win32:RESOURCES += "$$_PRO_FILE_PWD_/windows_resources.qrc"
 unix:RESOURCES += "$$_PRO_FILE_PWD_/unix_resources.qrc"
 
 SOURCES += \

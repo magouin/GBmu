@@ -1,4 +1,5 @@
 #include <debugwindow.h>
+#include <QDir>
 
 DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	: QMainWindow(parent)
@@ -11,28 +12,48 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 
 	int x;
 	char tmp[8192];
-	QTemporaryFile file;
+	#ifdef WINDOS
+		printf("ca bug\n");
+		QFile src_dll(":/dll");
+		QFile target_dll(QDir::tempPath() + "/SDL2.dll");
+		QTemporaryFile file(QDir::tempPath() + "/GBmu-XXXXXX.exe");
 
-	#ifdef _MSC_VER
+		src_dll.open(QIODevice::ReadOnly);
+		target_dll.open(QIODevice::WriteOnly);
+
+		while ((x = src_dll.read(tmp, 8192)))
+			target_dll.write(tmp, x);
+
+		target_dll.close();
+		src_dll.close();
 		QFile f(":/bin_win");
-		QFile dll(QDir::tempPath() + "SDL2.dll");
-		while ((x = f.read(tmp, 8192)))
-			dll.write(tmp, x);
 	#endif
 
-	#ifdef __GNUC__
+	#ifndef WINDOS
+		QTemporaryFile file(QDir::tempPath() + "/GBmu-XXXXXX");
 		QFile f(":/bin_unix");
 	#endif
+	file.setAutoRemove(false);
 	if (!f.exists())
+	{
+		printf("Exiting 2\n");
 		exit(2);
+	}
 	if (file.open() && f.open(QIODevice::ReadOnly))
 	{
 		file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadOther | QFileDevice::ReadGroup |
 							QFileDevice::ExeOwner | QFileDevice::ExeOther | QFileDevice::ExeGroup);
 		while ((x = f.read(tmp, 8192)))
+		{
+			printf("Writing %d bytes\n", x);
 			file.write(tmp, x);
+		}
 	}
 	file.close();
+	f.close();
+	qDebug() << file.fileName();
+	qDebug() << args;
+
 	_process->start(file.fileName(), args, QIODevice::ReadWrite | QIODevice::Text);
 	_window = new QWidget(this);
 	_registers = new QWidget(_window);
@@ -98,6 +119,7 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	setCentralWidget(_window);
 	_window->setLayout(_vlayout);
 	setAttribute(Qt::WA_DeleteOnClose);
+	printf("error= %u\n", _process->state());
 	_process->waitForStarted(30000);
 }
 
