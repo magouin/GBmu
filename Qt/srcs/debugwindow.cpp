@@ -13,7 +13,6 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	int x;
 	char tmp[8192];
 	#ifdef WINDOS
-		printf("ca bug\n");
 		QFile src_dll(":/dll");
 		QFile target_dll(QDir::tempPath() + "/SDL2.dll");
 		QTemporaryFile file(QDir::tempPath() + "/GBmu-XXXXXX.exe");
@@ -44,17 +43,12 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 		file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadOther | QFileDevice::ReadGroup |
 							QFileDevice::ExeOwner | QFileDevice::ExeOther | QFileDevice::ExeGroup);
 		while ((x = f.read(tmp, 8192)))
-		{
-			printf("Writing %d bytes\n", x);
 			file.write(tmp, x);
-		}
 	}
 	file.close();
 	f.close();
-	qDebug() << file.fileName();
-	qDebug() << args;
 
-	_process->start(file.fileName(), args, QIODevice::ReadWrite | QIODevice::Text);
+	_process->start("C:/Users/maxim/AppData/Local/Temp/GBmu-lPgHOT.exe", args, QIODevice::ReadWrite | QIODevice::Text);
 	_window = new QWidget(this);
 	_registers = new QWidget(_window);
 	_vlayout = new QVBoxLayout(_window);
@@ -159,57 +153,50 @@ void DebugWindow::readOutput()
 	QByteArray output = _process->readAllStandardOutput();
 	uint16_t            parsedValue;
 	bool                ok;
-	QList<QRegularExpression> res = {   QRegularExpression("A: (?<A>[A-F0-9]{2})  F: (?<F>[A-F0-9]{2})  \\(AF: [A-F0-9]{4}\\)"),
-										QRegularExpression("B: (?<B>[A-F0-9]{2})  C: (?<C>[A-F0-9]{2})  \\(BC: [A-F0-9]{4}\\)"),
-										QRegularExpression("D: (?<D>[A-F0-9]{2})  E: (?<E>[A-F0-9]{2})  \\(DE: [A-F0-9]{4}\\)"),
-										QRegularExpression("H: (?<H>[A-F0-9]{2})  L: (?<L>[A-F0-9]{2})  \\(HL: [A-F0-9]{4}\\)")};
+	QList<QRegularExpression> res = {   QRegularExpression("A: (?<A>[A-F0-9]{2})"),
+										QRegularExpression("F: (?<F>[A-F0-9]{2})"),
+										QRegularExpression("B: (?<B>[A-F0-9]{2})"),
+										QRegularExpression("C: (?<C>[A-F0-9]{2})"),
+										QRegularExpression("D: (?<D>[A-F0-9]{2})"),
+										QRegularExpression("E: (?<E>[A-F0-9]{2})"),
+										QRegularExpression("H: (?<H>[A-F0-9]{2})"),
+										QRegularExpression("L: (?<L>[A-F0-9]{2})"),
+										QRegularExpression("PC: (?<PC>[A-F0-9]{4})"),
+										QRegularExpression("SP: (?<SP>[A-F0-9]{4})")};
 	QRegularExpression next("(?<NEXT>[A-F0-9]{2}:[A-F0-9]{4}:  [A-F0-9]{2}.*)$");
-	QList<const char*> regs = {"A", "F", "B", "C", "D", "E", "H", "L"};
+	QList<const char*> regs = {"A", "F", "B", "C", "D", "E", "H", "L", "PC", "SP"};
 	int x = 0;
-	QRegularExpression r("(A: [A-F0-9]{2}  F: [A-F0-9]{2}  \\(AF: [A-F0-9]{4}\\)\n)?(B: [A-F0-9]{2}  C: [A-F0-9]{2}  \\(BC: [A-F0-9]{4}\\)\n)?(D: [A-F0-9]{2}  E: [A-F0-9]{2}  \\(DE: [A-F0-9]{4}\\)\n)?(H: [A-F0-9]{2}  L: [A-F0-9]{2}  \\(HL: [A-F0-9]{4}\\)\n)?(PC: [A-F0-9]{4}  SP: [A-F0-9]{4}\n)?(ROM: [A-F0-9]{2}  RAM: [A-F0-9]{2}  WRAM: [A-F0-9]{2}  VRAM: [A-F0-9]{2}\n)?(F: \\[[Z-][N-][H-][C-]\\]\n)?(?<NEXT>[A-F0-9]{2}:[A-F0-9]{4}:  [A-F0-9]{2}[^\n]*)?(?<NOREG>.*)$");
-	r.setPatternOptions(QRegularExpression::MultilineOption | QRegularExpression::DotMatchesEverythingOption);
-	QRegularExpressionMatch m = r.match(output);
-	_label->setText(m.captured("NOREG"));
+
+	_label->setText(output);
 	QRegularExpressionMatch mnext = next.match(output);
 	_next_instr->setText("Next Instruction :\n" + mnext.captured("NEXT"));
 
-	while (x < 3)
+	while (x < 10)
 	{
 		QRegularExpressionMatch match = res[x].match(output);
 		if (match.hasMatch()) {
-			_regs_values[x * 3]->blockSignals(true);
-			_regs_values[x * 3 + 1]->blockSignals(true);
-			_regs_values[x * 3 + 2]->blockSignals(true);
-			QString qstr = match.captured(regs[x * 2]);
-			parsedValue = qstr.toUInt(&ok, 16);
-			_regs_values[x * 3]->setValue(parsedValue);
-			qstr = match.captured(regs[x * 2 + 1]);
-			parsedValue = parsedValue * 256 + qstr.toUInt(&ok, 16);
-			_regs_values[x * 3 + 1]->setValue(qstr.toUInt(&ok, 16));
-			_regs_values[x * 3 + 2]->setValue(parsedValue);
-			_regs_values[x * 3]->blockSignals(false);
-			_regs_values[x * 3 + 1]->blockSignals(false);
-			_regs_values[x * 3 + 2]->blockSignals(false);
+			_regs_values[x + x / 2]->blockSignals(true);
+			QString qstr = match.captured(regs[x]);
+			_regs_values[x + x / 2]->setValue(qstr.toUInt(&ok, 16));
+			_regs_values[x + x / 2]->blockSignals(false);
+			if (x < 8)
+			{
+				_regs_values[x + x / 2 + 2 - x % 2]->blockSignals(true);
+				parsedValue = _regs_values[x + x / 2 + 2 - x % 2]->value();
+				parsedValue = (x % 2 == 0) ? (parsedValue & 0xff) | (qstr.toUInt(&ok, 16) << 8) :
+					(parsedValue & 0xff00) | (qstr.toUInt(&ok, 16));
+				_regs_values[x + x / 2 + 2 - x % 2]->setValue(parsedValue);
+				_regs_values[x + x / 2 + 2 - x % 2]->blockSignals(false);
+
+			}
 		}
 		x++;
 	}
-	QRegularExpression re("PC: (?<PC>[A-F0-9]{4})  SP: (?<SP>[A-F0-9]{4})");
-		QRegularExpressionMatch match = re.match(output);
-	if (match.hasMatch()) {
-		printf("ici\n");
-		QString qstr = match.captured("PC");
-		_regs_values[12]->blockSignals(true);
-		_regs_values[12]->setValue(qstr.toUInt(&ok, 16));
-		_regs_values[12]->blockSignals(false);
-		qstr = match.captured("SP");
-		_regs_values[13]->blockSignals(true);
-		_regs_values[13]->setValue(qstr.toUInt(&ok, 16));
-		_regs_values[13]->blockSignals(false);
-	}
-}
+} 
 
 void DebugWindow::writeInput()
 {
 	_process->write((_input->text().toStdString() + '\n').c_str());
+	QThread::msleep(50);
 	_input->clear();
 }

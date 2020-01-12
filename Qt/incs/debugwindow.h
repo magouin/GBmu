@@ -15,6 +15,7 @@
 #include <QTemporaryFile>
 #include <QRegularExpression>
 #include <QTextEdit>
+#include <QThread>
 
 #include <hexspinbox.h>
 
