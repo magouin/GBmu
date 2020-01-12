@@ -1,5 +1,7 @@
 #include <Emulateur.hpp>
 
+#define SDL_ERROR_CHECK(x) if ( (r = (x)) ) printf("Error %x -- at line %d -- %s\n", r, __LINE__, SDL_GetError());
+
 void	Emulateur::sdl_init()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -7,7 +9,12 @@ void	Emulateur::sdl_init()
 		fprintf(stderr, "Impossible to initialize SDL: %s\n", SDL_GetError());
 		exit(1);
 	}
+	#ifdef _MSC_VER
+	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_SHOWN)))
+	#endif
+	#ifdef __GNUC__
 	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN)))
+	#endif
 	{
 		fprintf(stderr, "Error on window creation: %s\n", SDL_GetError());
 		exit(1);
@@ -124,7 +131,7 @@ void	Emulateur::render()
 	static auto										start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point			now;
 	static std::chrono::system_clock::time_point	exec;
-	int												w, h;
+	int												w, h, r;
 	static uint64_t									x = 0;
 
 	x++;
@@ -152,9 +159,9 @@ void	Emulateur::render()
 		start = now;
 	}
 	SDL_RenderClear(_renderer);
-	SDL_UpdateTexture(_texture, NULL, _pixels_map, sizeof(uint32_t) * GB_WINDOW_SIZE_X);
+	SDL_ERROR_CHECK(SDL_UpdateTexture(_texture, NULL, _pixels_map, sizeof(uint32_t) * GB_WINDOW_SIZE_X))
 	SDL_GetWindowSize(_window, &w, &h);
 	SDL_Rect rect_window = {0, 0, w, h};
-	SDL_RenderCopy(_renderer, _texture, NULL, &rect_window);
+	SDL_ERROR_CHECK(SDL_RenderCopy(_renderer, _texture, NULL, &rect_window))
 	SDL_RenderPresent(_renderer);
 }
