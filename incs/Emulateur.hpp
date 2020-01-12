@@ -269,7 +269,7 @@ class Emulateur {
 
 		SDL_Window*		_window;
 		SDL_Renderer*	_renderer;
-		SDL_Surface*	_surface;
+		SDL_Texture*	_texture;
 		uint32_t		_pixels_map[GB_WINDOW_SIZE_X * GB_WINDOW_SIZE_Y];
 		vector<bool>	_screen_prio;
 		vector<bool>	_bg_prio;

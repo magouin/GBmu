@@ -48,7 +48,7 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	file.close();
 	f.close();
 
-	_process->start("C:/Users/maxim/AppData/Local/Temp/GBmu-lPgHOT.exe", args, QIODevice::ReadWrite | QIODevice::Text);
+	_process->start(file.fileName(), args, QIODevice::ReadWrite | QIODevice::Text);
 	_window = new QWidget(this);
 	_registers = new QWidget(_window);
 	_vlayout = new QVBoxLayout(_window);
@@ -93,8 +93,6 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	_gridlayout->addWidget(new QLabel(tr("SP:"), _registers), 4, 2);
 	_gridlayout->addWidget(_regs_values[13], 4, 3);
 
-
-
 	_input = new QLineEdit(_window);
 	_next_instr = new QLabel(_window);
 	_label = new QTextEdit(_window);
@@ -113,7 +111,6 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	setCentralWidget(_window);
 	_window->setLayout(_vlayout);
 	setAttribute(Qt::WA_DeleteOnClose);
-	printf("error= %u\n", _process->state());
 	_process->waitForStarted(30000);
 }
 
