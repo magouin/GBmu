@@ -1,6 +1,7 @@
 #include <Emulateur.hpp>
 
 #define SDL_ERROR_CHECK(x) if ( (r = (x)) ) printf("Error %x -- at line %d -- %s\n", r, __LINE__, SDL_GetError());
+#define SDL_ERROR(x) { fprintf(stderr, (x), SDL_GetError()); exit(1); }
 
 void	Emulateur::sdl_init()
 {
@@ -10,25 +11,17 @@ void	Emulateur::sdl_init()
 		exit(1);
 	}
 	#ifdef _MSC_VER
-	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_SHOWN)))
+	if (!(_window = SDL_CreateWindow("GBmu v1.0", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_SHOWN)))
 	#endif
 	#ifdef __GNUC__
-	if (!(_window = SDL_CreateWindow("GBmu v0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN)))
+	if (!(_window = SDL_CreateWindow("GBmu v1.0", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GB_WINDOW_SIZE_X * 4, GB_WINDOW_SIZE_Y * 4, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN)))
 	#endif
-	{
-		fprintf(stderr, "Error on window creation: %s\n", SDL_GetError());
-		exit(1);
-	}
+		SDL_ERROR("Error on window creation: %s\n")
 	if (!(_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)))
-	{
-		fprintf(stderr, "Error on renderer creation: %s\n", SDL_GetError());
-		exit(1);
-	}
+		SDL_ERROR("Error on renderer creation: %s\n")
 	if (!(_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING | SDL_TEXTUREACCESS_TARGET, GB_WINDOW_SIZE_X, GB_WINDOW_SIZE_Y)))
-	{
-		fprintf(stderr, "Error on surface creation: %s\n", SDL_GetError());
-		exit(1);
-	}
+		SDL_ERROR("Error on surface creation: %s\n")
+	SDL_SetWindowMinimumSize(_window, GB_WINDOW_SIZE_X, GB_WINDOW_SIZE_Y);
 }
 
 void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
@@ -64,7 +57,7 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			input.p15 &= ~IO_START;
 		else if (sym == SDLK_o)
 			input.p15 &= ~IO_SELECT;
-		else if (sym == SDLK_y)
+		else if (sym == SDLK_y && _debug)
 			_step_by_step = true;
 		else
 			return ;
@@ -131,7 +124,7 @@ void	Emulateur::render()
 	static auto										start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point			now;
 	static std::chrono::system_clock::time_point	exec;
-	int												w, h, r;
+	int												 r;
 	static uint64_t									x = 0;
 
 	x++;
@@ -158,10 +151,14 @@ void	Emulateur::render()
 		x = 0;
 		start = now;
 	}
+	SDL_DestroyTexture(_texture);
+	if (!(_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING | SDL_TEXTUREACCESS_TARGET, GB_WINDOW_SIZE_X, GB_WINDOW_SIZE_Y)))
+		SDL_ERROR("Error on surface creation: %s\n")
 	SDL_RenderClear(_renderer);
 	SDL_ERROR_CHECK(SDL_UpdateTexture(_texture, NULL, _pixels_map, sizeof(uint32_t) * GB_WINDOW_SIZE_X))
-	SDL_GetWindowSize(_window, &w, &h);
-	SDL_Rect rect_window = {0, 0, w, h};
-	SDL_ERROR_CHECK(SDL_RenderCopy(_renderer, _texture, NULL, &rect_window))
+	// SDL_GetWindowSize(_window, &w, &h);
+	// SDL_Rect rect_window = {0, 0, w, h};
+	SDL_ERROR_CHECK(SDL_RenderCopy(_renderer, _texture, NULL, NULL))
+	// SDL_ERROR_CHECK(SDL_RenderCopy(_renderer, _texture, NULL, &rect_window))
 	SDL_RenderPresent(_renderer);
 }
