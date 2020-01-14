@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->setFixedSize(400,100);
     window = new QWidget(this);
     window->setGeometry(0, 8, 400, 50);
-    setWindowTitle("Gbmu by Vsteffen and Magouin");
+    setWindowTitle("Gbmu by Cde-laro, Jcamhi, Magouin and Vsteffen");
     layout = new QHBoxLayout();
     buttons.append(new QPushButton("Choose ROM", window));
     buttons.append(new QPushButton("Play", window));

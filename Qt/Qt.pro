@@ -2,7 +2,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11 -static console
+CONFIG += c++11 -static
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -52,5 +52,4 @@ TARGET = GBmu
 DESTDIR = "$$_PRO_FILE_PWD_/.."
 
 target.path = $$DESTDIR
-message($$target.path)
 !isEmpty($$target.path): INSTALLS += target
