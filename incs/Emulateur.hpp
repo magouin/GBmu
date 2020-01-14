@@ -259,6 +259,7 @@ class Emulateur {
 
 		uint8_t		_current_instr_cycle;
 		uint8_t		_interrupt_cycle;
+		uint64_t	_cycle_count;
 		bool		_exec_current_instr;
 		bool		_debug;
 		bool		_exec_frame;
@@ -278,7 +279,7 @@ class Emulateur {
 
 		uint32_t								_frequency; // in Hetz
 		bool									_tima_delay_interrupt;
-		std::chrono::system_clock::time_point	_start_time;
+		std::chrono::steady_clock::time_point	_start_time;
 
 		bool		_halt_status;
 		bool		_stop_status;

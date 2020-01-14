@@ -39,7 +39,8 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 			printf("_frequency >> 22: %d -> ", _frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80))));
 			_frequency = (0x400000 << (freq + (cgb.on && (gb_regs.key1 & 0x80))));
 			printf("%d\n", (_frequency >> (22 + (cgb.on && (gb_regs.key1 & 0x80)))));
-			_start_time = std::chrono::system_clock::now();
+			_start_time = std::chrono::steady_clock::now();
+			_cycle_count = 0;
 		}
 		if (sym == SDLK_UP)
 			input.p14 &= ~IO_UP;
@@ -58,7 +59,11 @@ void	Emulateur::fill_input_from_key(SDL_Keycode sym, SDL_EventType t)
 		else if (sym == SDLK_o)
 			input.p15 &= ~IO_SELECT;
 		else if (sym == SDLK_y && _debug)
+		{
+			_cycle_count = 0;
+			_start_time = std::chrono::steady_clock::now();
 			_step_by_step = true;
+		}
 		else
 			return ;
 		if ((!(gb_regs.p1.select == P14) && (sym == SDLK_UP || sym == SDLK_DOWN || sym == SDLK_RIGHT || sym == SDLK_LEFT)) || (!(gb_regs.p1.select == P15) && (sym == SDLK_a || sym == SDLK_b || sym == SDLK_p || sym == SDLK_o)))
@@ -121,9 +126,9 @@ void	Emulateur::set_pixel(uint32_t pixel, uint16_t x, uint16_t y)
 
 void	Emulateur::render()
 {
-	static auto										start = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point			now;
-	static std::chrono::system_clock::time_point	exec;
+	static auto										start = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point			now;
+	static std::chrono::steady_clock::time_point	exec;
 	int												 r;
 	static uint64_t									x = 0;
 
@@ -133,17 +138,17 @@ void	Emulateur::render()
 		_exec_frame = false;
 		_step_by_step = true;
 	}
-	now = std::chrono::system_clock::now();
+	now = std::chrono::steady_clock::now();
 	if (_exec_second)
 	{
 		_exec_second = false;
 		exec = now;
 	}
-	else if (exec != std::chrono::system_clock::time_point() &&
+	else if (exec != std::chrono::steady_clock::time_point() &&
 		std::chrono::duration_cast<std::chrono::milliseconds>(now - exec).count() > 1000)
 	{
 		_step_by_step = true;
-		exec = std::chrono::system_clock::time_point();
+		exec = std::chrono::steady_clock::time_point();
 	}
 	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > 1000)
 	{

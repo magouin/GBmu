@@ -190,25 +190,20 @@ void Emulateur::exec_instr()
 	}
 }
 
-void	Emulateur::cadence()
-{
-	auto		now = std::chrono::system_clock::now();
-	float		time_to_sleep;
-	static bool t = false;
+ void   Emulateur::cadence()
+ {
+        auto            now = std::chrono::steady_clock::now();
+       uint64_t        tmp = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start_time).count();
+       uint64_t        tmp2;
 
-	time_to_sleep = (((float)_cycle / (float)_frequency) * 1000.0 * 1000.0 - (now - _start_time).count());
-	if (time_to_sleep > 0)
-	{
-		SDL_Delay(1);
-		t = true;
-	}
-	else
-		t = false;
-}
+       if ((tmp2 = (uint64_t)(((float)_cycle_count / _frequency) * 1000.0)) > tmp)
+               SDL_Delay((tmp2 - tmp) / 1000);
+       _cycle_count += 256;
+ }
 
 int		Emulateur::main_thread()
 {
-	_start_time = std::chrono::system_clock::now();
+	_start_time = std::chrono::steady_clock::now();
 	while (true)
 	{
 		if (_reset)

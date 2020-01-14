@@ -117,5 +117,6 @@ void Emulateur::emu_init()
 
 	_exec_frame = false;
 	_exec_second = false;
+	_cycle_count = 0;
 }
 

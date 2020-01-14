@@ -272,6 +272,8 @@ void	Emulateur::cmd_reset(vector<string> param)
 	_reset = true;
 	_step_by_step = false;
 	_debug_mode = false;
+	_start_time = std::chrono::steady_clock::now();
+	_cycle_count = 0;
 }
 
 void	Emulateur::cmd_continue(vector<string> param)
@@ -279,6 +281,8 @@ void	Emulateur::cmd_continue(vector<string> param)
 	(void)param;
 	_step_by_step = false;
 	_debug_mode = false;
+	_start_time = std::chrono::steady_clock::now();
+	_cycle_count = 0;
 }
 
 void	Emulateur::cmd_next(vector<string> param)
@@ -313,6 +317,8 @@ void	Emulateur::cmd_second(vector<string> param)
 	_exec_second = true;
 	_step_by_step = false;
 	_debug_mode = false;
+	_start_time = std::chrono::steady_clock::now();
+	_cycle_count = 0;
 }
 
 void	Emulateur::cmd_help(vector<string> param)
