@@ -227,7 +227,8 @@ void	Emulateur::line_round(uint64_t line_cycle, uint8_t ly, bool print)
 			uint8_t hdma5 = _MBC.mem_read(RAM + REG_HDMA5, 1);
 			if (!(hdma5 & 0x80)) {
 				// printf("H Blank DMA\n");
-				_MBC.new_dma(dst_dma, src_dma, 16);
+				if (RAM[REG_HDMA5])
+					_MBC.new_dma(dst_dma, src_dma, 16);
 				RAM[REG_HDMA5]--;
 				dst_dma += 16;
 				src_dma += 16;

@@ -318,6 +318,8 @@ class Emulateur {
 		Emulateur();
 
 		void	emu_init();
+		void	emu_bios_init();
+
 		uint8_t	*init_ROM(string file);
 		const struct s_cv_instr *get_cv_infos(uint8_t opcode) const;
 		void exec_instr();

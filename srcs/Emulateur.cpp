@@ -145,10 +145,7 @@ void	Emulateur::get_instr()
 	const struct s_cv_instr	*cvi;
 
 	if (cgb.bios && regs.PC == 0x100)
-	{
-		cgb.bios = false;
-		memcpy(RAM, ROM, 0x8000);
-	}
+		_reset = true;
 	_instr = &_opcode[_MBC.mem_read(RAM + regs.PC, 1)];
 	if (_instr->opcode == 203)
 		_instr = &_op203[_MBC.mem_read(RAM + regs.PC + 1, 1)];
@@ -241,7 +238,7 @@ int Emulateur::create_main_thread(void *ptr)
 void	Emulateur::emu_start()
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
-	emu_init();
+	emu_bios_init();
 	
 	_main_thread = SDL_CreateThread(&Emulateur::create_main_thread, "main_thread", (void *)this);
 	while (true)
