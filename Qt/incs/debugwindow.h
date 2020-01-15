@@ -25,7 +25,7 @@ class DebugWindow : public QMainWindow
 	public:
         ~DebugWindow();
         DebugWindow(QString fileName, QWidget *parent = nullptr);
-        void reg_update(int, QString, int, int);
+        void reg_update(int, QString, int, int, int);
 
 	public slots:
 		void			readOutput();

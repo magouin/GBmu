@@ -58,11 +58,11 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	for (int x = 0; x < 14; x++)
 	{
 		_regs_values.append(new HexSpinBox(_registers));
-		_regs_values[x]->setRange(0, 256 * ((x % 3 == 2 || x > 11) ? 256 : 1) - 1);
+		_regs_values[x]->setRange(0, 256 * ((x % 3 == 2 || x > 11) ? 256 : 256 * 256) - 1);
 		connect(
 			_regs_values[x],
 			QOverload<int>::of(&HexSpinBox::valueChanged),
-			[=]( int i ) { reg_update( i , regs[x], ((x % 3 == 2 || x > 11) ? 2 : 1), x / 3 * 3 + 2); }
+			[=]( int i ) { reg_update( i , regs[x], ((x % 3 == 2 || x > 11) ? 2 : 1), x / 3 * 3 + 2, x); }
 		);
 	}
 	_gridlayout->addWidget(new QLabel(tr("A:"), _registers), 0, 0);
@@ -120,9 +120,15 @@ void    DebugWindow::close_window()
 	close();
 }
 
-void    DebugWindow::reg_update(int val, QString reg, int size, int reg_id)
+void    DebugWindow::reg_update(int val, QString reg, int size, int reg_id, int x)
 {
-	if (size == 2)
+	if (x > 11)
+	{
+		_regs_values[x]->blockSignals(true);
+		_regs_values[x]->setValue(val);
+		_regs_values[x]->blockSignals(false);	
+	}
+	else if (size == 2)
 	{
 		_regs_values[reg_id - 1]->blockSignals(true);
 		_regs_values[reg_id - 2]->blockSignals(true);
@@ -137,7 +143,6 @@ void    DebugWindow::reg_update(int val, QString reg, int size, int reg_id)
 		_regs_values[reg_id]->setValue(_regs_values[reg_id - 1]->value() | (_regs_values[reg_id - 2]->value() << 8));
 		_regs_values[reg_id]->blockSignals(false);
 	}
-	qDebug() << QString("w/" + QString::number(size) + " ") + reg + QString::number(val);
 	_process->write((QString("w/" + QString::number(size) + " ") + reg + QString::number(val) + '\n').toStdString().c_str());
 }
 
