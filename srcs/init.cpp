@@ -101,7 +101,6 @@ void Emulateur::emu_init()
 	input.p15 = 0xff;
 	_halt_status = false;
 	_stop_status = false;
-	memset(RAM, 0xff, 0x10000);
 	memset(RAM + 0xff00, 0x00, 0x80);
 	memcpy(RAM, ROM, 0x8000);
 	for (int x = 0; x < 0x2000; x++)
