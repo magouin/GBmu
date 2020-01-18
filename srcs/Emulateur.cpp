@@ -70,7 +70,7 @@ void	Emulateur::interrupt_func(short addr, uint8_t iflag)
 	if (_interrupt_cycle == 0)
 	{
 		_transition = 2;
-		_interrupt_cycle = 6;
+		_interrupt_cycle = 5;
 	}
 	_interrupt_cycle--;
 	if (_interrupt_cycle == 0)

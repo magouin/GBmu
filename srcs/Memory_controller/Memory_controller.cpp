@@ -44,16 +44,6 @@ void			Memory_controller::write_scx(uint8_t value)
 void			Memory_controller::write_ly(uint8_t value)
 {
 	(void)value;
-	_emu.RAM[REG_LY] = 0;
-	_emu.lcd_cycle = 0;
-	if (_emu.RAM[REG_LY] == _emu.RAM[REG_LYC])
-	{
-		_emu.gb_regs.stat.match_ly = true;
-		if (_emu.gb_regs.stat.imatch_ly)
-				_emu.gb_regs.iflag.lcdc = true;
-	}
-	else
-		_emu.gb_regs.stat.match_ly = false;
 }
 
 void			Memory_controller::inc_ly(uint8_t ly)

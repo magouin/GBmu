@@ -109,7 +109,7 @@ void Emulateur::emu_init()
 	_frequency = 0x400000;
 	init_registers();
 	gb_regs.vbk.bank = 0;
-	lcd_cycle = 0;
+	lcd_cycle = 12;
 	_interrupt_cycle = 0;
 
 	_test = 0;
