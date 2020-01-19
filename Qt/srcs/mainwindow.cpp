@@ -4,6 +4,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
+    setWindowIcon(QIcon(":/icon"));
     this->setFixedSize(400,100);
     window = new QWidget(this);
     window->setGeometry(0, 8, 400, 50);

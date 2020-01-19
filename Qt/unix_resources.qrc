@@ -2,5 +2,6 @@
 <RCC version="1.0">
 <qresource>
     <file alias="bin_unix">../MacosX/GBmu</file>
+    <file alias="icon">../icon/icon.icns</file>
 </qresource>
 </RCC>

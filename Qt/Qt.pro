@@ -33,6 +33,9 @@ INCLUDEPATH += $$INC_PATH
 win32:RESOURCES += "$$_PRO_FILE_PWD_/windows_resources.qrc"
 unix:RESOURCES += "$$_PRO_FILE_PWD_/unix_resources.qrc"
 
+win32:RC_ICONS = ../icon/icon.ico
+unix:ICON = ../icon/icon.icns
+
 SOURCES += \
     debugwindow.cpp \
     main.cpp \

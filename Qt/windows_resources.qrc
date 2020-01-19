@@ -3,5 +3,6 @@
 <qresource>
     <file alias="bin_win">../Windows/GBmu.exe</file>
     <file alias="dll">../Windows/SDL2.dll</file>
+    <file alias="icon">../icon/icon.icns</file>
 </qresource>
 </RCC>
