@@ -58,7 +58,7 @@ DebugWindow::DebugWindow(QString fileName, QWidget *parent)
 	for (int x = 0; x < 14; x++)
 	{
 		_regs_values.append(new HexSpinBox(_registers));
-		_regs_values[x]->setRange(0, 256 * ((x % 3 == 2 || x > 11) ? 256 : 256 * 256) - 1);
+		_regs_values[x]->setRange(0, 256 * ((x % 3 == 2 || x > 11) ? 256 : 1) - 1);
 		connect(
 			_regs_values[x],
 			QOverload<int>::of(&HexSpinBox::valueChanged),
