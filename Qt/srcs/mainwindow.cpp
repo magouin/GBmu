@@ -41,6 +41,8 @@ void MainWindow::change_file()
 
 void MainWindow::run_emu()
 {
+    if (fileName.isEmpty())
+	   return ;
     if (debug->checkState())
     {
         DebugWindow * debugger = new DebugWindow(fileName, this);
